@@ -1,9 +1,11 @@
 {
   "name": "tina1",
   "version": "1.0.0",
+  "private": true,
   "description": "TINA SaaS workspace",
-  "main": "index.js",
   "scripts": {
+    "postinstall": "npm install --prefix backend",
+    "start": "npm run start --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "build:frontend": "npm run build --prefix frontend",
