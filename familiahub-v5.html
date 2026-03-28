@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FamíliaHub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f3f0;--w:#fff;--t1:#1e1e2e;--t2:#5a5a72;--t3:#9898ae;--bd:#e8e5e0;--mae:#7c6aef;--pai:#2d9cdb;--ped:#27ae60;--sof:#e84393;--vov:#e67e22;--gn:#22c55e;--rd:#ef4444;--am:#f59e0b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#e8e4de;display:flex;justify-content:center;padding:6px;}
+
+.app{width:100%;max-width:1120px;background:var(--bg);border-radius:16px;display:flex;box-shadow:0 16px 50px rgba(0,0,0,0.1);border:3px solid #ccc8c0;height:96vh;overflow:hidden;}
+
+/* ═══ SIDEBAR ═══ */
+.sb{width:62px;background:#faf9f7;border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:1px;flex-shrink:0;}
+.sb-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c6aef,#e84393);display:flex;align-items:center;justify-content:center;font-size:0.9em;margin-bottom:8px;box-shadow:0 2px 8px rgba(124,106,239,0.3);}
+.si{width:50px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:8px;cursor:pointer;transition:all 0.15s;}
+.si:hover,.si.on{background:#f0ece6;}
+.si .ic{font-size:1em;opacity:0.5;}.si.on .ic{opacity:1;}
+.si .lb{font-size:0.48em;color:var(--t3);font-weight:600;}.si.on .lb{color:var(--mae);font-weight:700;}
+.sb-sp{flex:1;}
+
+/* ═══ MAIN ═══ */
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* ═══ TOP BAR ═══ */
+.top-wrap{background:var(--w);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.top-row1{display:flex;align-items:center;gap:10px;padding:10px 16px 4px;}
+.top-row2{display:flex;align-items:center;gap:12px;padding:6px 16px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none;}
+.top-row2::-webkit-scrollbar{display:none;}
+.top-row3{display:flex;align-items:center;gap:8px;padding:6px 16px 8px;}
+
+.wt{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.wt-ic{font-size:1.8em;}
+.wt-t{font-family:'Plus Jakarta Sans';font-size:1.2em;font-weight:800;}
+.wt-d{font-size:0.78em;color:var(--t2);}
+
+.day-badge{padding:6px 16px;border-radius:18px;font-size:0.78em;font-weight:700;flex-shrink:0;white-space:nowrap;margin-left:auto;}
+.day-badge.cheio{background:#fff3e0;color:#e65100;}.day-badge.tranquilo{background:#e8f5e9;color:#2e7d32;}.day-badge.moderado{background:#e3f2fd;color:#1565c0;}
+
+/* Row 2 - People with photos */
+.pf{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:16px;cursor:pointer;border:2.5px solid transparent;background:var(--bg);flex-shrink:0;transition:all 0.2s;}
+.pf:hover{background:#ede9e4;}
+.pf.on{background:var(--w);box-shadow:0 2px 10px rgba(0,0,0,0.07);}
+.pf.on[data-m="gestor"]{border-color:var(--t1);}.pf.on[data-m="mae"]{border-color:var(--mae);}.pf.on[data-m="pai"]{border-color:var(--pai);}.pf.on[data-m="pedro"]{border-color:var(--ped);}.pf.on[data-m="sofia"]{border-color:var(--sof);}
+
+.av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85em;color:white;font-weight:800;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);overflow:hidden;background-size:cover;background-position:center;}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+
+.pf-info{display:flex;flex-direction:column;}
+.pf-n{font-family:'Plus Jakarta Sans';font-size:0.82em;font-weight:700;color:var(--t1);line-height:1.2;display:flex;align-items:center;gap:4px;}
+.pf-s{font-size:0.65em;color:var(--t3);font-weight:600;}
+.pf-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.15);}
+
+.add-person{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;border:2px dashed var(--bd);background:transparent;cursor:pointer;font-size:1.2em;color:var(--t3);flex-shrink:0;transition:all 0.2s;}
+.add-person:hover{background:var(--bg);border-color:var(--mae);color:var(--mae);}
+
+/* Row 3 - date nav */
+.date-nav{display:flex;align-items:center;gap:8px;}
+.date-nav .ar{width:28px;height:28px;border:1px solid var(--bd);border-radius:8px;background:var(--w);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.85em;transition:background 0.15s;}
+.date-nav .ar:hover{background:var(--bg);}
+.date-nav .rng{font-family:'Plus Jakarta Sans';font-size:0.95em;font-weight:800;}
+.date-vt{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:3px;margin-left:auto;}
+.date-vt button{padding:5px 14px;border:none;background:transparent;font-family:'DM Sans';font-size:0.78em;font-weight:700;color:var(--t3);border-radius:8px;cursor:pointer;transition:all 0.15s;}
+.date-vt button.on{background:var(--w);color:var(--t1);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+
+/* ═══ CONTENT ═══ */
+.ct{flex:1;overflow-y:auto;padding:10px 12px;}
+
+/* SHARED */
+.card{background:var(--w);border-radius:12px;padding:12px;border:1px solid var(--bd);margin-bottom:8px;}
+.card-t{font-family:'Plus Jakarta Sans';font-size:0.75em;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row{display:flex;align-items:center;gap:6px;}
+
+/* Hide/show */
+.tab{display:none;}.tab.on{display:block;}
+.pview{display:none;}.pview.on{display:block;}
+
+/* ═══ TASK ITEM ═══ */
+.ti{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bd);font-size:0.78em;}
+.ti:last-child{border:none;}
+.ck{width:18px;height:18px;border-radius:5px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.55em;flex-shrink:0;transition:all 0.15s;}
+.ck.d{border-color:var(--gn);background:var(--gn);color:white;}
+.tl{flex:1;font-weight:500;}.tl.d{text-decoration:line-through;color:var(--t3);}
+.tp{font-size:0.85em;color:var(--am);font-weight:700;flex-shrink:0;}
+.tt{font-size:0.7em;padding:1px 5px;border-radius:3px;background:var(--bg);color:var(--t3);font-weight:600;flex-shrink:0;}
+
+/* INLINE EDIT BTN */
+.ib{padding:3px 7px;border-radius:5px;border:1px dashed var(--bd);background:transparent;font-size:0.62em;font-weight:700;color:var(--t3);cursor:pointer;transition:all 0.15s;}
+.ib:hover{background:#eef0ff;border-color:var(--mae);color:var(--mae);}
+
+/* ═══ TRACKING ═══ */
+.at-box{background:var(--bg);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.at-ic{font-size:1.1em;flex-shrink:0;}
+.at-if{flex:1;min-width:0;}
+.at-cat{font-size:0.6em;color:var(--t3);font-weight:600;text-transform:uppercase;}
+.at-nm{font-family:'Plus Jakarta Sans';font-weight:700;font-size:0.85em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.at-tmr{font-family:'Plus Jakarta Sans';font-size:1.2em;font-weight:800;flex-shrink:0;}
+.ctrls{display:flex;gap:3px;margin-bottom:8px;}
+.cb{border:none;border-radius:7px;padding:5px 10px;font-family:'DM Sans';font-size:0.7em;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;}
+.cb-gn{background:#dcfce7;color:#16a34a;}.cb-yl{background:#fef3c7;color:#d97706;}.cb-rd{background:#fee2e2;color:#dc2626;}.cb-bl{background:#dbeafe;color:#2563eb;}
+.sel{width:100%;padding:6px 8px;border:1.5px solid var(--bd);border-radius:7px;font-family:'DM Sans';font-size:0.75em;font-weight:600;color:var(--t1);background:var(--w);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239898ae' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;margin-bottom:4px;}
+.sel:focus{outline:none;border-color:var(--mae);}
+
+/* LOG */
+.lg{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid var(--bd);font-size:0.72em;}
+.lg:last-child{border:none;}
+.lg-d{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.lg-n{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lg-t{color:var(--t3);flex-shrink:0;}.lg-v{font-family:'Plus Jakarta Sans';font-weight:700;flex-shrink:0;}
+
+/* CALENDAR */
+.mbars{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;}
+.mb{height:24px;border-radius:8px;display:flex;align-items:center;padding:0 8px;gap:4px;color:white;font-size:0.65em;font-weight:700;flex:1;min-width:0;}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bd);border-radius:12px;border:1px solid var(--bd);overflow:hidden;}
+.cd{background:var(--w);padding:6px;min-height:110px;transition:background 0.2s;}
+.cd-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.cd-n{font-family:'Plus Jakarta Sans';font-size:0.68em;font-weight:700;color:var(--t2);}.cd-d{font-family:'Plus Jakarta Sans';font-size:0.85em;font-weight:800;}
+.cd.today{background:#fffbeb;}.cd.today .cd-n{color:var(--am);}.cd.today .cd-d{background:var(--am);color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.72em;}
+.cd-c{font-size:0.58em;color:var(--t3);margin-bottom:3px;}
+.ce{padding:3px 6px;border-radius:6px;margin-bottom:2px;font-size:0.62em;border-left:3px solid transparent;transition:opacity 0.15s;cursor:pointer;}
+.ce:hover{opacity:0.75;}
+.ce-t{font-weight:700;}.ce-m{color:var(--t3);}
+.ce-mae{background:#f0edff;border-left-color:var(--mae);}.ce-pai{background:#e8f4fd;border-left-color:var(--pai);}.ce-ped{background:#e8f8f0;border-left-color:var(--ped);}.ce-sof{background:#ffeef2;border-left-color:var(--sof);}.ce-all{background:#f5f5f8;border-left-color:#999;}
+
+/* MEAL */
+.ml{background:var(--w);border-radius:10px;padding:8px;border:1px solid var(--bd);text-align:center;}
+.ml-d{font-size:0.6em;font-weight:700;color:var(--t3);text-transform:uppercase;}.ml-i{font-size:1.2em;}.ml-n{font-size:0.7em;font-weight:600;margin-top:2px;}.ml-m{font-size:0.6em;color:var(--sof);font-weight:600;margin-top:2px;}
+
+/* REWARDS */
+.rw{background:var(--bg);border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.rw:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,0.04);}
+.rw-i{font-size:1.2em;}.rw-n{font-size:0.65em;font-weight:700;margin-top:2px;}.rw-c{font-size:0.6em;font-weight:800;margin-top:1px;}
+.rw-add{border:1.5px dashed var(--bd);background:transparent;}
+
+/* GESTOR CARDS */
+.gt{background:var(--w);border-radius:10px;padding:10px;border:1px solid var(--bd);}
+.gt-h{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.gt-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:0.55em;}
+.gt-nm{font-family:'Plus Jakarta Sans';font-weight:700;font-size:0.8em;flex:1;}
+.gt-st{font-size:0.6em;font-weight:700;padding:2px 6px;border-radius:4px;}
+.gt-task{font-size:0.78em;font-weight:600;}.gt-tmr{font-family:'Plus Jakarta Sans';font-size:1em;font-weight:800;}
+.gt-tot{font-size:0.65em;color:var(--t3);margin-top:3px;}
+
+/* PROGRESS BAR */
+.pb{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.pb-l{font-size:0.72em;font-weight:600;width:65px;flex-shrink:0;}
+.pb-b{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.pb-f{height:100%;border-radius:4px;}
+.pb-v{font-family:'Plus Jakarta Sans';font-size:0.7em;font-weight:700;width:32px;text-align:right;flex-shrink:0;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--w);border-radius:16px;padding:20px;width:90%;max-width:420px;max-height:80vh;overflow-y:auto;}
+.modal h3{font-family:'Plus Jakarta Sans';font-size:1em;font-weight:800;margin-bottom:12px;}
+.modal-close{float:right;background:var(--bg);border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-weight:700;}
+.modal input,.modal textarea{width:100%;padding:8px;border:1.5px solid var(--bd);border-radius:8px;font-family:'DM Sans';font-size:0.85em;margin-bottom:8px;}
+.modal .save-btn{background:var(--mae);color:white;border:none;border-radius:8px;padding:8px 20px;font-family:'DM Sans';font-weight:700;cursor:pointer;width:100%;}
+.day-btn{padding:6px 12px;border-radius:10px;border:2px solid var(--bd);background:var(--w);font-family:'DM Sans';font-size:0.75em;font-weight:700;color:var(--t3);cursor:pointer;transition:all 0.15s;}
+.day-btn.on{background:var(--mae);color:white;border-color:var(--mae);}
+.day-btn:hover:not(.on){background:var(--bg);}
+
+@media(max-width:768px){.sb{width:46px;}.sb .lb{display:none;}.cg{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sb">
+  <div class="sb-logo">🏠</div>
+  <div class="si on" onclick="switchTab('cal',this)"><span class="ic">📅</span><span class="lb">Agenda</span></div>
+  <div class="si" onclick="switchTab('tasks',this)"><span class="ic">☑️</span><span class="lb">Tarefas</span></div>
+  <div class="si" onclick="switchTab('time',this)"><span class="ic">⏱️</span><span class="lb">Tempo</span></div>
+  <div class="si" onclick="switchTab('rewards',this)"><span class="ic">🌟</span><span class="lb">Prêmios</span></div>
+  <div class="si" onclick="switchTab('meals',this)"><span class="ic">🍴</span><span class="lb">Refeições</span></div>
+  <div class="si" onclick="switchTab('charts',this)"><span class="ic">📈</span><span class="lb">Gráficos</span></div>
+  <div class="sb-sp"></div>
+  <div class="si" onclick="openModal('settings')"><span class="ic">⚙️</span><span class="lb">Config</span></div>
+</div>
+
+<div class="mn">
+  <!-- ═══ TOP BAR — 3 ROWS ═══ -->
+  <div class="top-wrap">
+    <!-- Row 1: Weather + Badge -->
+    <div class="top-row1">
+      <div class="wt">
+        <span class="wt-ic">🌤️</span>
+        <div><div class="wt-t">28°C</div><div class="wt-d">Qua, 26 Mar · 14:35</div></div>
+      </div>
+      <div class="day-badge cheio">📌 Dia cheio</div>
+    </div>
+
+    <!-- Row 2: People with photos -->
+    <div class="top-row2">
+      <div class="pf on" data-m="gestor" onclick="switchProf('gestor',this)">
+        <div class="av" style="background:linear-gradient(135deg,#333,#666);">👑</div>
+        <div class="pf-info"><div class="pf-n">Gestor</div><div class="pf-s">Visão geral</div></div>
+      </div>
+      <div class="pf" data-m="mae" onclick="switchProf('mae',this)">
+        <div class="av" style="background-image:url('https://i.pravatar.cc/84?img=47');background-size:cover;"><span style="display:none;">M</span></div>
+        <div class="pf-info"><div class="pf-n">Mamãe <div class="pf-dot" style="background:var(--gn);"></div></div><div class="pf-s">3/5 tarefas</div></div>
+      </div>
+      <div class="pf" data-m="pai" onclick="switchProf('pai',this)">
+        <div class="av" style="background-image:url('https://i.pravatar.cc/84?img=68');background-size:cover;"><span style="display:none;">P</span></div>
+        <div class="pf-info"><div class="pf-n">Papai <div class="pf-dot" style="background:var(--am);"></div></div><div class="pf-s">2/4 tarefas</div></div>
+      </div>
+      <div class="pf" data-m="pedro" onclick="switchProf('pedro',this)">
+        <div class="av" style="background-image:url('https://i.pravatar.cc/84?img=59');background-size:cover;"><span style="display:none;">Pe</span></div>
+        <div class="pf-info"><div class="pf-n">Pedro <div class="pf-dot" style="background:var(--gn);"></div></div><div class="pf-s">5/6 · ⭐186</div></div>
+      </div>
+      <div class="pf" data-m="sofia" onclick="switchProf('sofia',this)">
+        <div class="av" style="background-image:url('https://i.pravatar.cc/84?img=44');background-size:cover;"><span style="display:none;">S</span></div>
+        <div class="pf-info"><div class="pf-n">Sofia <div class="pf-dot" style="background:var(--sof);"></div></div><div class="pf-s">6/6 ✓ · ⭐143</div></div>
+      </div>
+      <div class="pf" data-m="vovo" style="opacity:0.7;">
+        <div class="av" style="background-image:url('https://i.pravatar.cc/84?img=32');background-size:cover;"><span style="display:none;">V</span></div>
+        <div class="pf-info"><div class="pf-n">Vovó</div><div class="pf-s">0/2 tarefas</div></div>
+      </div>
+      <button class="add-person" onclick="openModal('add-person')">+</button>
+    </div>
+
+    <!-- Row 3: Date navigation -->
+    <div class="top-row3">
+      <div class="date-nav">
+        <div class="ar">‹</div>
+        <span class="rng">24 — 30 Março</span>
+        <div class="ar">›</div>
+      </div>
+      <div class="date-vt">
+        <button class="on">Semanal</button>
+        <button>Mensal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT ═══ -->
+  <div class="ct" id="content-area"></div>
+</div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- NOVA TAREFA (com recorrência) -->
+<div class="modal-bg" id="modal-task" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>➕ Nova Tarefa</h3>
+    <input placeholder="Nome da tarefa" id="task-name" />
+    <select class="sel"><option>Manhã</option><option>Tarde</option><option>Noite</option><option>Qualquer horário</option></select>
+    <input placeholder="Pontos / estrelas (ex: 5)" type="number" />
+    <div style="font-size:0.75em;font-weight:700;color:var(--t3);margin:8px 0 4px;">📅 Repetição:</div>
+    <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Seg</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Ter</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Qua</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Qui</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Sex</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Sáb</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Dom</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button class="ib" onclick="this.closest('.modal').querySelectorAll('.day-btn').forEach(b=>b.classList.add('on'))">Todos os dias</button>
+      <button class="ib" onclick="this.closest('.modal').querySelectorAll('.day-btn').forEach(b=>b.classList.remove('on'))">Única vez</button>
+      <button class="ib" onclick="this.closest('.modal').querySelectorAll('.day-btn').forEach((b,i)=>i<5?b.classList.add('on'):b.classList.remove('on'))">Seg–Sex</button>
+    </div>
+    <button class="save-btn">Salvar Tarefa</button>
+    <div style="margin-top:12px;font-size:0.78em;color:var(--t3);font-weight:600;">💡 Sugestões prontas:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Arrumar a cama</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Escovar dentes</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Tomar banho</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Lição de casa</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Guardar brinquedos</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Tirar a mesa</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Pendurar toalha</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Juntar roupas</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Ajudar na cozinha</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Ler 15 minutos</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Movimentar o corpo</span>
+      <span class="ib" onclick="document.getElementById('task-name').value=this.textContent">Cuidar do pet</span>
+    </div>
+  </div>
+</div>
+
+<!-- NOVO EVENTO (com recorrência) -->
+<div class="modal-bg" id="modal-event" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>📅 Novo Evento</h3>
+    <input placeholder="Nome do evento (ex: Pediatra)" />
+    <div style="display:flex;gap:6px;">
+      <div style="flex:1;"><div style="font-size:0.68em;font-weight:700;color:var(--t3);margin-bottom:3px;">Início</div><input type="time" class="sel" value="09:00" /></div>
+      <div style="flex:1;"><div style="font-size:0.68em;font-weight:700;color:var(--t3);margin-bottom:3px;">Fim</div><input type="time" class="sel" value="10:00" /></div>
+    </div>
+    <div style="font-size:0.68em;font-weight:700;color:var(--t3);margin:8px 0 3px;">👤 Quem participa:</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Mamãe</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Papai</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Pedro</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Sofia</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Vovó</button>
+    </div>
+    <div style="font-size:0.68em;font-weight:700;color:var(--t3);margin:8px 0 3px;">🔄 Tipo:</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;">
+      <button class="ib" style="flex:1;text-align:center;padding:8px;" onclick="this.style.background='#eef0ff';this.style.borderColor='var(--mae)';this.nextElementSibling.style.background='';this.nextElementSibling.style.borderColor='';document.getElementById('event-days').style.display='none';">📌 Único</button>
+      <button class="ib" style="flex:1;text-align:center;padding:8px;" onclick="this.style.background='#eef0ff';this.style.borderColor='var(--mae)';this.previousElementSibling.style.background='';this.previousElementSibling.style.borderColor='';document.getElementById('event-days').style.display='flex';">🔄 Repetido</button>
+    </div>
+    <div id="event-days" style="display:none;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+      <div style="font-size:0.68em;font-weight:700;color:var(--t3);margin-bottom:3px;width:100%;">Repete em quais dias:</div>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Seg</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Ter</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Qua</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Qui</button>
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Sex</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Sáb</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Dom</button>
+      <div style="display:flex;gap:4px;margin-top:4px;width:100%;">
+        <button class="ib" onclick="this.closest('#event-days').querySelectorAll('.day-btn').forEach(b=>b.classList.add('on'))">Todos</button>
+        <button class="ib" onclick="this.closest('#event-days').querySelectorAll('.day-btn').forEach((b,i)=>i<5?b.classList.add('on'):b.classList.remove('on'))">Seg–Sex</button>
+      </div>
+    </div>
+    <input placeholder="Local (opcional)" />
+    <select class="sel"><option>Sem cor específica</option><option style="color:#7c6aef;">🟣 Mamãe</option><option style="color:#2d9cdb;">🔵 Papai</option><option style="color:#27ae60;">🟢 Pedro</option><option style="color:#e84393;">🩷 Sofia</option></select>
+    <button class="save-btn">Salvar Evento</button>
+  </div>
+</div>
+
+<!-- NOVA CATEGORIA -->
+<div class="modal-bg" id="modal-new-cat" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>📂 Nova Categoria</h3>
+    <div style="font-size:0.78em;color:var(--t3);margin-bottom:10px;">Crie uma categoria personalizada pro tracking de tempo.</div>
+    <input placeholder="Emoji (ex: 🎨, 📐, 🏋️)" />
+    <input placeholder="Nome da categoria (ex: Artesanato)" />
+    <div style="font-size:0.75em;font-weight:700;color:var(--t3);margin:8px 0 4px;">Subcategorias (opcional):</div>
+    <input placeholder="Subcategoria 1 (ex: Pintura)" />
+    <input placeholder="Subcategoria 2 (ex: Costura)" />
+    <input placeholder="Subcategoria 3" />
+    <button class="ib" style="width:100%;text-align:center;margin-bottom:8px;">➕ Mais subcategoria</button>
+    <div style="font-size:0.75em;font-weight:700;color:var(--t3);margin:4px 0;">Visível para:</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="day-btn on" onclick="this.classList.toggle('on')">Todos</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Mamãe</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Papai</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Pedro</button>
+      <button class="day-btn" onclick="this.classList.toggle('on')">Sofia</button>
+    </div>
+    <button class="save-btn">Criar Categoria</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-cat" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>✏️ Editar Categorias</h3>
+    <div style="font-size:0.8em;margin-bottom:8px;">
+      <div class="ti"><span class="tl">💼 Trabalho</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">🏠 Casa</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">👨‍👩‍👧‍👦 Família</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">🧘 Pessoal</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">😴 Descanso</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">🚗 Deslocamento</span><button class="ib">✏️</button></div>
+    </div>
+    <input placeholder="Nova categoria..." />
+    <button class="save-btn">Adicionar Categoria</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-sub" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>🏢 Editar Empresas / Subcategorias</h3>
+    <div style="font-size:0.8em;margin-bottom:8px;">
+      <div class="ti"><span class="tl">S7 Strategy — Campanhas</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">S7 Strategy — Criativos</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">S7 Strategy — Relatórios</span><button class="ib">✏️</button></div>
+      <div class="ti"><span class="tl">Freelance</span><button class="ib">✏️</button></div>
+    </div>
+    <input placeholder="Nova empresa ou subcategoria..." />
+    <button class="save-btn">Adicionar</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-reward" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>🎁 Nova Recompensa</h3>
+    <input placeholder="Nome (ex: Festa do pijama)" />
+    <input placeholder="Emoji (ex: 🎀)" />
+    <select class="sel"><option>⭐6 — Escolhas do Dia</option><option>⭐8 — Especiais</option><option>⭐12 — Super</option></select>
+    <button class="save-btn">Salvar Recompensa</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-settings" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>⚙️ Configurações</h3>
+    <div style="font-size:0.82em;">
+      <div class="ti"><span class="tl">👥 Gerenciar membros</span><button class="ib">Editar</button></div>
+      <div class="ti"><span class="tl">🎨 Tema e cores</span><button class="ib">Editar</button></div>
+      <div class="ti"><span class="tl">🔔 Notificações</span><button class="ib">Editar</button></div>
+      <div class="ti"><span class="tl">📱 Modo tablet (kiosk)</span><button class="ib">Ativar</button></div>
+      <div class="ti"><span class="tl">💳 Assinatura</span><button class="ib">Ver plano</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-add-person" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>👤 Adicionar Pessoa</h3>
+    <div style="text-align:center;margin-bottom:12px;">
+      <div style="width:72px;height:72px;border-radius:50%;border:2.5px dashed var(--bd);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:1.8em;cursor:pointer;color:var(--t3);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--mae)'" onmouseout="this.style.borderColor='var(--bd)'">📷</div>
+      <div style="font-size:0.72em;color:var(--t3);margin-top:4px;">Toque pra adicionar foto</div>
+    </div>
+    <input placeholder="Nome (ex: Vovó Maria)" />
+    <select class="sel">
+      <option value="">Grau de parentesco...</option>
+      <option>Mãe</option>
+      <option>Pai</option>
+      <option>Filho(a)</option>
+      <option>Avô/Avó</option>
+      <option>Tio(a)</option>
+      <option>Padrasto/Madrasta</option>
+      <option>Outro</option>
+    </select>
+    <select class="sel">
+      <option value="">Tipo de perfil...</option>
+      <option>Adulto (gerencia tarefas)</option>
+      <option>Criança (recebe tarefas + estrelas)</option>
+      <option>Observador (só visualiza)</option>
+    </select>
+    <input placeholder="Idade (opcional)" type="number" />
+    <div style="margin:8px 0;">
+      <div style="font-size:0.75em;font-weight:700;color:var(--t3);margin-bottom:6px;">Cor do perfil:</div>
+      <div style="display:flex;gap:6px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:#7c6aef;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#2d9cdb;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#27ae60;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#e84393;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#e67e22;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#e74c3c;cursor:pointer;border:2px solid transparent;" onclick="this.parentElement.querySelectorAll('div').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='var(--t1)'"></div>
+      </div>
+    </div>
+    <button class="save-btn" style="margin-top:8px;">Adicionar à Família</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-add-fav" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>⭐ Novo Favorito</h3>
+    <div style="font-size:0.78em;color:var(--t3);margin-bottom:8px;">Crie um atalho rápido pra iniciar essa atividade com 1 toque.</div>
+    <input id="fav-icon" placeholder="Emoji (ex: 💼, 🧘, 🏠)" value="⭐" />
+    <input id="fav-label" placeholder="Nome curto (ex: Trabalho, Yoga)" />
+    <select class="sel" id="fav-cat">
+      <option value="💼 Trabalho">💼 Trabalho</option>
+      <option value="🏠 Casa">🏠 Casa</option>
+      <option value="👨‍👩‍👧‍👦 Família">👨‍👩‍👧‍👦 Família</option>
+      <option value="🧘 Pessoal">🧘 Pessoal</option>
+      <option value="🏫 Escola">🏫 Escola</option>
+      <option value="😴 Descanso">😴 Descanso</option>
+      <option value="🚗 Deslocamento">🚗 Deslocamento</option>
+      <option value="🎮 Lazer">🎮 Lazer</option>
+      <option value="📚 Estudo">📚 Estudo</option>
+    </select>
+    <input id="fav-sub" placeholder="Subcategoria (ex: S7 Strategy, Yoga, Limpeza)" />
+    <button class="save-btn" onclick="addFavFromModal()">Adicionar Favorito</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-manage-fav" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-bg').classList.remove('on')">✕</button>
+    <h3>⭐ Gerenciar Favoritos</h3>
+    <div style="font-size:0.78em;color:var(--t3);margin-bottom:10px;">Arraste pra reordenar, ✕ pra remover. Cada pessoa tem seus próprios favoritos.</div>
+    <div id="fav-list-manage"></div>
+    <button class="save-btn" style="margin-top:10px;" onclick="openModal('add-fav');this.closest('.modal-bg').classList.remove('on');">➕ Adicionar novo favorito</button>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+
+// Calendar events - each has members array for filtering
+const calEvents = {
+  seg: [
+    {t:'🏫 Escola',h:'07–12h',m:['pedro','sofia'],cls:'ce-ped'},
+    {t:'🧘 Yoga',h:'09h',m:['mae'],cls:'ce-mae'},
+    {t:'💼 Reunião',h:'14h',m:['pai'],cls:'ce-pai'},
+    {t:'⚽ Futebol',h:'16h',m:['pedro'],cls:'ce-ped'}
+  ],
+  ter: [
+    {t:'🏫 Escola',h:'07–12h',m:['pedro','sofia'],cls:'ce-ped'},
+    {t:'🏥 Pediatra',h:'14h',m:['mae','sofia'],cls:'ce-mae'},
+    {t:'💃 Ballet',h:'15h',m:['sofia'],cls:'ce-sof'}
+  ],
+  qua: [
+    {t:'🏫 Escola',h:'07–12h',m:['pedro','sofia'],cls:'ce-ped'},
+    {t:'🧘 Yoga',h:'09h',m:['mae'],cls:'ce-mae'},
+    {t:'💃 Ballet',h:'15h',m:['sofia','mae'],cls:'ce-sof'},
+    {t:'🏫 Reunião escola',h:'19h',m:['mae','pai'],cls:'ce-all'}
+  ],
+  qui: [
+    {t:'🏫 Escola',h:'07–12h',m:['pedro','sofia'],cls:'ce-ped'},
+    {t:'🥋 Jiu-jitsu',h:'19:30',m:['pai'],cls:'ce-pai'}
+  ],
+  sex: [
+    {t:'🏫 Escola',h:'07–12h',m:['pedro','sofia'],cls:'ce-ped'},
+    {t:'🎬 Filme',h:'20h',m:['mae','pai','pedro','sofia'],cls:'ce-all'}
+  ],
+  sab: [
+    {t:'⚽ Jogo',h:'09h',m:['pedro','pai'],cls:'ce-ped'},
+    {t:'🛒 Feira',h:'08h',m:['mae'],cls:'ce-mae'},
+    {t:'🍕 Almoço vovó',h:'12h',m:['mae','pai','pedro','sofia'],cls:'ce-all'}
+  ],
+  dom: [
+    {t:'⛪ Missa',h:'10h',m:['mae'],cls:'ce-all'},
+    {t:'🏖️ Parque',h:'15h',m:['mae','pai','pedro','sofia'],cls:'ce-all'}
+  ]
+};
+
+const weekDays = [
+  {key:'seg',name:'Seg',num:'24'},
+  {key:'ter',name:'Ter',num:'25'},
+  {key:'qua',name:'Qua',num:'26',today:true},
+  {key:'qui',name:'Qui',num:'27'},
+  {key:'sex',name:'Sex',num:'28'},
+  {key:'sab',name:'Sáb',num:'29'},
+  {key:'dom',name:'Dom',num:'30'}
+];
+
+const members = {
+  gestor: { name:'Gestor', color:'#333' },
+  mae: { name:'Mamãe', color:'#7c6aef', 
+    favorites: [
+      {icon:'💼',label:'Trabalho',cat:'💼 Trabalho',sub:'S7 Strategy',detail:'Campanhas'},
+      {icon:'🧘',label:'Yoga',cat:'🧘 Pessoal',sub:'Yoga'},
+      {icon:'🧹',label:'Limpeza',cat:'🏠 Casa',sub:'Limpeza'},
+      {icon:'🍳',label:'Cozinha',cat:'🏠 Casa',sub:'Cozinha'},
+      {icon:'🚗',label:'Levar kids',cat:'🚗 Deslocamento',sub:'Escola'},
+      {icon:'👶',label:'Filhos',cat:'👨‍👩‍👧‍👦 Família',sub:'Filhos'},
+    ],
+    workSubs: [
+      {empresa:'S7 Strategy',atividades:['Campanhas','Criativos','Relatórios','Reunião']},
+      {empresa:'Freelance',atividades:['Projeto avulso','Consultoria']},
+      {empresa:'Estudo',atividades:['Curso','Leitura','Pesquisa']}
+    ],
+    tasks:[
+      {t:'Yoga matinal',done:true,tag:'Manhã'},{t:'Preparar marmitas',done:true,tag:'Manhã'},{t:'Lavar roupas',done:true,tag:'Manhã'},{t:'Pagar conta de luz',done:false,tag:'Tarde'},{t:'Comprar presente vovó',done:false,tag:'Tarde'}
+    ], tracking:{active:true,cat:'💼 Trabalho',sub:'S7 Strategy',detail:'Campanhas',timer:'02:14:32',log:[
+      {n:'🧘 Yoga',t:'06:30–07:30',d:'1h00'},{n:'🚗 Levar kids',t:'07:45–08:15',d:'0h30'},{n:'🧹 Limpeza',t:'08:20–09:00',d:'0h40'},{n:'🍳 Marmitas',t:'09:05–09:50',d:'0h45'},{n:'💼 Trabalho — S7 Strategy — Campanhas',t:'12:20–agora',d:'2h14 ▶️',active:true}
+    ],total:'5h09'}},
+  pai: { name:'Papai', color:'#2d9cdb',
+    favorites: [
+      {icon:'💼',label:'Freelance',cat:'💼 Trabalho',sub:'Freelance',detail:'Projeto'},
+      {icon:'🔧',label:'Manutenção',cat:'🏠 Casa',sub:'Manutenção'},
+      {icon:'🥋',label:'Jiu-jitsu',cat:'🧘 Pessoal',sub:'Jiu-jitsu'},
+      {icon:'🚗',label:'Levar kids',cat:'🚗 Deslocamento',sub:'Escola'},
+    ],
+    workSubs: [
+      {empresa:'Freelance',atividades:['Projeto','Reunião','Proposta']},
+    ],
+    tasks:[
+      {t:'Levar kids na escola',done:true,tag:'Manhã'},{t:'Consertar torneira',done:true,tag:'Tarde'},{t:'Buscar Pedro futebol',done:false,tag:'Tarde'},{t:'Limpar churrasqueira',done:false,tag:'Noite'}
+    ], tracking:{active:false,paused:true,cat:'💼 Trabalho',sub:'Freelance',detail:'Projeto',timer:'01:45:10',log:[
+      {n:'🚗 Levar kids',t:'07:30–08:00',d:'0h30'},{n:'💼 Freelance — Projeto',t:'08:15–10:00',d:'1h45'},{n:'🔧 Torneira',t:'10:10–10:50',d:'0h40'},{n:'🍽️ Almoço',t:'12:00–agora',d:'⏸'}
+    ],total:'2h55'}},
+  pedro: { name:'Pedro', color:'#27ae60', stars:186, streak:12,
+    favorites: [
+      {icon:'🏫',label:'Escola',cat:'🏫 Escola'},
+      {icon:'⚽',label:'Futebol',cat:'🧘 Pessoal',sub:'Futebol'},
+      {icon:'📚',label:'Lição',cat:'📚 Estudo',sub:'Lição de casa'},
+      {icon:'🎮',label:'Jogar',cat:'🎮 Lazer',sub:'Jogos'},
+    ],
+    tasks:[
+      {t:'Arrumar a cama',done:true,pts:5,tag:'Manhã'},{t:'Escovar dentes',done:true,pts:3,tag:'Manhã'},{t:'Guardar mochila',done:true,pts:3,tag:'Tarde'},{t:'Lição de casa',done:true,pts:10,tag:'Tarde'},{t:'Tirar a mesa',done:false,pts:3,tag:'Noite'},{t:'Guardar brinquedos',done:false,pts:5,tag:'Noite'}
+    ], tracking:{active:true,cat:'🏫 Escola',timer:'04:35:00'}},
+  sofia: { name:'Sofia', color:'#e84393', stars:143, streak:8,
+    favorites: [
+      {icon:'🏫',label:'Escola',cat:'🏫 Escola'},
+      {icon:'💃',label:'Ballet',cat:'🧘 Pessoal',sub:'Ballet'},
+      {icon:'🎨',label:'Desenhar',cat:'🎨 Lazer',sub:'Desenho'},
+    ],
+    tasks:[
+      {t:'Arrumar a cama',done:true,pts:5,tag:'Manhã'},{t:'Escovar dentes',done:true,pts:3,tag:'Manhã'},{t:'Colorir/desenhar',done:true,pts:5,tag:'Tarde'},{t:'Guardar roupas',done:true,pts:5,tag:'Tarde'},{t:'Ajudar no jantar',done:true,pts:8,tag:'Noite'},{t:'Escovar dentes noite',done:true,pts:3,tag:'Noite'}
+    ], tracking:{active:true,cat:'🏫 Escola',timer:'04:35:00'}}
+};
+
+let currentTab = 'cal';
+let currentProf = 'gestor';
+
+function switchTab(id, el) {
+  currentTab = id;
+  document.querySelectorAll('.si').forEach(s => s.classList.remove('on'));
+  if(el) el.classList.add('on');
+  render();
+}
+
+function switchProf(m, el) {
+  currentProf = m;
+  document.querySelectorAll('.pf').forEach(p => p.classList.remove('on'));
+  if(el) el.classList.add('on');
+  render();
+}
+
+function openModal(id) {
+  const modal = document.getElementById('modal-'+id);
+  if (!modal) return;
+  // Populate manage favorites list
+  if (id === 'manage-fav') {
+    const m = members[currentProf];
+    const list = modal.querySelector('#fav-list-manage');
+    if (list && m && m.favorites) {
+      list.innerHTML = m.favorites.map((f,i) => 
+        `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:0.85em;">
+          <span style="font-size:1.2em;">${f.icon}</span>
+          <div style="flex:1;"><div style="font-weight:700;">${f.label}</div><div style="font-size:0.78em;color:var(--t3);">${f.cat}${f.sub?' → '+f.sub:''}</div></div>
+          <button class="ib" onclick="removeFav(${i});openModal('manage-fav');">✕ Remover</button>
+        </div>`
+      ).join('');
+      if (m.favorites.length === 0) list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--t3);font-size:0.85em;">Nenhum favorito ainda</div>';
+    }
+  }
+  modal.classList.add('on');
+}
+
+function render() {
+  const ct = document.getElementById('content-area');
+  const m = members[currentProf];
+  let html = '';
+
+  if (currentTab === 'cal') {
+    html = renderCalendar();
+  } else if (currentTab === 'tasks') {
+    html = currentProf === 'gestor' ? renderAllTasks() : renderPersonTasks(m);
+  } else if (currentTab === 'time') {
+    html = currentProf === 'gestor' ? renderGestorTime() : renderPersonTime(m);
+  } else if (currentTab === 'rewards') {
+    html = renderRewards();
+  } else if (currentTab === 'meals') {
+    html = renderMeals();
+  } else if (currentTab === 'charts') {
+    html = '<div class="card" style="text-align:center;padding:30px;"><div style="font-size:2em;">📊</div><div style="font-family:\'Plus Jakarta Sans\';font-weight:800;margin-top:8px;">Gráficos detalhados</div><div style="color:var(--t3);font-size:0.85em;margin-top:4px;">Próxima iteração — semanal, mensal, por pessoa, por categoria</div></div>';
+  }
+  ct.innerHTML = html;
+}
+
+function renderCalendar() {
+  const isGestor = currentProf === 'gestor';
+  const filterMember = currentProf;
+  const m = members[currentProf];
+
+  function filterEvents(evts) {
+    if (isGestor) return evts;
+    return evts.filter(e => e.m.includes(filterMember));
+  }
+
+  function getMemberNames(arr) {
+    return arr.map(k => members[k]?.name || k).join(' · ');
+  }
+
+  function renderEvent(e) {
+    const cls = isGestor ? e.cls : 'ce-mae'; // use person's color when individual
+    const personStyle = !isGestor ? `background:${m.color}15;border-left-color:${m.color};` : '';
+    let html = `<div class="ce ${isGestor?e.cls:''}" style="${personStyle}"><span class="ce-t">${e.t}</span> <span class="ce-m">${e.h}</span>`;
+    if (isGestor) html += `<div style="font-size:0.85em;color:var(--t3);margin-top:1px;">${getMemberNames(e.m)}</div>`;
+    html += '</div>';
+    return html;
+  }
+
+  let html = '';
+
+  // Member color bars - ONLY for gestor
+  if (isGestor) {
+    html += `<div class="mbars">
+      <div class="mb" style="background:var(--mae);">● Mamãe</div>
+      <div class="mb" style="background:var(--pai);">● Papai</div>
+      <div class="mb" style="background:var(--ped);">● Pedro</div>
+      <div class="mb" style="background:var(--sof);">● Sofia</div>
+      <div class="mb" style="background:var(--vov);">● Vovó</div>
+    </div>`;
+  } else {
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:4px 0;">
+      <div class="av" style="background:${m.color};width:24px;height:24px;font-size:0.6em;">${m.name[0]}</div>
+      <span style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:0.85em;">Agenda de ${m.name}</span>
+    </div>`;
+  }
+
+  // HOJE block
+  const todayEvents = filterEvents(calEvents.qua);
+  if (todayEvents.length > 0) {
+    const countLabel = todayEvents.length >= 4 ? 'Dia Cheio' : todayEvents.length >= 2 ? 'Dia Moderado' : 'Dia Tranquilo';
+    const countColor = todayEvents.length >= 4 ? '#92400e' : todayEvents.length >= 2 ? '#1565c0' : '#2e7d32';
+    html += `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:0.9em;">HOJE 🌤️</span>
+        <span style="margin-left:auto;font-size:0.72em;color:${countColor};font-weight:700;">📌 ${countLabel}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">`;
+    todayEvents.forEach(e => {
+      html += `<div class="ce ${isGestor?e.cls:''}" style="font-size:0.68em;padding:5px 8px;border-radius:8px;${!isGestor?'background:'+m.color+'15;border-left-color:'+m.color+';':''}">
+        <span class="ce-t">${e.t}</span> <span class="ce-m">${e.h}</span>
+        ${isGestor?'<div style="font-size:0.85em;color:var(--t3);margin-top:1px;">'+getMemberNames(e.m)+'</div>':''}
+      </div>`;
+    });
+    html += '</div>';
+    // Next event alert
+    const nextEvt = todayEvents.find(e => e.h.includes('19'));
+    if (nextEvt) {
+      html += `<div style="margin-top:8px;background:#fef3c7;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px;font-size:0.72em;font-weight:600;color:#92400e;">⏰ ${nextEvt.t.replace(/^[^\s]+\s/,'')} em 4h 25min — ${nextEvt.h}</div>`;
+    }
+    html += '</div>';
+  }
+
+  // Week grid
+  html += '<div class="cg">';
+  weekDays.forEach(day => {
+    if (day.today) return; // today is shown above
+    const evts = filterEvents(calEvents[day.key] || []);
+    html += `<div class="cd"><div class="cd-h"><span class="cd-n">${day.name}</span><span class="cd-d">${day.num}</span></div>`;
+    html += `<div class="cd-c">${evts.length} evento${evts.length!==1?'s':''}</div>`;
+    evts.forEach(e => { html += renderEvent(e); });
+    html += '</div>';
+  });
+
+  // Próxima semana
+  html += `<div class="cd" style="background:var(--bg);"><div class="cd-h"><span class="cd-n">Próx. Semana</span></div><div class="cd-c" style="font-size:0.62em;">31 Mar–6 Abr</div><div style="font-size:0.58em;color:var(--t3);margin-top:4px;">🏥 Dentista · 🎂 Aniv. Vovó · 📝 Prova</div></div>`;
+
+  // Tasks progress (only gestor)
+  if (isGestor) {
+    html += `<div class="cd" style="background:var(--bg);border:none;">
+      <div style="font-size:0.65em;font-weight:700;color:var(--t2);margin-bottom:6px;">Tarefas Hoje</div>`;
+    ['pedro','sofia','mae','pai'].forEach(k => {
+      const p = members[k];
+      if (!p.tasks) return;
+      const done = p.tasks.filter(t=>t.done).length;
+      const pct = Math.round((done/p.tasks.length)*100);
+      const check = done === p.tasks.length ? ' ✓' : '';
+      html += `<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;font-size:0.65em;"><span style="color:${p.color};font-weight:700;">${p.name}</span><div style="flex:1;height:6px;background:#e8e5e0;border-radius:3px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${p.color};border-radius:3px;"></div></div><span style="font-weight:700;">${done}/${p.tasks.length}${check}</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  // Novo evento button
+  html += `<div style="margin-top:10px;"><button class="ib" style="width:100%;text-align:center;padding:10px;font-size:0.82em;border-radius:10px;" onclick="openModal('event')">➕ Novo evento</button></div>`;
+  return html;
+}
+
+function renderAllTasks() {
+  let html = '<div class="g2">';
+  ['pedro','sofia','mae','pai'].forEach(k => {
+    const p = members[k];
+    const done = p.tasks.filter(t=>t.done).length;
+    html += `<div class="card"><div class="card-t" style="color:${p.color};"><div class="av" style="background:${p.color};width:22px;height:22px;font-size:0.55em;">${p.name[0]}</div> ${p.name} — ${done}/${p.tasks.length}${p.stars?' · ⭐'+p.stars:''}${p.streak?' · 🔥'+p.streak+'d':''}</div>`;
+    p.tasks.forEach((t,i) => {
+      html += `<div class="ti"><div class="ck${t.done?' d':''}" onclick="toggleTask('${k}',${i})">${t.done?'✓':''}</div><div class="tl${t.done?' d':''}">${t.t}</div>${t.pts?'<div class="tp">+'+t.pts+'⭐</div>':''}<div class="tt">${t.tag}</div></div>`;
+    });
+    html += `<div style="margin-top:6px;display:flex;gap:3px;"><button class="ib" onclick="openModal('task')">➕ Tarefa</button><button class="ib">✏️ Editar</button></div></div>`;
+  });
+  return html + '</div>';
+}
+
+function renderPersonTasks(m) {
+  if (!m.tasks) return '<div class="card" style="text-align:center;padding:20px;color:var(--t3);">Sem tarefas configuradas</div>';
+  const done = m.tasks.filter(t=>t.done).length;
+  let html = `<div class="card"><div class="card-t" style="color:${m.color};">✅ Minhas Tarefas — ${done}/${m.tasks.length}${m.stars?' · ⭐'+m.stars:''}${m.streak?' · 🔥'+m.streak+'d':''}</div>`;
+  m.tasks.forEach((t,i) => {
+    const k = currentProf;
+    html += `<div class="ti"><div class="ck${t.done?' d':''}" onclick="toggleTask('${k}',${i})">${t.done?'✓':''}</div><div class="tl${t.done?' d':''}">${t.t}</div>${t.pts?'<div class="tp">+'+t.pts+'⭐</div>':''}<div class="tt">${t.tag}</div></div>`;
+  });
+  html += `<div style="margin-top:6px;display:flex;gap:3px;"><button class="ib" onclick="openModal('task')">➕ Tarefa</button><button class="ib">✏️ Editar</button></div></div>`;
+  return html;
+}
+
+function renderGestorTime() {
+  let html = '<div style="font-family:\'Plus Jakarta Sans\';font-weight:800;font-size:0.95em;margin-bottom:10px;">⏱️ Visão Geral — Família</div>';
+  // Each person's current status
+  html += '<div class="g2" style="margin-bottom:10px;">';
+  ['mae','pai','pedro','sofia'].forEach(k => {
+    const p = members[k]; const tr = p.tracking;
+    const isPaused = tr.paused;
+    const stBg = tr.active && !isPaused ? '#dcfce7' : isPaused ? '#fef3c7' : '#f3f3f3';
+    const stFg = tr.active && !isPaused ? '#16a34a' : isPaused ? '#d97706' : '#999';
+    const stTxt = tr.active && !isPaused ? '● Ativo' : isPaused ? '⏸ Pausado' : '○ Idle';
+    html += `<div class="gt"><div class="gt-h"><div class="gt-av" style="background:${p.color};">${p.name[0]}</div><div class="gt-nm">${p.name}</div><span class="gt-st" style="background:${stBg};color:${stFg};">${stTxt}</span></div>
+    <div class="gt-task">${tr.cat}${tr.sub?' → '+tr.sub:''}</div>
+    <div class="gt-tmr" style="color:${p.color};">${tr.timer}</div>
+    <div class="gt-tot">Hoje: ${tr.total||'—'}</div></div>`;
+  });
+  html += '</div>';
+  // Quem mais focou hoje
+  html += `<div class="card"><div class="card-t">🏆 Quem mais focou hoje</div>
+    <div class="pb"><span class="pb-l" style="color:var(--mae);">Mamãe</span><div class="pb-b"><div class="pb-f" style="width:65%;background:var(--mae);"></div></div><span class="pb-v" style="color:var(--mae);">5h09</span></div>
+    <div class="pb"><span class="pb-l" style="color:var(--ped);">Pedro</span><div class="pb-b"><div class="pb-f" style="width:58%;background:var(--ped);"></div></div><span class="pb-v" style="color:var(--ped);">4h35</span></div>
+    <div class="pb"><span class="pb-l" style="color:var(--sof);">Sofia</span><div class="pb-b"><div class="pb-f" style="width:58%;background:var(--sof);"></div></div><span class="pb-v" style="color:var(--sof);">4h35</span></div>
+    <div class="pb"><span class="pb-l" style="color:var(--pai);">Papai</span><div class="pb-b"><div class="pb-f" style="width:37%;background:var(--pai);"></div></div><span class="pb-v" style="color:var(--pai);">2h55</span></div>
+  </div>`;
+  // Summary by category
+  html += `<div class="card"><div class="card-t">📊 Total Família Hoje — Por Categoria</div>
+    <div class="pb"><span class="pb-l">💼 Trabalho</span><div class="pb-b"><div class="pb-f" style="width:45%;background:var(--pai);"></div></div><span class="pb-v">7h32</span></div>
+    <div class="pb"><span class="pb-l">🏫 Escola</span><div class="pb-b"><div class="pb-f" style="width:55%;background:var(--ped);"></div></div><span class="pb-v">9h10</span></div>
+    <div class="pb"><span class="pb-l">🏠 Casa</span><div class="pb-b"><div class="pb-f" style="width:14%;background:var(--vov);"></div></div><span class="pb-v">2h20</span></div>
+    <div class="pb"><span class="pb-l">🧘 Pessoal</span><div class="pb-b"><div class="pb-f" style="width:6%;background:var(--mae);"></div></div><span class="pb-v">1h00</span></div>
+    <div class="pb"><span class="pb-l">👨‍👩‍👧‍👦 Família</span><div class="pb-b"><div class="pb-f" style="width:5%;background:var(--gn);"></div></div><span class="pb-v">0h45</span></div>
+  </div>`;
+  return html;
+}
+
+function renderPersonTime(m) {
+  if (!m.tracking) return '<div class="card" style="text-align:center;padding:20px;">Sem tracking ativo</div>';
+  const tr = m.tracking;
+  const isPaused = tr.paused;
+  const isActive = tr.active && !isPaused;
+
+  // ═══ CIRCULAR TIMER (Naper style) ═══
+  let html = `<div style="background:linear-gradient(135deg,#1a1530,#2d2548);border-radius:16px;padding:24px 16px;text-align:center;margin-bottom:10px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgba(124,106,239,0.08),transparent 70%);"></div>
+    <div style="position:relative;z-index:1;">
+      <div style="font-size:0.78em;color:rgba(255,255,255,0.5);font-weight:600;">${isActive?'Rastreando agora':'Pausado'}</div>
+      <!-- Circular progress -->
+      <div style="width:160px;height:160px;margin:12px auto;position:relative;">
+        <svg width="160" height="160" style="transform:rotate(-90deg);">
+          <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+          <circle cx="80" cy="80" r="70" fill="none" stroke="${isActive?m.color:'#f59e0b'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${isActive?'310':'200'} 440" style="transition:stroke-dasharray 1s;"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-family:'Plus Jakarta Sans';font-size:2.2em;font-weight:800;color:white;letter-spacing:-0.02em;" id="big-timer">${tr.timer}</div>
+          <div style="font-size:0.72em;color:rgba(255,255,255,0.6);font-weight:600;">${tr.cat}${tr.sub?' → '+tr.sub:''}</div>
+        </div>
+      </div>
+      <!-- Big play/pause/stop buttons -->
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;">`;
+  if (isActive) {
+    html += `<button onclick="togglePause()" style="width:56px;height:56px;border-radius:50%;border:none;background:rgba(245,158,11,0.2);color:#fbbf24;font-size:1.5em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(245,158,11,0.3)'" onmouseout="this.style.background='rgba(245,158,11,0.2)'">⏸</button>`;
+  } else {
+    html += `<button onclick="togglePause()" style="width:56px;height:56px;border-radius:50%;border:none;background:rgba(34,197,94,0.2);color:#22c55e;font-size:1.5em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(34,197,94,0.3)'" onmouseout="this.style.background='rgba(34,197,94,0.2)'">▶️</button>`;
+  }
+  html += `<button onclick="stopTimer()" style="width:56px;height:56px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:#f87171;font-size:1.3em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">⏹</button>
+      </div>
+    </div>
+  </div>`;
+
+  // ═══ FAVORITES (per person) ═══
+  const favs = m.favorites || [];
+  html += `<div class="card"><div class="card-t">⚡ Favoritos de ${m.name} <button class="ib" style="margin-left:auto;" onclick="openModal('manage-fav')">⭐ Gerenciar</button></div>`;
+  
+  if (favs.length === 0) {
+    html += `<div style="text-align:center;padding:16px;color:var(--t3);font-size:0.82em;">
+      <div style="font-size:1.5em;margin-bottom:6px;">⭐</div>
+      Nenhum favorito ainda.<br>Toque em <strong>+ Adicionar</strong> pra criar os atalhos de ${m.name}.
+    </div>`;
+  } else {
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">';
+    favs.forEach((f,i) => {
+      const isActive = tr.active && !tr.paused && tr.cat === f.cat && (tr.sub||'') === (f.sub||'');
+      const borderStyle = isActive ? 'border:2px solid '+m.color : 'border:2px solid transparent';
+      html += `<div onclick="startFromFav(${i})" style="background:var(--bg);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.15s;${borderStyle};position:relative;">
+        <div style="font-size:1.3em;">${f.icon}</div>
+        <div style="font-size:0.68em;font-weight:700;margin-top:2px;">${f.label}</div>
+        ${isActive?'<div style="position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--gn);"></div>':''}
+        <button onclick="event.stopPropagation();removeFav(${i})" style="position:absolute;top:2px;left:2px;background:none;border:none;font-size:0.55em;cursor:pointer;opacity:0.3;padding:2px;" title="Remover">✕</button>
+      </div>`;
+    });
+    // Add button
+    html += `<div onclick="openModal('add-fav')" style="background:transparent;border:1.5px dashed var(--bd);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;">
+      <div style="font-size:1.3em;color:var(--t3);">➕</div>
+      <div style="font-size:0.68em;font-weight:700;color:var(--t3);margin-top:2px;">Adicionar</div>
+    </div>`;
+    html += '</div>';
+  }
+
+  // 3-level work selector (only shows if current cat is Trabalho)
+  const isWork = tr.cat && tr.cat.includes('Trabalho');
+  if (isWork && m.workSubs) {
+    html += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);">
+      <div style="font-size:0.62em;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px;">🏢 Empresa</div>
+      <select class="sel" onchange="updateWorkSub(this.value)">`;
+    m.workSubs.forEach(ws => {
+      html += `<option ${tr.sub===ws.empresa?'selected':''}>${ws.empresa}</option>`;
+    });
+    html += `</select>`;
+    // Find current empresa's activities
+    const curEmpresa = m.workSubs.find(ws => ws.empresa === tr.sub);
+    if (curEmpresa) {
+      html += `<div style="font-size:0.62em;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:4px;">📋 Atividade</div>
+        <select class="sel" onchange="updateWorkDetail(this.value)">`;
+      curEmpresa.atividades.forEach(a => {
+        html += `<option ${tr.detail===a?'selected':''}>${a}</option>`;
+      });
+      html += `</select>`;
+    }
+    html += `<div style="display:flex;gap:3px;"><button class="ib" onclick="openModal('sub')">✏️ Empresas</button><button class="ib" onclick="openModal('cat')">✏️ Categorias</button><button class="ib" onclick="openModal('new-cat')">➕ Nova Categoria</button></div></div>`;
+  }
+  html += '</div>';
+
+  // ═══ TIMELINE LOG ═══
+  html += `<div class="card"><div class="card-t">📋 Linha do Tempo — Hoje</div>`;
+  if (tr.log) {
+    tr.log.forEach(l => {
+      const isAct = l.active;
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);${isAct?'background:#f0f9ff;border-radius:6px;padding:6px 8px;border:none;margin-bottom:2px;':''}">
+        <div style="width:8px;height:8px;border-radius:50%;background:${isAct?'var(--gn)':m.color};flex-shrink:0;"></div>
+        <div style="flex:1;font-size:0.78em;font-weight:600;${isAct?'color:'+m.color:''}">${l.n}</div>
+        <div style="font-size:0.72em;color:var(--t3);flex-shrink:0;">${l.t}</div>
+        <div style="font-family:'Plus Jakarta Sans';font-size:0.78em;font-weight:700;flex-shrink:0;width:42px;text-align:right;${isAct?'color:'+m.color:''}">${l.d}</div>
+      </div>`;
+    });
+    html += `<div style="margin-top:8px;padding-top:8px;border-top:2px solid var(--bd);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.8em;font-weight:700;">Total Hoje</span>
+      <span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:1.1em;color:${m.color};">${tr.total}</span>
+    </div>`;
+  }
+  html += '</div>';
+
+  // ═══ DAY CHART ═══
+  html += `<div class="card"><div class="card-t">📊 Distribuição do Dia</div>
+    <div style="display:flex;height:18px;border-radius:9px;overflow:hidden;gap:1px;">
+      <div style="width:20%;background:var(--mae);" title="Pessoal 1h"></div>
+      <div style="width:6%;background:var(--t3);" title="Deslocamento 0h30"></div>
+      <div style="width:16%;background:var(--vov);" title="Casa 1h25"></div>
+      <div style="width:44%;background:${m.color};" title="Trabalho 2h14"></div>
+      <div style="width:14%;background:var(--bd);" title="Restante"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px;font-size:0.65em;color:var(--t2);flex-wrap:wrap;">
+      <span>🧘 1h00</span><span>🚗 0h30</span><span>🏠 1h25</span><span style="color:${m.color};font-weight:700;">💼 2h14</span><span style="color:var(--t3);">Restante</span>
+    </div>
+  </div>`;
+
+  // ═══ WEEK CHART ═══
+  html += `<div class="card"><div class="card-t">📈 Semana — Horas por Dia</div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:80px;padding-bottom:4px;">`;
+  const weekH = [{d:'Seg',h:8,c:m.color},{d:'Ter',h:7,c:m.color},{d:'Qua',h:5.2,c:m.color,today:true},{d:'Qui',h:0,c:'var(--bd)'},{d:'Sex',h:0,c:'var(--bd)'},{d:'Sáb',h:0,c:'var(--bd)'},{d:'Dom',h:0,c:'var(--bd)'}];
+  weekH.forEach(w => {
+    const pct = w.h > 0 ? Math.max(10, (w.h/10)*100) : 8;
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="font-family:'Plus Jakarta Sans';font-size:0.6em;font-weight:700;${w.today?'color:'+m.color:''}">${w.h>0?w.h+'h':'—'}</div>
+      <div style="width:100%;height:${pct}%;background:${w.c};border-radius:4px 4px 2px 2px;${w.h===0?'opacity:0.3':''}"></div>
+      <div style="font-size:0.58em;color:${w.today?m.color:'var(--t3)'};font-weight:${w.today?'700':'600'};">${w.d}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  return html;
+}
+
+function renderRewards() {
+  const tiers = [
+    {label:'🔵 Escolhas do Dia',cost:6,color:'#6fa8dc',items:['🎵 Música do carro','🎶 Trilha da casa','🧃 Suco do dia','🍎 Fruta do dia','🎨 Cor do dia','🥪 Lanche','☕ Café da manhã','📺 Assistir dormindo']},
+    {label:'🟠 Especiais',cost:8,color:'#e8983a',items:['🌙 Acordada até 23h30','⛺ Barraca no quarto','🍿 Lanche + filme','🎬 Filme família','🎲 Jogos família','👩‍🍳 Cozinhar juntos','🏖️ 1h no mar','⚽ Bola na praia']},
+    {label:'🟣 Super',cost:12,color:'#b07ec5',items:['🎀 Festa do pijama','👯 Amiga dormir','🍦 Centrinho sorvete','✅ Dia do SIM','🎨 Criar juntas','🏊 Festa piscina','🎁 Passeio surpresa','🎥 Mini filme juntas']}
+  ];
+  let html = '';
+  tiers.forEach(tier => {
+    html += `<div class="card"><div class="card-t" style="color:${tier.color};">${tier.label} (⭐${tier.cost})<div style="margin-left:auto;display:flex;gap:3px;"><button class="ib" onclick="openModal('reward')">➕ Criar</button><button class="ib">✏️ Editar</button></div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">`;
+    tier.items.forEach(item => {
+      html += `<div class="rw"><div class="rw-i">${item.split(' ')[0]}</div><div class="rw-n">${item.slice(2)}</div><div class="rw-c" style="color:${tier.color};">⭐${tier.cost}</div></div>`;
+    });
+    html += `<div class="rw rw-add" onclick="openModal('reward')"><div style="font-size:1.2em;color:var(--t3);">➕</div><div class="rw-n" style="color:var(--t3);">Criar</div></div>`;
+    html += '</div></div>';
+  });
+  return html;
+}
+
+function renderMeals() {
+  const days = [
+    {d:'Seg',i:'🍗',n:'Frango grelhado'},{d:'Ter',i:'🍝',n:'Macarrão bolonhesa'},
+    {d:'Qua · Hoje',i:'🐟',n:'Peixe com legumes',miss:'tilápia, cenoura',today:true},
+    {d:'Qui',i:'🥘',n:'Feijoada leve'},{d:'Sex',i:'🍕',n:'Noite da pizza!'},
+    {d:'Sáb',i:'🍖',n:'Almoço na vovó'},{d:'Dom',i:'🥩',n:'Churrasco',miss:'picanha'}
+  ];
+  let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">';
+  days.forEach(d => {
+    const border = d.today ? 'border:2px solid var(--mae);' : '';
+    html += `<div class="ml" style="${border}"><div class="ml-d"${d.today?' style="color:var(--mae);"':''}>${d.d}</div><div class="ml-i">${d.i}</div><div class="ml-n">${d.n}</div>${d.miss?'<div class="ml-m">🛒 '+d.miss+'</div>':''}`;
+    html += `<div style="margin-top:4px;"><button class="ib">✏️</button></div></div>`;
+  });
+  html += `<div class="ml" style="border:1.5px dashed var(--bd);"><div class="ml-d">🛒 Lista</div><div class="ml-i">📝</div><div class="ml-n" style="color:var(--sof);">4 itens</div><div style="margin-top:4px;"><button class="ib">Ver lista</button></div></div>`;
+  html += '</div>';
+  html += `<div style="margin-top:8px;display:flex;gap:3px;"><button class="ib" onclick="">➕ Adicionar refeição</button><button class="ib">✏️ Editar cardápio</button></div>`;
+  return html;
+}
+
+function toggleTask(member, index) {
+  members[member].tasks[index].done = !members[member].tasks[index].done;
+  render();
+}
+
+// ═══ REAL TIMER ENGINE ═══
+// Each person tracks their own timer state
+function initTracking(m) {
+  if (!m.tracking._seconds) {
+    // Parse initial timer string to seconds
+    const parts = m.tracking.timer.split(':').map(Number);
+    m.tracking._seconds = parts[0]*3600 + parts[1]*60 + parts[2];
+  }
+  if (!m.tracking._startedAt && m.tracking.active && !m.tracking.paused) {
+    m.tracking._startedAt = new Date();
+    // Set a readable start time for current task
+    const now = new Date();
+    m.tracking._taskStart = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  }
+}
+
+// Init all member timers
+Object.values(members).forEach(m => { if (m.tracking) initTracking(m); });
+
+function fmtSec(s) {
+  const h = String(Math.floor(s/3600)).padStart(2,'0');
+  const m = String(Math.floor((s%3600)/60)).padStart(2,'0');
+  const sc = String(s%60).padStart(2,'0');
+  return `${h}:${m}:${sc}`;
+}
+
+function fmtDuration(s) {
+  const h = Math.floor(s/3600);
+  const m = Math.floor((s%3600)/60);
+  if (h > 0) return h + 'h' + (m > 0 ? m.toString().padStart(2,'0') : '00');
+  return '0h' + m.toString().padStart(2,'0');
+}
+
+function getNowStr() {
+  const n = new Date();
+  return n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+}
+
+function startFromFav(index) {
+  const m = members[currentProf];
+  if (!m || !m.favorites) return;
+  const fav = m.favorites[index];
+  startNewActivity(fav.cat, fav.sub);
+  if (fav.detail) m.tracking.detail = fav.detail;
+}
+
+function removeFav(index) {
+  const m = members[currentProf];
+  if (!m || !m.favorites) return;
+  m.favorites.splice(index, 1);
+  render();
+}
+
+function updateWorkSub(empresa) {
+  const m = members[currentProf];
+  if (m && m.tracking) {
+    m.tracking.sub = empresa;
+    m.tracking.detail = '';
+    render();
+  }
+}
+
+function updateWorkDetail(detail) {
+  const m = members[currentProf];
+  if (m && m.tracking) {
+    m.tracking.detail = detail;
+    // Update active log entry name
+    if (m.tracking.log) {
+      const active = m.tracking.log.find(l => l.active);
+      if (active) active.n = m.tracking.cat + ' — ' + m.tracking.sub + ' — ' + detail;
+    }
+  }
+}
+
+function addFavFromModal() {
+  const m = members[currentProf];
+  if (!m) return;
+  if (!m.favorites) m.favorites = [];
+  const modal = document.getElementById('modal-add-fav');
+  const icon = modal.querySelector('#fav-icon').value || '⭐';
+  const label = modal.querySelector('#fav-label').value;
+  const cat = modal.querySelector('#fav-cat').value;
+  const sub = modal.querySelector('#fav-sub').value;
+  if (!label) return;
+  m.favorites.push({icon, label, cat, sub});
+  modal.classList.remove('on');
+  render();
+}
+
+function togglePause() {
+  const m = members[currentProf];
+  if (!m || !m.tracking) return;
+  const tr = m.tracking;
+
+  if (!tr.active) {
+    // START from idle
+    tr.active = true;
+    tr.paused = false;
+    tr._seconds = 0;
+    tr._taskStart = getNowStr();
+    tr.timer = '00:00:00';
+  } else if (tr.paused) {
+    // RESUME
+    tr.paused = false;
+  } else {
+    // PAUSE
+    tr.paused = true;
+  }
+  render();
+}
+
+function stopTimer() {
+  const m = members[currentProf];
+  if (!m || !m.tracking) return;
+  const tr = m.tracking;
+
+  if (tr.active && tr._seconds > 0) {
+    // Create log entry with real data
+    const duration = fmtDuration(tr._seconds);
+    const startTime = tr._taskStart || '—';
+    const endTime = getNowStr();
+    const taskName = tr.cat + (tr.sub ? ' — ' + tr.sub : '');
+
+    // Remove the "active" flag from current active log entry if exists
+    if (tr.log) {
+      tr.log = tr.log.filter(l => !l.active);
+    } else {
+      tr.log = [];
+    }
+
+    // Add completed entry to log
+    tr.log.push({
+      n: taskName,
+      t: startTime + '–' + endTime,
+      d: duration,
+      active: false
+    });
+
+    // Update total
+    const totalParts = (tr.total || '0h00').match(/(\d+)h(\d+)/);
+    let totalMin = 0;
+    if (totalParts) totalMin = parseInt(totalParts[1])*60 + parseInt(totalParts[2]);
+    totalMin += Math.floor(tr._seconds / 60);
+    const th = Math.floor(totalMin/60);
+    const tm = totalMin % 60;
+    tr.total = th + 'h' + tm.toString().padStart(2,'0');
+  }
+
+  // Reset timer
+  tr.active = false;
+  tr.paused = false;
+  tr._seconds = 0;
+  tr.timer = '00:00:00';
+  tr._taskStart = null;
+
+  render();
+}
+
+function startNewActivity(cat, sub) {
+  const m = members[currentProf];
+  if (!m || !m.tracking) return;
+
+  // If currently tracking, stop first
+  if (m.tracking.active && m.tracking._seconds > 0) {
+    stopTimer();
+  }
+
+  // Set new category
+  m.tracking.cat = cat;
+  m.tracking.sub = sub || '';
+
+  // Start
+  m.tracking.active = true;
+  m.tracking.paused = false;
+  m.tracking._seconds = 0;
+  m.tracking._taskStart = getNowStr();
+  m.tracking.timer = '00:00:00';
+
+  // Add active entry to log
+  if (!m.tracking.log) m.tracking.log = [];
+  m.tracking.log.push({
+    n: cat + (sub ? ' — ' + sub : ''),
+    t: getNowStr() + '–agora',
+    d: '0h00 ▶️',
+    active: true
+  });
+
+  render();
+}
+
+// Global tick - updates all active timers every second
+setInterval(() => {
+  Object.keys(members).forEach(k => {
+    const m = members[k];
+    if (!m.tracking) return;
+    const tr = m.tracking;
+    if (tr.active && !tr.paused) {
+      if (!tr._seconds) tr._seconds = 0;
+      tr._seconds++;
+      tr.timer = fmtSec(tr._seconds);
+
+      // Update the active log entry duration
+      if (tr.log) {
+        const activeLog = tr.log.find(l => l.active);
+        if (activeLog) {
+          activeLog.d = fmtDuration(tr._seconds) + ' ▶️';
+          activeLog.t = (tr._taskStart || '—') + '–agora';
+        }
+      }
+    }
+  });
+
+  // Update display if on time tab
+  const el = document.getElementById('big-timer');
+  const m = members[currentProf];
+  if (el && m && m.tracking) {
+    el.textContent = m.tracking.timer;
+  }
+}, 1000);
+
+// Init
+render();
+</script>
+</body>
+</html>

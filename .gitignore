@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+frontend/dist/
+
+# Secrets — NUNCA subir
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# SQLite local (legado / dev)
+backend/data.sqlite
+backend/data.sqlite-*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
