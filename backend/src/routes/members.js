@@ -87,4 +87,38 @@ router.post('/', async (req, res) => {
   res.status(201).json({ member })
 })
 
+router.patch('/:id', async (req, res) => {
+  const { name, relation, profileType, age, color } = req.body
+
+  const member = await one('SELECT * FROM members WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (!member) {
+    return res.status(404).json({ error: 'Membro não encontrado.' })
+  }
+
+  const next = {
+    ...member,
+    name: name !== undefined ? name : member.name,
+    relation: relation !== undefined ? relation : member.relation,
+    profile_type: profileType !== undefined ? profileType : member.profile_type,
+    age: age !== undefined ? (age ? Number(age) : null) : member.age,
+    color: color !== undefined ? color : member.color,
+  }
+
+  await query(
+    `UPDATE members SET name = $1, relation = $2, profile_type = $3, age = $4, color = $5 WHERE id = $6 AND owner_user_id = $7`,
+    [next.name, next.relation, next.profile_type, next.age, next.color, req.params.id, req.user.id]
+  )
+
+  res.json({ success: true, member: next })
+})
+
+router.delete('/:id', async (req, res) => {
+  const member = await one('SELECT * FROM members WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (!member) {
+    return res.status(404).json({ error: 'Membro não encontrado.' })
+  }
+  await query('DELETE FROM members WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  res.json({ success: true })
+})
+
 module.exports = router

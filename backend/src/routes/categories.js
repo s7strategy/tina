@@ -1,5 +1,5 @@
 const express = require('express')
-const { many, query, uid } = require('../lib/db')
+const { many, query, one, uid } = require('../lib/db')
 const { requireAuth } = require('../middleware/auth')
 
 const router = express.Router()
@@ -21,7 +21,13 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { profileKey = 'self', icon = '📂', name, visibilityScope = 'Todos' } = req.body
+  let { profileKey = 'self', icon = '📂', name, visibilityScope } = req.body
+
+  if (Array.isArray(visibilityScope)) {
+    visibilityScope = JSON.stringify(visibilityScope)
+  } else if (!visibilityScope) {
+    visibilityScope = '["Todos"]'
+  }
 
   if (!name) {
     return res.status(400).json({ error: 'Nome da categoria é obrigatório.' })
@@ -46,6 +52,37 @@ router.post('/', async (req, res) => {
   )
 
   res.status(201).json({ category })
+})
+
+router.patch('/:id', async (req, res) => {
+  let { icon, name, visibilityScope } = req.body
+
+  if (Array.isArray(visibilityScope)) {
+    visibilityScope = JSON.stringify(visibilityScope)
+  }
+
+  if (!name) {
+    return res.status(400).json({ error: 'Nome da categoria é obrigatório.' })
+  }
+
+  const category = await one('SELECT * FROM categories WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (!category) {
+    return res.status(404).json({ error: 'Categoria não encontrada.' })
+  }
+
+  await query(
+    'UPDATE categories SET icon = $1, name = $2, visibility_scope = $3 WHERE id = $4 AND owner_user_id = $5',
+    [icon || category.icon, name, visibilityScope || category.visibility_scope, req.params.id, req.user.id]
+  )
+  res.json({ success: true })
+})
+
+router.delete('/:id', async (req, res) => {
+  const result = await query('DELETE FROM categories WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: 'Categoria não encontrada.' })
+  }
+  res.status(204).send()
 })
 
 module.exports = router

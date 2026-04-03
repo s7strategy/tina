@@ -1,5 +1,5 @@
 const express = require('express')
-const { many, query, uid } = require('../lib/db')
+const { many, query, one, uid } = require('../lib/db')
 const { requireAuth } = require('../middleware/auth')
 
 const router = express.Router()
@@ -47,6 +47,34 @@ router.post('/', async (req, res) => {
   )
 
   res.status(201).json({ favorite })
+})
+
+router.patch('/:id', async (req, res) => {
+  const { icon, label, cat, sub, detail } = req.body
+
+  if (!label || !cat) {
+    return res.status(400).json({ error: 'Nome e categoria são obrigatórios.' })
+  }
+
+  const favorite = await one('SELECT * FROM favorites WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (!favorite) {
+    return res.status(404).json({ error: 'Favorito não encontrado.' })
+  }
+
+  await query(
+    'UPDATE favorites SET icon = $1, label = $2, cat = $3, sub = $4, detail = $5 WHERE id = $6 AND owner_user_id = $7',
+    [
+      icon || favorite.icon,
+      label,
+      cat,
+      sub !== undefined ? sub : favorite.sub,
+      detail !== undefined ? detail : favorite.detail,
+      req.params.id,
+      req.user.id
+    ]
+  )
+
+  res.json({ success: true })
 })
 
 router.delete('/:id', async (req, res) => {

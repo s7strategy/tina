@@ -1,14 +1,39 @@
 const { many } = require('./db')
 
-const weekDays = [
-  { key: 'seg', name: 'Seg', num: '24' },
-  { key: 'ter', name: 'Ter', num: '25' },
-  { key: 'qua', name: 'Qua', num: '26', today: true },
-  { key: 'qui', name: 'Qui', num: '27' },
-  { key: 'sex', name: 'Sex', num: '28' },
-  { key: 'sab', name: 'Sáb', num: '29' },
-  { key: 'dom', name: 'Dom', num: '30' },
-]
+function generateCurrentWeek() {
+  const now = new Date()
+  const dayOfWeek = now.getDay()
+  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - diffToMonday)
+  monday.setHours(0, 0, 0, 0)
+
+  const keys = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom']
+  const names = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+  const week = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    week.push({
+      key: keys[i],
+      name: names[i],
+      num: String(d.getDate()).padStart(2, '0'),
+      today: d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(),
+      fullDate: d.toISOString().split('T')[0]
+    })
+  }
+
+  const firstDay = week[0]
+  const lastDay = week[6]
+  const monthStart = months[new Date(monday).getMonth()]
+  const monthEnd = months[new Date(monday.setDate(monday.getDate() + 6)).getMonth()]
+  const weekRange = `${firstDay.num} ${monthStart !== monthEnd ? monthStart + ' ' : ''}— ${lastDay.num} ${monthEnd}`
+
+  return { weekDays: week, weekRange }
+}
 
 function formatTimeLabel(dateString) {
   if (!dateString) return '—'
@@ -110,7 +135,7 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, profile_key, title, tag, points, done
+        SELECT id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence
         FROM tasks
         WHERE owner_user_id = $1
         ORDER BY created_at ASC
@@ -128,7 +153,7 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, day_key, title, time, cls, member_keys_json
+        SELECT id, day_key, event_date, title, time, cls, member_keys_json, recurrence_type, recurrence_days
         FROM events
         WHERE owner_user_id = $1
         ORDER BY created_at ASC
@@ -190,17 +215,33 @@ async function getWorkspaceForUser(user) {
 
   members.forEach((member) => {
     const memberTasks = tasks
-      .filter((task) => task.profile_key === member.key)
+      .filter((task) => {
+        const keys = JSON.parse(task.participant_keys_json || '[]')
+        return keys.includes('Todos') || keys.includes(member.key) || task.profile_key === member.key
+      })
       .map((task) => ({
         id: task.id,
         title: task.title,
         done: Boolean(task.done),
         tag: task.tag,
         points: task.points,
+        timeType: task.time_type,
+        timeValue: task.time_value,
+        priority: task.priority,
+        reward: task.reward,
+        recurrence: task.recurrence,
+        participantKeys: JSON.parse(task.participant_keys_json || '[]'),
       }))
 
     const memberCategories = categories
-      .filter((category) => category.profile_key === member.key)
+      .filter((category) => {
+        let vis = category.visibility_scope
+        try {
+          if (vis && vis.startsWith('[')) vis = JSON.parse(vis)
+          else vis = [vis]
+        } catch (e) { vis = [vis] }
+        return (!vis || vis.length === 0 || vis.includes('Todos') || vis.includes(member.key) || category.profile_key === member.key)
+      })
       .map((category) => ({
         id: category.id,
         icon: category.icon,
@@ -241,43 +282,58 @@ async function getWorkspaceForUser(user) {
     }
   })
 
+  const { weekDays, weekRange } = generateCurrentWeek()
+
   const calendar = weekDays.reduce((accumulator, day) => {
     accumulator[day.key] = events
-      .filter((event) => event.day_key === day.key)
-      .map((event) => ({
-        id: event.id,
-        title: event.title,
-        time: event.time,
-        cls: event.cls,
-        members: JSON.parse(event.member_keys_json || '[]'),
-      }))
+      .filter((event) => {
+        if (event.event_date === day.fullDate) return true
+        if (event.day_key === day.key && (!event.recurrence_type || event.recurrence_type === 'único' || event.recurrence_type === '')) return true
+        if (event.recurrence_type === 'diária') return true
+        if (['semanal', 'quinzenal'].includes(event.recurrence_type) && event.recurrence_days && event.recurrence_days.includes(day.key)) return true
+        if (event.recurrence_type === 'mensal' && event.event_date) {
+          return Number(event.event_date.split('-')[2]) === Number(day.num)
+        }
+        return false
+      })
+      .map((event) => {
+        const members = JSON.parse(event.member_keys_json || '[]')
+        return {
+          id: event.id,
+          title: event.title,
+          time: event.time,
+          cls: event.cls,
+          members: members,
+          isForEveryone: members.includes('Todos')
+        }
+      })
     return accumulator
   }, {})
 
   const rewardsByTierMap = rewards.reduce((accumulator, reward) => {
-      if (!accumulator[reward.tier_id]) {
-        accumulator[reward.tier_id] = {
-          id: reward.tier_id,
-          label: reward.tier_label,
-          cost: reward.cost,
-          color: reward.color,
-          items: [],
-        }
+    if (!accumulator[reward.tier_id]) {
+      accumulator[reward.tier_id] = {
+        id: reward.tier_id,
+        label: reward.tier_label,
+        cost: reward.cost,
+        color: reward.color,
+        items: [],
       }
-
-      accumulator[reward.tier_id].items.push(reward.label)
-      return accumulator
-    }, {})
-
-  ;[
-    { id: 'tier-6', label: '🔵 Escolhas do Dia', cost: 6, color: '#6fa8dc' },
-    { id: 'tier-8', label: '🟠 Especiais', cost: 8, color: '#e8983a' },
-    { id: 'tier-12', label: '🟣 Super', cost: 12, color: '#b07ec5' },
-  ].forEach((tier) => {
-    if (!rewardsByTierMap[tier.id]) {
-      rewardsByTierMap[tier.id] = { ...tier, items: [] }
     }
-  })
+
+    accumulator[reward.tier_id].items.push(reward.label)
+    return accumulator
+  }, {})
+
+    ;[
+      { id: 'tier-6', label: '🔵 Escolhas do Dia', cost: 6, color: '#6fa8dc' },
+      { id: 'tier-8', label: '🟠 Especiais', cost: 8, color: '#e8983a' },
+      { id: 'tier-12', label: '🟣 Super', cost: 12, color: '#b07ec5' },
+    ].forEach((tier) => {
+      if (!rewardsByTierMap[tier.id]) {
+        rewardsByTierMap[tier.id] = { ...tier, items: [] }
+      }
+    })
 
   const rewardsByTier = Object.values(rewardsByTierMap).sort((left, right) => left.cost - right.cost)
 
@@ -285,9 +341,10 @@ async function getWorkspaceForUser(user) {
     currentTab: 'cal',
     currentProf: user.role === 'user' ? members[0]?.key || 'self' : 'gestor',
     currentView: 'Semanal',
-    weekRange: '24 — 30 Março',
+    weekRange,
     weekDays,
     calendar,
+    rawEvents: events,
     profiles,
     rewards: rewardsByTier,
     meals: meals.map((meal) => ({
@@ -300,12 +357,12 @@ async function getWorkspaceForUser(user) {
     })),
     shoppingListCount: meals.filter((meal) => meal.shopping).length,
     plansPreview: plansPreview.map((plan) => ({
-        id: plan.id,
-        name: plan.name,
-        code: plan.code,
-        limits: '',
-        active: Boolean(plan.active),
-      })),
+      id: plan.id,
+      name: plan.name,
+      code: plan.code,
+      limits: '',
+      active: Boolean(plan.active),
+    })),
   }
 }
 

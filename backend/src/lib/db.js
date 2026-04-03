@@ -8,8 +8,8 @@ function createPool() {
       process.env.DATABASE_SSL === 'false'
         ? false
         : {
-            rejectUnauthorized: false,
-          }
+          rejectUnauthorized: false,
+        }
 
     return new Pool({
       connectionString: process.env.DATABASE_URL,
@@ -165,13 +165,30 @@ async function migrate() {
     `
       CREATE TABLE IF NOT EXISTS events (
         id TEXT PRIMARY KEY,
-        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        owner_user_id TEXT NOT NULL,
         day_key TEXT NOT NULL,
+        event_date TEXT,
         title TEXT NOT NULL,
         time TEXT NOT NULL,
         cls TEXT NOT NULL,
-        member_keys_json TEXT NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL
+        member_keys_json TEXT DEFAULT '[]',
+        recurrence_type TEXT DEFAULT 'único',
+        recurrence_days TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS task_history (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL,
+        task_id TEXT NOT NULL,
+        profile_key TEXT NOT NULL,
+        completed_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
       )
     `,
     `

@@ -6,41 +6,6 @@ const { requireAuth } = require('../middleware/auth')
 
 const router = express.Router()
 
-router.post('/register', async (req, res) => {
-  const { name, email, password, role = 'admin' } = req.body
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' })
-  }
-
-  const existing = await one('SELECT id FROM users WHERE email = $1', [email])
-  if (existing) {
-    return res.status(409).json({ error: 'Já existe um usuário com esse e-mail.' })
-  }
-
-  const roleRow = await one('SELECT id FROM roles WHERE key = $1', [role])
-  if (!roleRow) {
-    return res.status(400).json({ error: 'Papel inválido.' })
-  }
-
-  const userId = uid('user')
-  await transaction(async (client) => {
-    await query(
-      `
-        INSERT INTO users (id, name, email, password_hash, role_id, status, created_at)
-        VALUES ($1, $2, $3, $4, $5, 'active', $6)
-      `,
-      [userId, name, email, bcrypt.hashSync(password, 10), roleRow.id, new Date().toISOString()],
-      client,
-    )
-
-    await initializeWorkspaceForUser(userId, name, {}, client)
-  })
-
-  const user = await getRoleByUserId(userId)
-  return res.status(201).json({ token: signToken(user), user })
-})
-
 router.post('/login', async (req, res) => {
   const { email, password } = req.body
   const row = await one(

@@ -7,33 +7,49 @@ const router = express.Router()
 router.use(requireAuth)
 
 router.get('/', async (req, res) => {
-  const profileKey = req.query.profileKey
   const sql = `
-    SELECT id, profile_key AS "profileKey", title, tag, points, done, recurrence, created_at AS "createdAt"
+    SELECT id, profile_key AS "profileKey", participant_keys_json AS "participantKeysJson", title, tag, time_type AS "timeType", time_value AS "timeValue", priority, reward, points, done, recurrence, created_at AS "createdAt"
     FROM tasks
     WHERE owner_user_id = $1
-    ${profileKey ? 'AND profile_key = $2' : ''}
     ORDER BY created_at ASC
   `
-  const params = profileKey ? [req.user.id, profileKey] : [req.user.id]
+  const params = [req.user.id]
   const tasks = await many(sql, params)
   res.json({ tasks })
 })
 
-router.post('/', async (req, res) => {
-  const { title, tag, points = 0, done = false, recurrence = '', profileKey = 'self' } = req.body
+router.get('/history', async (req, res) => {
+  const history = await many(`
+    SELECT h.id, h.task_id as "taskId", h.profile_key as "profileKey", h.completed_at as "completedAt",
+           t.title, t.reward, t.points
+    FROM task_history h
+    JOIN tasks t ON h.task_id = t.id
+    WHERE h.owner_user_id = $1
+    ORDER BY h.completed_at DESC
+    LIMIT 200
+  `, [req.user.id])
+  res.json({ history })
+})
 
-  if (!title || !tag) {
-    return res.status(400).json({ error: 'Título e tag são obrigatórios.' })
+router.post('/', async (req, res) => {
+  const { title, tag, points = 0, done = false, recurrence = 'única', profileKey = '', participantKeys = [], timeType = 'none', timeValue = '', priority = 0, reward = '' } = req.body
+
+  if (!title) {
+    return res.status(400).json({ error: 'Título é obrigatório.' })
   }
 
   const now = new Date().toISOString()
   const task = {
     id: uid('task'),
     ownerUserId: req.user.id,
-    profileKey,
+    profileKey: profileKey || (participantKeys[0] ?? ''),
+    participantKeysJson: JSON.stringify(participantKeys),
     title,
-    tag,
+    tag: tag || '',
+    timeType,
+    timeValue,
+    priority: Number(priority) || 0,
+    reward,
     points: Number(points) || 0,
     done: Boolean(done),
     recurrence,
@@ -43,10 +59,10 @@ router.post('/', async (req, res) => {
 
   await query(
     `
-      INSERT INTO tasks (id, owner_user_id, profile_key, title, tag, points, done, recurrence, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO tasks (id, owner_user_id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
     `,
-    [task.id, task.ownerUserId, task.profileKey, task.title, task.tag, task.points, task.done, task.recurrence, task.createdAt, task.updatedAt],
+    [task.id, task.ownerUserId, task.profileKey, task.participantKeysJson, task.title, task.tag, task.timeType, task.timeValue, task.priority, task.reward, task.points, task.done, task.recurrence, task.createdAt, task.updatedAt]
   )
 
   res.status(201).json({ task })
@@ -60,21 +76,42 @@ router.patch('/:id', async (req, res) => {
 
   const next = {
     ...existing,
+    participant_keys_json: req.body.participantKeys !== undefined ? JSON.stringify(req.body.participantKeys) : existing.participant_keys_json,
     title: req.body.title ?? existing.title,
     tag: req.body.tag ?? existing.tag,
-    points: req.body.points ?? existing.points,
+    time_type: req.body.timeType ?? existing.time_type,
+    time_value: req.body.timeValue ?? existing.time_value,
+    priority: req.body.priority !== undefined ? Number(req.body.priority) : existing.priority,
+    reward: req.body.reward !== undefined ? req.body.reward : existing.reward,
+    points: req.body.points !== undefined ? Number(req.body.points) : existing.points,
     done: typeof req.body.done === 'boolean' ? req.body.done : existing.done,
+    recurrence: req.body.recurrence ?? existing.recurrence,
     updated_at: new Date().toISOString(),
   }
 
   await query(
     `
       UPDATE tasks
-      SET title = $1, tag = $2, points = $3, done = $4, updated_at = $5
-      WHERE id = $6
+      SET participant_keys_json = $1, title = $2, tag = $3, time_type = $4, time_value = $5, priority = $6, reward = $7, points = $8, done = $9, recurrence = $10, updated_at = $11
+      WHERE id = $12
     `,
-    [next.title, next.tag, next.points, next.done, next.updated_at, next.id],
+    [next.participant_keys_json, next.title, next.tag, next.time_type, next.time_value, next.priority, next.reward, next.points, next.done, next.recurrence, next.updated_at, next.id],
   )
+
+  if (next.done && !existing.done) {
+    let profileKeyCompleting = req.body.profileKeyCompleting
+    if (!profileKeyCompleting) {
+      const keys = JSON.parse(existing.participant_keys_json || '[]')
+      profileKeyCompleting = keys[0] || existing.profile_key
+    }
+
+    await query(
+      `INSERT INTO task_history (id, owner_user_id, task_id, profile_key, completed_at, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [uid('hist'), req.user.id, next.id, profileKeyCompleting, next.updated_at, next.updated_at]
+    )
+  } else if (!next.done && existing.done) {
+    await query(`DELETE FROM task_history WHERE task_id = $1 AND owner_user_id = $2`, [next.id, req.user.id])
+  }
 
   res.json({ task: next })
 })
