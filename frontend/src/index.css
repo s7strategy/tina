@@ -293,3 +293,25 @@ button,input,select,textarea{font:inherit;}
 }
 
 @media(max-width:768px){.sb{width:46px;}.sb .lb{display:none;}.cg{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}.auth-side{display:none;}.inline-grid-2,.inline-grid-3{grid-template-columns:1fr;}.admin-page{padding:16px;}.admin-toolbar,.admin-filter-actions,.admin-form-actions,.admin-plan-actions{width:100%;justify-content:stretch;}.admin-button{width:100%;}.admin-table th:nth-child(2),.admin-table td:nth-child(2),.admin-table th:nth-child(3),.admin-table td:nth-child(3){display:none;}.admin-chart-growth,.admin-chart-revenue{grid-template-columns:repeat(3,minmax(0,1fr));}}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Form helpers */
+.form-label{font-size:0.7em;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:0.04em;margin:8px 0 4px;}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.radio-opt{display:flex;align-items:center;gap:4px;font-size:0.75em;font-weight:600;color:var(--t2);cursor:pointer;padding:4px 8px;border-radius:6px;border:1.5px solid var(--bd);background:var(--w);transition:all 0.15s;}
+.radio-opt:has(input:checked){border-color:var(--mae);background:#f0ecff;color:var(--mae);}
+.radio-opt input{display:none;}
+
+.days-picker{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.day-chip{display:flex;align-items:center;gap:3px;font-size:0.72em;font-weight:700;padding:4px 8px;border-radius:6px;border:1.5px solid var(--bd);background:var(--w);cursor:pointer;transition:all 0.15s;color:var(--t2);}
+.day-chip.on{background:var(--mae);border-color:var(--mae);color:white;}
+.day-chip input{display:none;}
+
+.star-picker{display:flex;align-items:center;gap:2px;margin-bottom:6px;}
+.star-btn{background:transparent;border:none;font-size:1.3em;cursor:pointer;color:#e8e5e0;padding:0 1px;transition:color 0.1s;line-height:1;}
+.star-btn.on{color:var(--am);}
+.star-btn:hover{color:var(--am);}
+
+input[type="date"].sel{color:var(--t1);}
+input[type="date"].sel::-webkit-calendar-picker-indicator{opacity:0.5;cursor:pointer;}

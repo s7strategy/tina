@@ -1,23 +1,17 @@
 #!/usr/bin/expect -f
+# Requires SSH key auth configured (ssh-copy-id root@187.77.59.83)
 set timeout 60
-set password "Futuro20242024#"
 
-spawn ssh -o StrictHostKeyChecking=no root@187.77.59.83
-
-expect {
-    "password:" {
-        send "$password\r"
-    }
-    timeout {
-        puts "Connection timed out"
-        exit 1
-    }
-}
+spawn ssh -o StrictHostKeyChecking=accept-new root@187.77.59.83
 
 expect {
     "~#" {}
     "$ " {}
     "#" {}
+    timeout {
+        puts "Connection timed out"
+        exit 1
+    }
 }
 
 send "echo '=== OS ===' && cat /etc/os-release | grep -E 'NAME|VERSION=' | head -3\r"

@@ -1,13 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:4000/api')
 
 async function request(path, options = {}) {
+  const { token, headers: extraHeaders, ...fetchOptions } = options
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extraHeaders,
     },
-    ...options,
+    ...fetchOptions,
   })
 
   if (!response.ok) {
@@ -138,8 +139,15 @@ export const api = {
       body: JSON.stringify(payload),
     })
   },
-  listEvents(token) {
-    return request('/events', { token })
+  updateMember(token, id, payload) {
+    return request(`/members/${id}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(payload),
+    })
+  },
+  listEvents(token, params = {}) {
+    return request(`/events${buildQuery(params)}`, { token })
   },
   createEvent(token, payload) {
     return request('/events', {
@@ -147,6 +155,22 @@ export const api = {
       token,
       body: JSON.stringify(payload),
     })
+  },
+  updateEvent(token, id, payload) {
+    return request(`/events/${id}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(payload),
+    })
+  },
+  deleteEvent(token, id) {
+    return request(`/events/${id}`, {
+      method: 'DELETE',
+      token,
+    })
+  },
+  getTaskHistory(token, params = {}) {
+    return request(`/tasks/history${buildQuery(params)}`, { token })
   },
   listFavorites(token) {
     return request('/favorites', { token })
@@ -201,6 +225,26 @@ export const api = {
   stopTimeEntry(token, payload) {
     return request('/time-entries/stop', {
       method: 'POST',
+      token,
+      body: JSON.stringify(payload),
+    })
+  },
+  updateTimeEntry(token, id, payload) {
+    return request(`/time-entries/${id}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(payload),
+    })
+  },
+  deleteTimeEntry(token, id) {
+    return request(`/time-entries/${id}`, {
+      method: 'DELETE',
+      token,
+    })
+  },
+  updateFavorite(token, id, payload) {
+    return request(`/favorites/${id}`, {
+      method: 'PATCH',
       token,
       body: JSON.stringify(payload),
     })

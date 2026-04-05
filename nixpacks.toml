@@ -1,4 +1,0 @@
-# Railway/Nixpacks: entrada do processo (código em /backend)
-# O `npm install` na raiz roda postinstall e instala dependências do backend.
-[start]
-cmd = "npm run start --prefix backend"

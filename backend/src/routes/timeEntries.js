@@ -37,9 +37,9 @@ router.post('/start', async (req, res) => {
       `
         UPDATE time_entries
         SET active = FALSE, paused = FALSE, ended_at = $1, duration_seconds = $2, last_resumed_at = NULL
-        WHERE id = $3
+        WHERE id = $3 AND owner_user_id = $4
       `,
-      [new Date().toISOString(), durationSeconds, existing.id],
+      [new Date().toISOString(), durationSeconds, existing.id, req.user.id],
     )
   }
 
@@ -103,9 +103,9 @@ router.post('/toggle-pause', async (req, res) => {
       `
         UPDATE time_entries
         SET paused = FALSE, last_resumed_at = $1
-        WHERE id = $2
+        WHERE id = $2 AND owner_user_id = $3
       `,
-      [new Date().toISOString(), entry.id],
+      [new Date().toISOString(), entry.id, req.user.id],
     )
   } else {
     const durationSeconds = Number(entry.duration_seconds || 0) + (entry.last_resumed_at ? getElapsedSeconds(entry.last_resumed_at) : 0)
@@ -113,9 +113,9 @@ router.post('/toggle-pause', async (req, res) => {
       `
         UPDATE time_entries
         SET paused = TRUE, duration_seconds = $1, last_resumed_at = NULL
-        WHERE id = $2
+        WHERE id = $2 AND owner_user_id = $3
       `,
-      [durationSeconds, entry.id],
+      [durationSeconds, entry.id, req.user.id],
     )
   }
 
@@ -135,12 +135,31 @@ router.post('/stop', async (req, res) => {
     `
       UPDATE time_entries
       SET active = FALSE, paused = FALSE, ended_at = $1, duration_seconds = $2, last_resumed_at = NULL
-      WHERE id = $3
+      WHERE id = $3 AND owner_user_id = $4
     `,
-    [new Date().toISOString(), durationSeconds, entry.id],
+    [new Date().toISOString(), durationSeconds, entry.id, req.user.id],
   )
 
   res.json({ ok: true })
+})
+
+router.patch('/:id', async (req, res) => {
+  const entry = await one('SELECT * FROM time_entries WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (!entry) return res.status(404).json({ error: 'Entrada não encontrada.' })
+
+  const { cat, sub, detail, label } = req.body
+  const newLabel = label || `${cat || entry.cat}${(sub || entry.sub) ? ` — ${sub || entry.sub}` : ''}${(detail || entry.detail) ? ` — ${detail || entry.detail}` : ''}`
+  await query(
+    `UPDATE time_entries SET cat = $1, sub = $2, detail = $3, label = $4 WHERE id = $5 AND owner_user_id = $6`,
+    [cat ?? entry.cat, sub ?? entry.sub, detail ?? entry.detail, newLabel, req.params.id, req.user.id],
+  )
+  res.json({ ok: true })
+})
+
+router.delete('/:id', async (req, res) => {
+  const result = await query('DELETE FROM time_entries WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
+  if (result.rowCount === 0) return res.status(404).json({ error: 'Entrada não encontrada.' })
+  res.status(204).send()
 })
 
 module.exports = router

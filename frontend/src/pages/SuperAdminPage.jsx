@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../lib/api.js'
+import ErrorBoundary from '../components/ui/ErrorBoundary.jsx'
 
 const currentMonth = new Date().toISOString().slice(0, 7)
 
@@ -356,6 +357,7 @@ function SuperAdminPage() {
   const statusMax = Math.max(1, ...analytics.charts.statusBreakdown.map((item) => item.value || 0))
 
   return (
+    <ErrorBoundary>
     <div className="page-wrap admin-page">
       <div className="admin-hero">
         <div>
@@ -948,6 +950,7 @@ function SuperAdminPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }
 

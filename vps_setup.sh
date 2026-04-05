@@ -4,6 +4,11 @@ echo "================================================"
 echo "  TINA SaaS - VPS Setup (PostgreSQL + PM2 + Nginx)"
 echo "================================================"
 
+# --- Config (override via env vars) ---
+PG_DB="${TINA_PG_DB:-tinadb}"
+PG_USER="${TINA_PG_USER:-tina}"
+PG_PASS="${TINA_PG_PASS:?Defina TINA_PG_PASS com a senha do banco antes de rodar este script}"
+
 # --- 1. Sistema ---
 apt-get update -y
 apt-get install -y curl nginx postgresql postgresql-contrib ufw
@@ -23,10 +28,6 @@ npm install -g pm2
 # --- 4. PostgreSQL: criar banco e usuário ---
 systemctl start postgresql
 systemctl enable postgresql
-
-PG_DB=tinadb
-PG_USER=tina
-PG_PASS=Tina@2024Secure!
 
 sudo -u postgres psql -c "
 DO \$\$
@@ -63,14 +64,12 @@ server {
     listen 80;
     server_name _;
 
-    # Compressão gzip
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_proxied any;
     gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
 
-    # Cache longo para assets estáticos (JS/CSS com hash no nome)
     location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$ {
         proxy_pass http://localhost:4000;
         proxy_http_version 1.1;
@@ -81,7 +80,6 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
-    # Proxy reverso para o Node.js
     location / {
         proxy_pass http://localhost:4000;
         proxy_http_version 1.1;
@@ -108,7 +106,7 @@ ufw --force enable
 echo ""
 echo "================================================"
 echo "  Setup concluído!"
-echo "  Banco: postgresql://${PG_USER}:${PG_PASS}@localhost:5432/${PG_DB}"
+echo "  Banco: $PG_DB (user: $PG_USER)"
 echo "  Node: $(node --version)"
 echo "  Nginx: ativo"
 echo "================================================"

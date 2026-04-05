@@ -453,10 +453,21 @@ router.patch('/:id', async (req, res) => {
 })
 
 router.delete('/:id', async (req, res) => {
-  const row = await one('SELECT email FROM users WHERE id = $1', [req.params.id])
+  if (req.params.id === req.user.id) {
+    return res.status(400).json({ error: 'Não é possível excluir a própria conta.' })
+  }
+
+  const row = await one(
+    `SELECT users.id, roles.key AS role FROM users JOIN roles ON roles.id = users.role_id WHERE users.id = $1`,
+    [req.params.id],
+  )
 
   if (!row) {
     return res.status(404).json({ error: 'Usuário não encontrado.' })
+  }
+
+  if (row.role === 'super_admin') {
+    return res.status(403).json({ error: 'Não é possível excluir um super admin.' })
   }
 
   await query('DELETE FROM users WHERE id = $1', [req.params.id])

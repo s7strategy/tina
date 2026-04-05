@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useAppData } from '../context/AppDataContext.jsx'
+import Modal from '../components/ui/Modal.jsx'
+import ErrorBoundary from '../components/ui/ErrorBoundary.jsx'
+import PeoplePicker from '../components/ui/PeoplePicker.jsx'
+import EmojiPicker, { TwemojiImg } from '../components/ui/EmojiPicker.jsx'
+import CalendarView from '../components/dashboard/CalendarView.jsx'
+import TasksView from '../components/dashboard/TasksView.jsx'
+import TimeTrackingView from '../components/dashboard/TimeTrackingView.jsx'
+import RewardsView from '../components/dashboard/RewardsView.jsx'
+import MealsView from '../components/dashboard/MealsView.jsx'
+import ChartsView from '../components/dashboard/ChartsView.jsx'
 
 const tabItems = [
   { key: 'cal', icon: '📅', label: 'Agenda' },
@@ -12,49 +22,94 @@ const tabItems = [
   { key: 'charts', icon: '📈', label: 'Gráficos' },
 ]
 
-const defaultTaskDraft = { profileKey: 'pedro', title: '', tag: 'Manhã', points: 5 }
-const defaultEventDraft = { dayKey: 'qua', title: '', time: '09h', members: ['mae'], cls: 'ce-mae' }
-const defaultCategoryDraft = { icon: '📂', name: '', visibility: 'Todos' }
+function generateTimeSlots() {
+  const slots = []
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    }
+  }
+  return slots
+}
+const TIME_SLOTS = generateTimeSlots()
+const WEEK_DAYS_OPTS = [
+  { key: 'seg', label: 'Seg' }, { key: 'ter', label: 'Ter' }, { key: 'qua', label: 'Qua' },
+  { key: 'qui', label: 'Qui' }, { key: 'sex', label: 'Sex' }, { key: 'sab', label: 'Sáb' }, { key: 'dom', label: 'Dom' },
+]
+
+const defaultTaskDraft = {
+  profileKey: '', participants: [], title: '',
+  timeType: 'none', timeValue: '',
+  recurrence: 'única', recurrenceDays: [],
+  priority: 0, reward: '', points: 0,
+}
+const defaultEventDraft = {
+  eventDate: '', dayKey: '', title: '', time: '09:00', members: [],
+  recurrenceType: 'único', recurrenceDays: [],
+}
+const defaultCategoryDraft = { icon: '📂', name: '', visibilityKeys: [] }
 const defaultRewardDraft = { tierId: 'tier-8', value: '' }
 const defaultMealDraft = { day: 'Seg', icon: '🍲', name: '', shopping: '', today: false }
 const defaultProfileDraft = { name: '', relation: 'Filho(a)', profileType: 'Criança', age: '', color: '#7c6aef' }
-const defaultFavoriteDraft = { icon: '⭐', label: '', cat: '💼 Trabalho', sub: '', detail: '' }
+const defaultFavoriteDraft = { icon: '⭐', label: '', cat: '', sub: '', detail: '', profileKey: '', participantKeys: [] }
+
+function CategorySelect({ categories, value, onChange }) {
+  const [custom, setCustom] = useState(false)
+
+  if (custom || categories.length === 0) {
+    return (
+      <div>
+        <input
+          placeholder="Categoria (ex: 💼 Trabalho)"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {categories.length > 0 && (
+          <button type="button" className="ib" style={{ fontSize: '0.68em', marginTop: 2 }} onClick={() => setCustom(false)}>
+            Escolher existente
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="form-label">📂 Categoria</div>
+      <select
+        className="sel"
+        value={value}
+        onChange={(e) => {
+          if (e.target.value === '__new__') { setCustom(true); onChange('') }
+          else onChange(e.target.value)
+        }}
+      >
+        <option value="">Selecionar categoria...</option>
+        {categories.map((cat) => (
+          <option key={cat.id} value={`${cat.icon} ${cat.name}`}>
+            {cat.icon} {cat.name}
+          </option>
+        ))}
+        <option value="__new__">+ Nova categoria</option>
+      </select>
+    </div>
+  )
+}
 
 function DashboardPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const {
-    workspace,
-    syncState,
-    setCurrentTab,
-    setCurrentProf,
-    setCurrentView,
-    addTask,
-    updateTask,
-    deleteTask,
-    addCategory,
-    addCalendarEvent,
-    addReward,
-    addMeal,
-    addProfile,
-    addFavorite,
-    removeFavorite,
-    startFavorite,
-    startCustomActivity,
-    togglePause,
-    stopTimer,
-    formatClock,
-    formatMinutes,
+    workspace, syncState, setCurrentTab, setCurrentProf, setCurrentView,
+    addTask, updateTask, deleteTask, addCategory, addCalendarEvent,
+    addReward, addMeal, addProfile, updateProfile, addFavorite, removeFavorite,
+    startFavorite, startCustomActivity, togglePause, stopTimer,
+    updateTimeEntry, deleteTimeEntry,
+    formatClock, formatMinutes,
   } = useAppData()
 
   const [clock, setClock] = useState(() =>
-    new Date().toLocaleString('pt-BR', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
   )
   const [modal, setModal] = useState('')
   const [taskDraft, setTaskDraft] = useState(defaultTaskDraft)
@@ -64,44 +119,57 @@ function DashboardPage() {
   const [rewardDraft, setRewardDraft] = useState(defaultRewardDraft)
   const [mealDraft, setMealDraft] = useState(defaultMealDraft)
   const [profileDraft, setProfileDraft] = useState(defaultProfileDraft)
+  const [editingMember, setEditingMember] = useState(null)
   const [favoriteDraft, setFavoriteDraft] = useState(defaultFavoriteDraft)
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const profiles = workspace.profiles
   const currentProfile = profiles[workspace.currentProf] ?? profiles.gestor
-  const nonManagerProfiles = Object.values(profiles).filter((profile) => profile.key !== 'gestor')
+  const nonManagerProfiles = Object.values(profiles).filter((p) => p.key !== 'gestor')
+
+  const allCategories = useMemo(() => {
+    const seen = new Set()
+    const result = []
+    Object.values(profiles).forEach((p) => {
+      (p.categories ?? []).forEach((cat) => {
+        const key = `${cat.icon}|${cat.name}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          result.push(cat)
+        }
+      })
+    })
+    return result
+  }, [profiles])
   const visibleProfiles = useMemo(() => {
-    if (user?.role === 'user') {
-      return Object.values(profiles).filter((profile) => profile.key !== 'gestor')
-    }
+    if (user?.role === 'user') return Object.values(profiles).filter((p) => p.key !== 'gestor')
     return Object.values(profiles)
   }, [profiles, user?.role])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      setClock(
-        new Date().toLocaleString('pt-BR', {
-          weekday: 'short',
-          day: '2-digit',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      )
+      setClock(new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))
     }, 60000)
-
     return () => window.clearInterval(interval)
   }, [])
 
-  function openModal(key) {
+  function openModal(key, profileKey) {
     setModal(key)
     if (key === 'task') {
-      setTaskDraft((current) => ({ ...defaultTaskDraft, profileKey: workspace.currentProf === 'gestor' ? 'pedro' : workspace.currentProf, ...current }))
+      const defaultKey = profileKey || (workspace.currentProf === 'gestor' ? (nonManagerProfiles[0]?.key || '') : workspace.currentProf)
+      setTaskDraft({ ...defaultTaskDraft, profileKey: defaultKey, participants: defaultKey ? [defaultKey] : [] })
+      setEditingTask(null)
+    }
+    if (key === 'add-person') {
+      setEditingMember(null)
+      setProfileDraft(defaultProfileDraft)
     }
   }
 
   function closeModal() {
     setModal('')
     setEditingTask(null)
+    setEditingMember(null)
     setTaskDraft(defaultTaskDraft)
     setEventDraft(defaultEventDraft)
     setCategoryDraft(defaultCategoryDraft)
@@ -111,8 +179,47 @@ function DashboardPage() {
     setFavoriteDraft(defaultFavoriteDraft)
   }
 
+  function editTask(profileKey, task) {
+    setEditingTask(task)
+    let recurrence = task.recurrence || 'única'
+    let recurrenceDays = []
+    if (recurrence && recurrence.startsWith('dias:')) {
+      recurrenceDays = recurrence.replace('dias:', '').split(',').filter(Boolean)
+      recurrence = 'dias-específicos'
+    }
+    const participants = (task.participantKeys && task.participantKeys.length > 0)
+      ? task.participantKeys
+      : (profileKey ? [profileKey] : [])
+    setTaskDraft({
+      profileKey,
+      participants,
+      title: task.title,
+      timeType: task.timeType || 'none',
+      timeValue: task.timeValue || '',
+      recurrence,
+      recurrenceDays,
+      priority: task.priority || 0,
+      reward: task.reward || '',
+      points: task.points || 0,
+    })
+    setModal('task')
+  }
+
+  function openEditMember(profile) {
+    setEditingMember(profile)
+    setProfileDraft({
+      name: profile.name || '',
+      relation: profile.relation || 'Filho(a)',
+      profileType: profile.profileType || profile.type || 'Criança',
+      age: profile.age != null ? String(profile.age) : '',
+      color: profile.color || '#7c6aef',
+    })
+    setModal('add-person')
+  }
+
   function todayEvents() {
-    const items = workspace.calendar.qua ?? []
+    const todayKey = workspace.weekDays?.find((d) => d.today)?.key ?? 'qua'
+    const items = workspace.calendar[todayKey] ?? []
     if (workspace.currentProf === 'gestor') return items
     return items.filter((event) => event.members.includes(workspace.currentProf))
   }
@@ -131,656 +238,201 @@ function DashboardPage() {
     return '📌 Dia tranquilo'
   }
 
-  function memberNames(memberKeys) {
-    return memberKeys.map((key) => profiles[key]?.name ?? key).join(' · ')
+  function toggleRecurrenceDay(day) {
+    setTaskDraft((c) => ({
+      ...c,
+      recurrenceDays: c.recurrenceDays.includes(day)
+        ? c.recurrenceDays.filter((d) => d !== day)
+        : [...c.recurrenceDays, day],
+    }))
+  }
+
+  function toggleEventRecurrenceDay(day) {
+    setEventDraft((c) => ({
+      ...c,
+      recurrenceDays: c.recurrenceDays.includes(day)
+        ? c.recurrenceDays.filter((d) => d !== day)
+        : [...c.recurrenceDays, day],
+    }))
   }
 
   async function submitTask(event) {
     event.preventDefault()
     if (!taskDraft.title.trim()) return
-
-    if (editingTask) {
-      await updateTask(taskDraft.profileKey, editingTask.id, {
-        title: taskDraft.title,
-        tag: taskDraft.tag,
-        points: Number(taskDraft.points) || 0,
-      })
-    } else {
-      await addTask(taskDraft)
+    const recurrenceValue = taskDraft.recurrence === 'dias-específicos'
+      ? `dias:${taskDraft.recurrenceDays.join(',')}`
+      : taskDraft.recurrence
+    const participants = taskDraft.participants.length > 0 ? taskDraft.participants : (taskDraft.profileKey ? [taskDraft.profileKey] : [])
+    const payload = {
+      profileKey: participants[0] || taskDraft.profileKey,
+      participants,
+      title: taskDraft.title,
+      timeType: taskDraft.timeType,
+      timeValue: taskDraft.timeType !== 'none' ? taskDraft.timeValue : '',
+      recurrence: recurrenceValue,
+      priority: taskDraft.priority,
+      reward: taskDraft.reward,
+      points: Number(taskDraft.points) || 0,
     }
-
+    if (editingTask) {
+      await updateTask(taskDraft.profileKey, editingTask.id, { ...payload, participantKeys: participants })
+    } else {
+      await addTask(payload)
+    }
     closeModal()
-  }
-
-  async function toggleTaskState(profileKey, task) {
-    await updateTask(profileKey, task.id, { done: !task.done })
   }
 
   async function submitCategory(event) {
     event.preventDefault()
     if (!categoryDraft.name.trim()) return
-
+    const keys = categoryDraft.visibilityKeys
+    let visibilityScope
+    if (keys.length === 0 || keys.includes('todos')) {
+      visibilityScope = ['Todos']
+    } else {
+      visibilityScope = keys.map((k) => nonManagerProfiles.find((p) => p.key === k)?.name ?? k)
+    }
     await addCategory({
-      profileKey: workspace.currentProf === 'gestor' ? 'mae' : workspace.currentProf,
-      ...categoryDraft,
+      profileKey: workspace.currentProf === 'gestor' ? (nonManagerProfiles[0]?.key || 'mae') : workspace.currentProf,
+      icon: categoryDraft.icon,
+      name: categoryDraft.name,
+      visibility: visibilityScope,
     })
-
     closeModal()
   }
 
-  function submitEvent(event) {
+  async function submitEvent(event) {
     event.preventDefault()
     if (!eventDraft.title.trim()) return
-    addCalendarEvent(eventDraft)
+    if (!eventDraft.eventDate && !eventDraft.dayKey) return
+    const recurrenceDaysStr = eventDraft.recurrenceDays.join(',')
+    await addCalendarEvent({
+      ...eventDraft,
+      recurrenceDays: recurrenceDaysStr,
+      cls: 'ce-all',
+    })
     closeModal()
   }
 
-  function submitReward(event) {
+  async function submitReward(event) {
     event.preventDefault()
     if (!rewardDraft.value.trim()) return
-    addReward(rewardDraft)
+    await addReward(rewardDraft)
     closeModal()
   }
 
-  function submitMeal(event) {
+  async function submitMeal(event) {
     event.preventDefault()
     if (!mealDraft.name.trim()) return
-    addMeal(mealDraft)
+    await addMeal(mealDraft)
     closeModal()
   }
 
-  function submitProfile(event) {
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const base64 = ev.target.result
+      const canvas = document.createElement('canvas')
+      const img = new Image()
+      img.onload = () => {
+        const size = 120
+        canvas.width = size; canvas.height = size
+        const ctx = canvas.getContext('2d')
+        const ratio = Math.max(size / img.width, size / img.height)
+        const w = img.width * ratio; const h = img.height * ratio
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
+        setProfileDraft((c) => ({ ...c, avatarUrl: canvas.toDataURL('image/jpeg', 0.85) }))
+      }
+      img.src = base64
+    }
+    reader.readAsDataURL(file)
+  }
+
+  async function submitProfile(event) {
     event.preventDefault()
     if (!profileDraft.name.trim()) return
-
-    const key = `${profileDraft.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')}-${Date.now()}`
-    addProfile({
-      key,
-      name: profileDraft.name,
-      short: '0/0 tarefas',
-      color: profileDraft.color,
-      avatar: profileDraft.name[0]?.toUpperCase() ?? 'P',
-      type: 'member',
-      statusColor: '#22c55e',
-      relation: profileDraft.relation,
-      profileType: profileDraft.profileType,
-      age: profileDraft.age,
-      tasks: [],
-      categories: [],
-      favorites: [],
-      workSubs: [],
-      tracking: {
-        active: false,
-        paused: false,
-        cat: '🏠 Casa',
-        sub: '',
-        detail: '',
-        seconds: 0,
-        totalMinutes: 0,
-        log: [],
-      },
-    })
+    if (editingMember) {
+      await updateProfile(editingMember.id, {
+        name: profileDraft.name,
+        relation: profileDraft.relation,
+        profileType: profileDraft.profileType,
+        age: profileDraft.age,
+        color: profileDraft.color,
+        avatarUrl: profileDraft.avatarUrl ?? editingMember.avatarUrl,
+      })
+    } else {
+      const key = `${profileDraft.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')}-${Date.now()}`
+      await addProfile({
+        key, name: profileDraft.name, short: '0/0 tarefas', color: profileDraft.color,
+        avatar: profileDraft.name[0]?.toUpperCase() ?? 'P', type: 'member', statusColor: '#22c55e',
+        relation: profileDraft.relation, profileType: profileDraft.profileType, age: profileDraft.age,
+        tasks: [], categories: [], favorites: [], workSubs: [],
+        tracking: { active: false, paused: false, cat: '🏠 Casa', sub: '', detail: '', seconds: 0, totalMinutes: 0, log: [] },
+      })
+    }
     closeModal()
   }
 
-  function submitFavorite(event) {
+  async function submitFavorite(event) {
     event.preventDefault()
     if (!favoriteDraft.label.trim()) return
-    addFavorite(workspace.currentProf, favoriteDraft)
-    closeModal()
-  }
-
-  function editTask(profileKey, task) {
-    setEditingTask(task)
-    setTaskDraft({
-      profileKey,
-      title: task.title,
-      tag: task.tag,
-      points: task.points,
+    const participants = favoriteDraft.participantKeys.length > 0 ? favoriteDraft.participantKeys : [workspace.currentProf]
+    const targetProfile = participants[0] || workspace.currentProf
+    await addFavorite(targetProfile, {
+      ...favoriteDraft,
+      participantKeys: participants,
     })
-    setModal('task')
-  }
-
-  function switchToProfile(key) {
-    setCurrentProf(key)
-  }
-
-  function renderCalendarView() {
-    const isManager = workspace.currentProf === 'gestor'
-    const profile = profiles[workspace.currentProf]
-    const renderEvents = (events) => {
-      if (isManager) return events
-      return events.filter((item) => item.members.includes(workspace.currentProf))
-    }
-
-    const todaysEvents = renderEvents(workspace.calendar.qua ?? [])
-
-    return (
-      <>
-        {isManager ? (
-          <div className="mbars">
-            {['mae', 'pai', 'pedro', 'sofia', 'vovo'].filter((key) => profiles[key]).map((key) => (
-              <div className="mb" style={{ background: profiles[key].color }} key={key}>
-                ● {profiles[key].name}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, padding: '4px 0' }}>
-            <div className="av" style={{ background: profile.color, width: 24, height: 24, fontSize: '0.6em' }}>
-              {profile.name[0]}
-            </div>
-            <span style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 700, fontSize: '0.85em' }}>
-              Agenda de {profile.name}
-            </span>
-          </div>
-        )}
-
-        {todaysEvents.length > 0 ? (
-          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, fontSize: '0.9em' }}>HOJE 🌤️</span>
-              <span style={{ marginLeft: 'auto', fontSize: '0.72em', color: '#92400e', fontWeight: 700 }}>
-                {dayBadgeLabel()}
-              </span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {todaysEvents.map((item) => (
-                <div
-                  className={`ce ${isManager ? item.cls : ''}`}
-                  key={item.id}
-                  style={!isManager ? { fontSize: '0.68em', padding: '5px 8px', borderRadius: 8, background: `${profile.color}15`, borderLeftColor: profile.color } : { fontSize: '0.68em', padding: '5px 8px', borderRadius: 8 }}
-                >
-                  <span className="ce-t">{item.title}</span> <span className="ce-m">{item.time}</span>
-                  {isManager ? (
-                    <div style={{ fontSize: '0.85em', color: 'var(--t3)', marginTop: 1 }}>{memberNames(item.members)}</div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="cg">
-          {workspace.weekDays.filter((day) => !day.today).map((day) => {
-            const events = renderEvents(workspace.calendar[day.key] ?? [])
-            return (
-              <div className="cd" key={day.key}>
-                <div className="cd-h">
-                  <span className="cd-n">{day.name}</span>
-                  <span className="cd-d">{day.num}</span>
-                </div>
-                <div className="cd-c">
-                  {events.length} evento{events.length !== 1 ? 's' : ''}
-                </div>
-                {events.map((item) => (
-                  <div
-                    className={`ce ${isManager ? item.cls : ''}`}
-                    key={item.id}
-                    style={!isManager ? { background: `${profile.color}15`, borderLeftColor: profile.color } : undefined}
-                  >
-                    <span className="ce-t">{item.title}</span> <span className="ce-m">{item.time}</span>
-                    {isManager ? (
-                      <div style={{ fontSize: '0.85em', color: 'var(--t3)', marginTop: 1 }}>{memberNames(item.members)}</div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            )
-          })}
-
-          <div className="cd" style={{ background: 'var(--bg)' }}>
-            <div className="cd-h">
-              <span className="cd-n">Próx. Semana</span>
-            </div>
-            <div className="cd-c" style={{ fontSize: '0.62em' }}>
-              31 Mar–6 Abr
-            </div>
-            <div style={{ fontSize: '0.58em', color: 'var(--t3)', marginTop: 4 }}>
-              🏥 Dentista · 🎂 Aniv. Vovó · 📝 Prova
-            </div>
-          </div>
-
-          {isManager ? (
-            <div className="cd" style={{ background: 'var(--bg)', border: 'none' }}>
-              <div style={{ fontSize: '0.65em', fontWeight: 700, color: 'var(--t2)', marginBottom: 6 }}>Tarefas Hoje</div>
-              {nonManagerProfiles.map((profileItem) => {
-                const total = profileItem.tasks?.length || 1
-                const done = profileItem.tasks?.filter((task) => task.done).length || 0
-                const pct = Math.round((done / total) * 100)
-                return (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3, fontSize: '0.65em' }} key={`progress-${profileItem.key}`}>
-                    <span style={{ color: profileItem.color, fontWeight: 700 }}>{profileItem.name}</span>
-                    <div style={{ flex: 1, height: 6, background: '#e8e5e0', borderRadius: 3, overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: profileItem.color, borderRadius: 3 }}></div>
-                    </div>
-                    <span style={{ fontWeight: 700 }}>
-                      {done}/{total}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        <div style={{ marginTop: 10 }}>
-          <button className="ib" style={{ width: '100%', textAlign: 'center', padding: 10, fontSize: '0.82em', borderRadius: 10 }} onClick={() => openModal('event')}>
-            ➕ Novo evento
-          </button>
-        </div>
-      </>
-    )
-  }
-
-  function renderTasksView() {
-    const isManager = workspace.currentProf === 'gestor'
-    const targetProfiles = isManager ? nonManagerProfiles : [currentProfile]
-
-    return (
-      <div className={isManager ? 'g2' : ''}>
-        {targetProfiles.map((profile) => {
-          const done = profile.tasks?.filter((task) => task.done).length ?? 0
-          return (
-            <div className="card" key={profile.key}>
-              <div className="card-t" style={{ color: profile.color }}>
-                <div className="av" style={{ background: profile.color, width: 22, height: 22, fontSize: '0.55em' }}>
-                  {profile.name[0]}
-                </div>
-                {isManager ? `${profile.name} — ${done}/${profile.tasks.length}` : `✅ Minhas Tarefas — ${done}/${profile.tasks.length}`}
-                {profile.stars ? ` · ⭐${profile.stars}` : ''}
-                {profile.streak ? ` · 🔥${profile.streak}d` : ''}
-              </div>
-              {profile.tasks.map((task) => (
-                <div className="ti" key={task.id}>
-                  <button className={`ck${task.done ? ' d' : ''}`} onClick={() => toggleTaskState(profile.key, task)}>
-                    {task.done ? '✓' : ''}
-                  </button>
-                  <div className={`tl${task.done ? ' d' : ''}`}>{task.title}</div>
-                  {task.points ? <div className="tp">+{task.points}⭐</div> : null}
-                  <div className="tt">{task.tag}</div>
-                  <button className="ib" onClick={() => editTask(profile.key, task)}>
-                    ✏️
-                  </button>
-                  <button className="ib" onClick={() => deleteTask(profile.key, task.id)}>
-                    ✕
-                  </button>
-                </div>
-              ))}
-              <div style={{ marginTop: 6, display: 'flex', gap: 3 }}>
-                <button
-                  className="ib"
-                  onClick={() => {
-                    setTaskDraft({ ...defaultTaskDraft, profileKey: profile.key })
-                    openModal('task')
-                  }}
-                >
-                  ➕ Tarefa
-                </button>
-                <button className="ib" onClick={() => openModal('category')}>
-                  📂 Categorias
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  function renderManagerTime() {
-    return (
-      <>
-        <div style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, fontSize: '0.95em', marginBottom: 10 }}>
-          ⏱️ Visão Geral — Família
-        </div>
-        <div className="g2" style={{ marginBottom: 10 }}>
-          {nonManagerProfiles.map((profile) => {
-            const tracking = profile.tracking
-            const isPaused = tracking.paused
-            const statusBg = tracking.active && !isPaused ? '#dcfce7' : isPaused ? '#fef3c7' : '#f3f3f3'
-            const statusFg = tracking.active && !isPaused ? '#16a34a' : isPaused ? '#d97706' : '#999'
-            const statusLabel = tracking.active && !isPaused ? '● Ativo' : isPaused ? '⏸ Pausado' : '○ Idle'
-            return (
-              <div className="gt" key={profile.key}>
-                <div className="gt-h">
-                  <div className="gt-av" style={{ background: profile.color }}>{profile.name[0]}</div>
-                  <div className="gt-nm">{profile.name}</div>
-                  <span className="gt-st" style={{ background: statusBg, color: statusFg }}>{statusLabel}</span>
-                </div>
-                <div className="gt-task">
-                  {tracking.cat}
-                  {tracking.sub ? ` → ${tracking.sub}` : ''}
-                </div>
-                <div className="gt-tmr" style={{ color: profile.color }}>
-                  {formatClock(tracking.seconds)}
-                </div>
-                <div className="gt-tot">Hoje: {formatMinutes(tracking.totalMinutes)}</div>
-              </div>
-            )
-          })}
-        </div>
-        <div className="card">
-          <div className="card-t">🏆 Quem mais focou hoje</div>
-          {nonManagerProfiles.map((profile) => {
-            const pct = Math.max(8, Math.round((profile.tracking.totalMinutes / 480) * 100))
-            return (
-              <div className="pb" key={`focus-${profile.key}`}>
-                <span className="pb-l" style={{ color: profile.color }}>{profile.name}</span>
-                <div className="pb-b">
-                  <div className="pb-f" style={{ width: `${pct}%`, background: profile.color }}></div>
-                </div>
-                <span className="pb-v" style={{ color: profile.color }}>{formatMinutes(profile.tracking.totalMinutes)}</span>
-              </div>
-            )
-          })}
-        </div>
-      </>
-    )
-  }
-
-  function renderPersonalTime(profile) {
-    const tracking = profile.tracking
-    const isActive = tracking.active && !tracking.paused
-    const categories = profile.categories ?? []
-    const favorites = profile.favorites ?? []
-    const chartSegments = [
-      { label: 'Categoria atual', width: 44, color: profile.color, text: `${tracking.cat} ${formatMinutes(Math.floor(tracking.seconds / 60))}` },
-      { label: 'Total hoje', width: 56, color: 'var(--bd)', text: `Total ${formatMinutes(tracking.totalMinutes)}` },
-    ]
-
-    return (
-      <>
-        <div style={{ background: 'linear-gradient(135deg,#1a1530,#2d2548)', borderRadius: 16, padding: '24px 16px', textAlign: 'center', marginBottom: 10, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 40%,rgba(124,106,239,0.08),transparent 70%)' }}></div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: '0.78em', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
-              {isActive ? 'Rastreando agora' : tracking.paused ? 'Pausado' : 'Pronto para iniciar'}
-            </div>
-            <div style={{ width: 160, height: 160, margin: '12px auto', position: 'relative' }}>
-              <svg width="160" height="160" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
-                <circle
-                  cx="80"
-                  cy="80"
-                  r="70"
-                  fill="none"
-                  stroke={isActive ? profile.color : '#f59e0b'}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${isActive ? 310 : 200} 440`}
-                />
-              </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontFamily: "'Plus Jakarta Sans'", fontSize: '2.2em', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
-                  {formatClock(tracking.seconds)}
-                </div>
-                <div style={{ fontSize: '0.72em', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
-                  {tracking.cat}
-                  {tracking.sub ? ` → ${tracking.sub}` : ''}
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>
-              <button
-                onClick={() => togglePause(profile.key)}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: isActive ? 'rgba(245,158,11,0.2)' : 'rgba(34,197,94,0.2)',
-                  color: isActive ? '#fbbf24' : '#22c55e',
-                  fontSize: '1.5em',
-                  cursor: 'pointer',
-                }}
-              >
-                {isActive ? '⏸' : '▶️'}
-              </button>
-              <button
-                onClick={() => stopTimer(profile.key)}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: 'rgba(239,68,68,0.15)',
-                  color: '#f87171',
-                  fontSize: '1.3em',
-                  cursor: 'pointer',
-                }}
-              >
-                ⏹
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-t">
-            ⚡ Favoritos de {profile.name}
-            <button className="ib" style={{ marginLeft: 'auto' }} onClick={() => openModal('manage-fav')}>
-              ⭐ Gerenciar
-            </button>
-          </div>
-          {favorites.length === 0 ? (
-            <div className="empty-state">Nenhum favorito ainda.</div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-              {favorites.map((favorite) => {
-                const favoriteActive = tracking.active && tracking.cat === favorite.cat && (tracking.sub || '') === (favorite.sub || '')
-                return (
-                  <div
-                    key={favorite.id}
-                    onClick={() => startFavorite(profile.key, favorite.id)}
-                    style={{
-                      background: 'var(--bg)',
-                      borderRadius: 10,
-                      padding: '10px 6px',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      border: favoriteActive ? `2px solid ${profile.color}` : '2px solid transparent',
-                      position: 'relative',
-                    }}
-                  >
-                    <div style={{ fontSize: '1.3em' }}>{favorite.icon}</div>
-                    <div style={{ fontSize: '0.68em', fontWeight: 700, marginTop: 2 }}>{favorite.label}</div>
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        removeFavorite(profile.key, favorite.id)
-                      }}
-                      style={{ position: 'absolute', top: 2, left: 2, background: 'none', border: 'none', fontSize: '0.55em', cursor: 'pointer', opacity: 0.35, padding: 2 }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )
-              })}
-              <div onClick={() => openModal('add-fav')} style={{ background: 'transparent', border: '1.5px dashed var(--bd)', borderRadius: 10, padding: '10px 6px', textAlign: 'center', cursor: 'pointer' }}>
-                <div style={{ fontSize: '1.3em', color: 'var(--t3)' }}>➕</div>
-                <div style={{ fontSize: '0.68em', fontWeight: 700, color: 'var(--t3)', marginTop: 2 }}>Adicionar</div>
-              </div>
-            </div>
-          )}
-
-          {categories.length > 0 ? (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--bd)' }}>
-              <div style={{ fontSize: '0.62em', fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 4 }}>
-                Categorias
-              </div>
-              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                {categories.map((category) => (
-                  <button
-                    className="ib"
-                    key={category.id}
-                    onClick={() =>
-                      startCustomActivity(profile.key, {
-                        cat: `${category.icon} ${category.name}`,
-                        sub: '',
-                        detail: '',
-                      })
-                    }
-                  >
-                    {category.icon} {category.name}
-                  </button>
-                ))}
-                <button className="ib" onClick={() => openModal('category')}>
-                  ➕ Nova Categoria
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="card">
-          <div className="card-t">📋 Linha do Tempo — Hoje</div>
-          {tracking.log.length > 0 ? (
-            <>
-              {tracking.log.map((entry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '6px 0',
-                    borderBottom: '1px solid var(--bd)',
-                    ...(entry.active
-                      ? {
-                          background: '#f0f9ff',
-                          borderRadius: 6,
-                          padding: '6px 8px',
-                          border: 'none',
-                          marginBottom: 2,
-                        }
-                      : {}),
-                  }}
-                >
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: entry.active ? 'var(--gn)' : profile.color, flexShrink: 0 }}></div>
-                  <div style={{ flex: 1, fontSize: '0.78em', fontWeight: 600 }}>{entry.name}</div>
-                  <div style={{ fontSize: '0.72em', color: 'var(--t3)', flexShrink: 0 }}>{entry.time}</div>
-                  <div style={{ fontFamily: "'Plus Jakarta Sans'", fontSize: '0.78em', fontWeight: 700, flexShrink: 0, width: 42, textAlign: 'right' }}>
-                    {formatMinutes(entry.durationMinutes)}
-                  </div>
-                </div>
-              ))}
-              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '2px solid var(--bd)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8em', fontWeight: 700 }}>Total Hoje</span>
-                <span style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, fontSize: '1.1em', color: profile.color }}>
-                  {formatMinutes(profile.tracking.totalMinutes)}
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className="empty-state">Nenhuma atividade registrada hoje.</div>
-          )}
-        </div>
-
-        <div className="card">
-          <div className="card-t">📊 Distribuição do Dia</div>
-          <div style={{ display: 'flex', height: 18, borderRadius: 9, overflow: 'hidden', gap: 1 }}>
-            {chartSegments.map((segment) => (
-              <div key={segment.label} style={{ width: `${segment.width}%`, background: segment.color }} title={segment.text}></div>
-            ))}
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  function renderRewardsView() {
-    return workspace.rewards.map((tier) => (
-      <div className="card" key={tier.id}>
-        <div className="card-t" style={{ color: tier.color }}>
-          {tier.label} (⭐{tier.cost})
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
-            <button
-              className="ib"
-              onClick={() => {
-                setRewardDraft({ tierId: tier.id, value: '' })
-                openModal('reward')
-              }}
-            >
-              ➕ Criar
-            </button>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-          {tier.items.map((item) => (
-            <div className="rw" key={`${tier.id}-${item}`}>
-              <div className="rw-i">{item.split(' ')[0]}</div>
-              <div className="rw-n">{item.slice(2)}</div>
-              <div className="rw-c" style={{ color: tier.color }}>
-                ⭐{tier.cost}
-              </div>
-            </div>
-          ))}
-          <div className="rw rw-add" onClick={() => {
-            setRewardDraft({ tierId: tier.id, value: '' })
-            openModal('reward')
-          }}>
-            <div style={{ fontSize: '1.2em', color: 'var(--t3)' }}>➕</div>
-            <div className="rw-n" style={{ color: 'var(--t3)' }}>Criar</div>
-          </div>
-        </div>
-      </div>
-    ))
-  }
-
-  function renderMealsView() {
-    return (
-      <>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-          {workspace.meals.map((meal) => (
-            <div className="ml" style={meal.today ? { border: '2px solid var(--mae)' } : undefined} key={meal.id}>
-              <div className="ml-d" style={meal.today ? { color: 'var(--mae)' } : undefined}>
-                {meal.day}
-              </div>
-              <div className="ml-i">{meal.icon}</div>
-              <div className="ml-n">{meal.name}</div>
-              {meal.shopping ? <div className="ml-m">🛒 {meal.shopping}</div> : null}
-            </div>
-          ))}
-          <div className="ml" style={{ border: '1.5px dashed var(--bd)' }}>
-            <div className="ml-d">🛒 Lista</div>
-            <div className="ml-i">📝</div>
-            <div className="ml-n" style={{ color: 'var(--sof)' }}>
-              {workspace.shoppingListCount} itens
-            </div>
-          </div>
-        </div>
-        <div style={{ marginTop: 8, display: 'flex', gap: 3 }}>
-          <button className="ib" onClick={() => openModal('meal')}>
-            ➕ Adicionar refeição
-          </button>
-        </div>
-      </>
-    )
-  }
-
-  function renderChartsView() {
-    return (
-      <div className="card" style={{ textAlign: 'center', padding: 30 }}>
-        <div style={{ fontSize: '2em' }}>📊</div>
-        <div style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, marginTop: 8 }}>
-          Gráficos detalhados
-        </div>
-        <div style={{ color: 'var(--t3)', fontSize: '0.85em', marginTop: 4 }}>
-          Base pronta para evoluir semanal, mensal, por pessoa e por categoria.
-        </div>
-      </div>
-    )
+    closeModal()
   }
 
   function renderContent() {
-    if (workspace.currentTab === 'cal') return renderCalendarView()
-    if (workspace.currentTab === 'tasks') return renderTasksView()
-    if (workspace.currentTab === 'time') return workspace.currentProf === 'gestor' ? renderManagerTime() : renderPersonalTime(currentProfile)
-    if (workspace.currentTab === 'rewards') return renderRewardsView()
-    if (workspace.currentTab === 'meals') return renderMealsView()
-    return renderChartsView()
+    const tab = workspace.currentTab
+    if (tab === 'cal') return (
+      <CalendarView
+        workspace={workspace}
+        profiles={profiles}
+        currentProf={workspace.currentProf}
+        nonManagerProfiles={nonManagerProfiles}
+        openModal={openModal}
+        weekOffset={weekOffset}
+      />
+    )
+    if (tab === 'tasks') return (
+      <TasksView
+        workspace={workspace}
+        profiles={profiles}
+        currentProfile={currentProfile}
+        nonManagerProfiles={nonManagerProfiles}
+        openModal={openModal}
+        updateTask={updateTask}
+        deleteTask={deleteTask}
+        editTask={editTask}
+      />
+    )
+    if (tab === 'time') return (
+      <TimeTrackingView
+        workspace={workspace}
+        profiles={profiles}
+        currentProf={workspace.currentProf}
+        currentProfile={currentProfile}
+        nonManagerProfiles={nonManagerProfiles}
+        formatClock={formatClock}
+        formatMinutes={formatMinutes}
+        togglePause={togglePause}
+        stopTimer={stopTimer}
+        startFavorite={startFavorite}
+        removeFavorite={removeFavorite}
+        startCustomActivity={startCustomActivity}
+        openModal={openModal}
+        updateTimeEntry={updateTimeEntry}
+        deleteTimeEntry={deleteTimeEntry}
+      />
+    )
+    if (tab === 'rewards') return <RewardsView workspace={workspace} openModal={openModal} setRewardDraft={setRewardDraft} />
+    if (tab === 'meals') return <MealsView workspace={workspace} openModal={openModal} />
+    return <ChartsView />
   }
 
   const settingsProfile = workspace.currentProf === 'gestor' ? nonManagerProfiles[0] : currentProfile
@@ -791,13 +443,13 @@ function DashboardPage() {
         <div className="sb">
           <div className="sb-logo">🏠</div>
           {tabItems.map((item) => (
-            <button key={item.key} className={`si${workspace.currentTab === item.key ? ' on' : ''}`} onClick={() => setCurrentTab(item.key)}>
+            <button key={item.key} className={`si${workspace.currentTab === item.key ? ' on' : ''}`} onClick={() => setCurrentTab(item.key)} aria-label={item.label}>
               <span className="ic">{item.icon}</span>
               <span className="lb">{item.label}</span>
             </button>
           ))}
-          <div className="sb-sp"></div>
-          <button className="si" onClick={() => openModal('settings')}>
+          <div className="sb-sp" />
+          <button className="si" onClick={() => openModal('settings')} aria-label="Configurações">
             <span className="ic">⚙️</span>
             <span className="lb">Config</span>
           </button>
@@ -818,209 +470,322 @@ function DashboardPage() {
 
             <div className="top-row2">
               {visibleProfiles.map((profile) => {
-                const done = profile.tasks?.filter((task) => task.done).length ?? 0
+                const done = profile.tasks?.filter((t) => t.done).length ?? 0
                 const total = profile.tasks?.length ?? 0
                 return (
-                  <div
+                  <button
                     className={`pf${workspace.currentProf === profile.key ? ' on' : ''}`}
                     data-m={profile.key}
                     key={profile.key}
-                    onClick={() => switchToProfile(profile.key)}
+                    onClick={() => setCurrentProf(profile.key)}
                     style={profile.key === 'vovo' ? { opacity: 0.7 } : undefined}
+                    aria-label={`Perfil ${profile.name}`}
                   >
-                    <div
-                      className="av"
-                      style={
-                        profile.avatarUrl
-                          ? { backgroundImage: `url('${profile.avatarUrl}')`, backgroundSize: 'cover' }
-                          : { background: `linear-gradient(135deg,${profile.color},#666)` }
-                      }
-                    >
+                    <div className="av" style={profile.avatarUrl ? { backgroundImage: `url('${profile.avatarUrl}')`, backgroundSize: 'cover' } : { background: `linear-gradient(135deg,${profile.color},#666)` }}>
                       {!profile.avatarUrl ? profile.avatar ?? profile.name[0] : <span style={{ display: 'none' }}>{profile.name[0]}</span>}
                     </div>
                     <div className="pf-info">
                       <div className="pf-n">
                         {profile.name}
-                        {profile.statusColor ? <div className="pf-dot" style={{ background: profile.statusColor }}></div> : null}
+                        {profile.statusColor && <div className="pf-dot" style={{ background: profile.statusColor }} />}
                       </div>
-                      <div className="pf-s">
-                        {profile.short ?? `${done}/${total} tarefas`}
-                      </div>
+                      <div className="pf-s">{profile.short ?? `${done}/${total} tarefas`}</div>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
-              {user?.role !== 'user' ? (
-                <button className="add-person" onClick={() => openModal('add-person')}>
-                  +
-                </button>
-              ) : null}
+              {user?.role !== 'user' && (
+                <button className="add-person" onClick={() => openModal('add-person')} aria-label="Adicionar pessoa">+</button>
+              )}
             </div>
 
             <div className="top-row3">
               <div className="date-nav">
-                <div className="ar">‹</div>
+                <button className="ar" aria-label="Semana anterior" onClick={() => setWeekOffset((w) => w - 1)}>‹</button>
                 <span className="rng">{workspace.weekRange}</span>
-                <div className="ar">›</div>
+                <button className="ar" aria-label="Próxima semana" onClick={() => setWeekOffset((w) => w + 1)}>›</button>
               </div>
               <div className="date-vt">
                 {['Semanal', 'Mensal'].map((view) => (
-                  <button
-                    key={view}
-                    className={workspace.currentView === view ? 'on' : ''}
-                    onClick={() => setCurrentView(view)}
-                  >
-                    {view}
-                  </button>
+                  <button key={view} className={workspace.currentView === view ? 'on' : ''} onClick={() => setCurrentView(view)}>{view}</button>
                 ))}
               </div>
             </div>
           </div>
 
           <div className="ct" id="content-area">
-            {syncState.error ? <div className="feedback error">{syncState.error}</div> : null}
-            {renderContent()}
+            {syncState.error && <div className="feedback error">{syncState.error}</div>}
+            <ErrorBoundary>{renderContent()}</ErrorBoundary>
           </div>
         </div>
       </div>
 
+      {/* Modal: Nova / Editar Tarefa */}
       <Modal isOpen={modal === 'task'} id="modal-task" onClose={closeModal} title={editingTask ? '✏️ Editar Tarefa' : '➕ Nova Tarefa'}>
         <form onSubmit={submitTask}>
-          <select className="sel" value={taskDraft.profileKey} onChange={(event) => setTaskDraft((current) => ({ ...current, profileKey: event.target.value }))}>
-            {nonManagerProfiles.map((profile) => (
-              <option value={profile.key} key={profile.key}>
-                {profile.name}
-              </option>
+          <div className="form-label">👥 Participantes</div>
+          <PeoplePicker
+            profiles={nonManagerProfiles}
+            selected={taskDraft.participants}
+            multi
+            onChange={(keys) => setTaskDraft((c) => ({ ...c, participants: keys, profileKey: keys[0] || c.profileKey }))}
+            label=""
+          />
+
+          <input
+            placeholder="Nome da tarefa *"
+            value={taskDraft.title}
+            onChange={(e) => setTaskDraft((c) => ({ ...c, title: e.target.value }))}
+          />
+
+          <div className="form-label">⏰ Horário</div>
+          <div className="radio-row">
+            {[['none', 'Sem horário'], ['time', 'Horário específico'], ['shift', 'Turno']].map(([val, lbl]) => (
+              <label key={val} className="radio-opt">
+                <input
+                  type="radio"
+                  name="timeType"
+                  value={val}
+                  checked={taskDraft.timeType === val}
+                  onChange={() => setTaskDraft((c) => ({ ...c, timeType: val, timeValue: val === 'time' ? '09:00' : val === 'shift' ? 'Manhã' : '' }))}
+                />
+                {lbl}
+              </label>
             ))}
+          </div>
+          {taskDraft.timeType === 'time' && (
+            <select className="sel" value={taskDraft.timeValue} onChange={(e) => setTaskDraft((c) => ({ ...c, timeValue: e.target.value }))}>
+              {TIME_SLOTS.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          )}
+          {taskDraft.timeType === 'shift' && (
+            <select className="sel" value={taskDraft.timeValue} onChange={(e) => setTaskDraft((c) => ({ ...c, timeValue: e.target.value }))}>
+              <option>Manhã</option><option>Tarde</option><option>Noite</option>
+            </select>
+          )}
+
+          <div className="form-label">📅 Recorrência</div>
+          <select className="sel" value={taskDraft.recurrence} onChange={(e) => setTaskDraft((c) => ({ ...c, recurrence: e.target.value, recurrenceDays: [] }))}>
+            <option value="única">Única vez</option>
+            <option value="diária">Diária</option>
+            <option value="semanal">Semanal</option>
+            <option value="quinzenal">Quinzenal</option>
+            <option value="dias-específicos">Dias específicos</option>
           </select>
-          <input placeholder="Nome da tarefa" value={taskDraft.title} onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))} />
-          <select className="sel" value={taskDraft.tag} onChange={(event) => setTaskDraft((current) => ({ ...current, tag: event.target.value }))}>
-            <option>Manhã</option>
-            <option>Tarde</option>
-            <option>Noite</option>
-            <option>Qualquer horário</option>
-          </select>
-          <input type="number" placeholder="Pontos / estrelas" value={taskDraft.points} onChange={(event) => setTaskDraft((current) => ({ ...current, points: event.target.value }))} />
-          <button className="save-btn" type="submit">
-            {editingTask ? 'Salvar alterações' : 'Salvar Tarefa'}
-          </button>
+          {taskDraft.recurrence === 'dias-específicos' && (
+            <div className="days-picker">
+              {WEEK_DAYS_OPTS.map((d) => (
+                <label key={d.key} className={`day-chip${taskDraft.recurrenceDays.includes(d.key) ? ' on' : ''}`}>
+                  <input type="checkbox" checked={taskDraft.recurrenceDays.includes(d.key)} onChange={() => toggleRecurrenceDay(d.key)} />
+                  {d.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          <div className="form-label">⭐ Prioridade</div>
+          <div className="star-picker">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`star-btn${n <= taskDraft.priority ? ' on' : ''}`}
+                onClick={() => setTaskDraft((c) => ({ ...c, priority: c.priority === n ? 0 : n }))}
+                aria-label={`Prioridade ${n}`}
+              >
+                ★
+              </button>
+            ))}
+            {taskDraft.priority > 0 && (
+              <span style={{ fontSize: '0.7em', color: 'var(--t3)', marginLeft: 4 }}>
+                {['', 'Baixa', 'Baixa', 'Média', 'Alta', 'Urgente'][taskDraft.priority]}
+              </span>
+            )}
+          </div>
+
+          <input
+            placeholder="🎁 Recompensa (opcional)"
+            value={taskDraft.reward}
+            onChange={(e) => setTaskDraft((c) => ({ ...c, reward: e.target.value }))}
+          />
+          <input
+            type="number"
+            placeholder="Pontos / estrelas"
+            min="0"
+            value={taskDraft.points}
+            onChange={(e) => setTaskDraft((c) => ({ ...c, points: e.target.value }))}
+          />
+          <button className="save-btn" type="submit">{editingTask ? 'Salvar alterações' : 'Salvar Tarefa'}</button>
         </form>
       </Modal>
 
+      {/* Modal: Novo Evento */}
       <Modal isOpen={modal === 'event'} id="modal-event" onClose={closeModal} title="📅 Novo Evento">
         <form onSubmit={submitEvent}>
-          <input placeholder="Nome do evento" value={eventDraft.title} onChange={(event) => setEventDraft((current) => ({ ...current, title: event.target.value }))} />
-          <select className="sel" value={eventDraft.dayKey} onChange={(event) => setEventDraft((current) => ({ ...current, dayKey: event.target.value }))}>
-            {workspace.weekDays.map((day) => (
-              <option value={day.key} key={day.key}>
-                {day.name}
-              </option>
-            ))}
+          <input
+            placeholder="Nome do evento *"
+            value={eventDraft.title}
+            onChange={(e) => setEventDraft((c) => ({ ...c, title: e.target.value }))}
+          />
+
+          <div className="form-label">📅 Data</div>
+          <input
+            type="date"
+            className="sel"
+            value={eventDraft.eventDate}
+            onChange={(e) => setEventDraft((c) => ({ ...c, eventDate: e.target.value, dayKey: '' }))}
+            style={{ marginBottom: 4 }}
+          />
+
+          <div className="form-label">⏰ Horário</div>
+          <select className="sel" value={eventDraft.time} onChange={(e) => setEventDraft((c) => ({ ...c, time: e.target.value }))}>
+            {TIME_SLOTS.map((s) => <option key={s}>{s}</option>)}
           </select>
-          <input placeholder="Horário" value={eventDraft.time} onChange={(event) => setEventDraft((current) => ({ ...current, time: event.target.value }))} />
-          <div style={{ fontSize: '0.68em', fontWeight: 700, color: 'var(--t3)', margin: '8px 0 3px' }}>👤 Quem participa:</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-            {nonManagerProfiles.map((profile) => (
-              <button
-                type="button"
-                className={`day-btn${eventDraft.members.includes(profile.key) ? ' on' : ''}`}
-                key={profile.key}
-                onClick={() =>
-                  setEventDraft((current) => ({
-                    ...current,
-                    members: current.members.includes(profile.key)
-                      ? current.members.filter((item) => item !== profile.key)
-                      : [...current.members, profile.key],
-                  }))
-                }
-              >
-                {profile.name}
-              </button>
-            ))}
-          </div>
-          <button className="save-btn" type="submit">
-            Salvar Evento
-          </button>
+
+          <div className="form-label">🔁 Recorrência</div>
+          <select className="sel" value={eventDraft.recurrenceType} onChange={(e) => setEventDraft((c) => ({ ...c, recurrenceType: e.target.value, recurrenceDays: [] }))}>
+            <option value="único">Único</option>
+            <option value="semanal">Semanal</option>
+            <option value="quinzenal">Quinzenal</option>
+          </select>
+          {(eventDraft.recurrenceType === 'semanal' || eventDraft.recurrenceType === 'quinzenal') && (
+            <div className="days-picker">
+              {WEEK_DAYS_OPTS.map((d) => (
+                <label key={d.key} className={`day-chip${eventDraft.recurrenceDays.includes(d.key) ? ' on' : ''}`}>
+                  <input type="checkbox" checked={eventDraft.recurrenceDays.includes(d.key)} onChange={() => toggleEventRecurrenceDay(d.key)} />
+                  {d.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          <PeoplePicker
+            profiles={nonManagerProfiles}
+            selected={eventDraft.members}
+            multi
+            onChange={(members) => setEventDraft((c) => ({ ...c, members }))}
+            label="👥 Quem participa:"
+          />
+          <button className="save-btn" type="submit">Salvar Evento</button>
         </form>
       </Modal>
 
       <Modal isOpen={modal === 'category'} id="modal-new-cat" onClose={closeModal} title="📂 Nova Categoria">
         <form onSubmit={submitCategory}>
-          <input placeholder="Emoji" value={categoryDraft.icon} onChange={(event) => setCategoryDraft((current) => ({ ...current, icon: event.target.value }))} />
-          <input placeholder="Nome da categoria" value={categoryDraft.name} onChange={(event) => setCategoryDraft((current) => ({ ...current, name: event.target.value }))} />
-          <select className="sel" value={categoryDraft.visibility} onChange={(event) => setCategoryDraft((current) => ({ ...current, visibility: event.target.value }))}>
-            <option>Todos</option>
-            {nonManagerProfiles.map((profile) => (
-              <option key={profile.key}>{profile.name}</option>
-            ))}
-          </select>
-          <button className="save-btn" type="submit">
-            Criar Categoria
-          </button>
+          <EmojiPicker
+            value={categoryDraft.icon}
+            onChange={(emoji) => setCategoryDraft((c) => ({ ...c, icon: emoji }))}
+            label="Ícone da categoria"
+          />
+          <input placeholder="Nome da categoria *" value={categoryDraft.name} onChange={(e) => setCategoryDraft((c) => ({ ...c, name: e.target.value }))} />
+          <PeoplePicker
+            profiles={nonManagerProfiles}
+            selected={categoryDraft.visibilityKeys}
+            multi
+            onChange={(keys) => setCategoryDraft((c) => ({ ...c, visibilityKeys: keys }))}
+            label="👁️ Visível para (selecione múltiplos):"
+            includeAll
+          />
+          <button className="save-btn" type="submit">Criar Categoria</button>
         </form>
       </Modal>
 
       <Modal isOpen={modal === 'reward'} id="modal-reward" onClose={closeModal} title="🎁 Nova Recompensa">
         <form onSubmit={submitReward}>
-          <select className="sel" value={rewardDraft.tierId} onChange={(event) => setRewardDraft((current) => ({ ...current, tierId: event.target.value }))}>
-            {workspace.rewards.map((tier) => (
-              <option value={tier.id} key={tier.id}>
-                {tier.label}
-              </option>
-            ))}
+          <select className="sel" value={rewardDraft.tierId} onChange={(e) => setRewardDraft((c) => ({ ...c, tierId: e.target.value }))}>
+            {workspace.rewards.map((tier) => <option value={tier.id} key={tier.id}>{tier.label}</option>)}
           </select>
-          <input placeholder="Nome da recompensa (com emoji)" value={rewardDraft.value} onChange={(event) => setRewardDraft((current) => ({ ...current, value: event.target.value }))} />
-          <button className="save-btn" type="submit">
-            Salvar Recompensa
-          </button>
+          <input placeholder="Nome da recompensa (com emoji)" value={rewardDraft.value} onChange={(e) => setRewardDraft((c) => ({ ...c, value: e.target.value }))} />
+          <button className="save-btn" type="submit">Salvar Recompensa</button>
         </form>
       </Modal>
 
       <Modal isOpen={modal === 'meal'} id="modal-meal" onClose={closeModal} title="🍽️ Nova Refeição">
         <form onSubmit={submitMeal}>
-          <input placeholder="Dia" value={mealDraft.day} onChange={(event) => setMealDraft((current) => ({ ...current, day: event.target.value }))} />
-          <input placeholder="Emoji" value={mealDraft.icon} onChange={(event) => setMealDraft((current) => ({ ...current, icon: event.target.value }))} />
-          <input placeholder="Nome da refeição" value={mealDraft.name} onChange={(event) => setMealDraft((current) => ({ ...current, name: event.target.value }))} />
-          <input placeholder="Lista de compras (opcional)" value={mealDraft.shopping} onChange={(event) => setMealDraft((current) => ({ ...current, shopping: event.target.value }))} />
-          <button className="save-btn" type="submit">
-            Salvar refeição
-          </button>
+          <input placeholder="Dia" value={mealDraft.day} onChange={(e) => setMealDraft((c) => ({ ...c, day: e.target.value }))} />
+          <input placeholder="Emoji" value={mealDraft.icon} onChange={(e) => setMealDraft((c) => ({ ...c, icon: e.target.value }))} />
+          <input placeholder="Nome da refeição" value={mealDraft.name} onChange={(e) => setMealDraft((c) => ({ ...c, name: e.target.value }))} />
+          <input placeholder="Lista de compras (opcional)" value={mealDraft.shopping} onChange={(e) => setMealDraft((c) => ({ ...c, shopping: e.target.value }))} />
+          <button className="save-btn" type="submit">Salvar refeição</button>
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'add-person'} id="modal-add-person" onClose={closeModal} title="👤 Adicionar Pessoa">
+      {/* Modal: Adicionar / Editar Pessoa */}
+      <Modal isOpen={modal === 'add-person'} id="modal-add-person" onClose={closeModal} title={editingMember ? '✏️ Editar Membro' : '👤 Adicionar Pessoa'}>
         <form onSubmit={submitProfile}>
-          <input placeholder="Nome" value={profileDraft.name} onChange={(event) => setProfileDraft((current) => ({ ...current, name: event.target.value }))} />
-          <select className="sel" value={profileDraft.relation} onChange={(event) => setProfileDraft((current) => ({ ...current, relation: event.target.value }))}>
-            <option>Mãe</option>
-            <option>Pai</option>
-            <option>Filho(a)</option>
-            <option>Avô/Avó</option>
-            <option>Outro</option>
+          {/* Avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <div
+              className="av"
+              style={
+                profileDraft.avatarUrl
+                  ? { backgroundImage: `url('${profileDraft.avatarUrl}')`, backgroundSize: 'cover', width: 56, height: 56, fontSize: '0.85em' }
+                  : { background: profileDraft.color, width: 56, height: 56, fontSize: '1.2em' }
+              }
+            >
+              {!profileDraft.avatarUrl && (profileDraft.name[0]?.toUpperCase() || '?')}
+            </div>
+            <div>
+              <div style={{ fontSize: '0.7em', color: 'var(--t3)', marginBottom: 4 }}>Foto do perfil</div>
+              <label className="ib" style={{ cursor: 'pointer' }}>
+                📷 Escolher foto
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+              </label>
+              {profileDraft.avatarUrl && (
+                <button type="button" className="ib" style={{ marginLeft: 4, color: 'var(--rd)' }} onClick={() => setProfileDraft((c) => ({ ...c, avatarUrl: '' }))}>
+                  ✕ Remover
+                </button>
+              )}
+            </div>
+          </div>
+
+          <input placeholder="Nome *" value={profileDraft.name} onChange={(e) => setProfileDraft((c) => ({ ...c, name: e.target.value }))} />
+          <select className="sel" value={profileDraft.relation} onChange={(e) => setProfileDraft((c) => ({ ...c, relation: e.target.value }))}>
+            <option>Mãe</option><option>Pai</option><option>Filho(a)</option><option>Avô/Avó</option><option>Outro</option>
           </select>
-          <select className="sel" value={profileDraft.profileType} onChange={(event) => setProfileDraft((current) => ({ ...current, profileType: event.target.value }))}>
-            <option>Adulto (gerencia tarefas)</option>
-            <option>Criança (recebe tarefas + estrelas)</option>
-            <option>Observador (só visualiza)</option>
+          <select className="sel" value={profileDraft.profileType} onChange={(e) => setProfileDraft((c) => ({ ...c, profileType: e.target.value }))}>
+            <option>Adulto (gerencia tarefas)</option><option>Criança (recebe tarefas + estrelas)</option><option>Observador (só visualiza)</option>
           </select>
-          <input placeholder="Idade (opcional)" value={profileDraft.age} onChange={(event) => setProfileDraft((current) => ({ ...current, age: event.target.value }))} />
-          <input placeholder="Cor do perfil" value={profileDraft.color} onChange={(event) => setProfileDraft((current) => ({ ...current, color: event.target.value }))} />
-          <button className="save-btn" type="submit">
-            Adicionar à Família
-          </button>
+          <input placeholder="Idade (opcional)" value={profileDraft.age} onChange={(e) => setProfileDraft((c) => ({ ...c, age: e.target.value }))} />
+          <div className="form-label">🎨 Cor do perfil</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+            {['#7c6aef', '#2d9cdb', '#27ae60', '#e84393', '#e67e22', '#ef4444', '#f59e0b', '#06b6d4'].map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setProfileDraft((p) => ({ ...p, color: c }))}
+                style={{ width: 28, height: 28, borderRadius: '50%', background: c, border: profileDraft.color === c ? '3px solid #1e1e2e' : '2px solid transparent', cursor: 'pointer' }}
+                aria-label={`Cor ${c}`}
+              />
+            ))}
+          </div>
+          <button className="save-btn" type="submit">{editingMember ? 'Salvar alterações' : 'Adicionar à Família'}</button>
         </form>
       </Modal>
 
       <Modal isOpen={modal === 'add-fav'} id="modal-add-fav" onClose={closeModal} title="⭐ Novo Favorito">
         <form onSubmit={submitFavorite}>
-          <input placeholder="Emoji" value={favoriteDraft.icon} onChange={(event) => setFavoriteDraft((current) => ({ ...current, icon: event.target.value }))} />
-          <input placeholder="Nome curto" value={favoriteDraft.label} onChange={(event) => setFavoriteDraft((current) => ({ ...current, label: event.target.value }))} />
-          <input placeholder="Categoria" value={favoriteDraft.cat} onChange={(event) => setFavoriteDraft((current) => ({ ...current, cat: event.target.value }))} />
-          <input placeholder="Subcategoria" value={favoriteDraft.sub} onChange={(event) => setFavoriteDraft((current) => ({ ...current, sub: event.target.value }))} />
-          <input placeholder="Detalhe" value={favoriteDraft.detail} onChange={(event) => setFavoriteDraft((current) => ({ ...current, detail: event.target.value }))} />
-          <button className="save-btn" type="submit">
-            Adicionar Favorito
-          </button>
+          <PeoplePicker
+            profiles={nonManagerProfiles}
+            selected={favoriteDraft.participantKeys}
+            multi
+            onChange={(keys) => setFavoriteDraft((c) => ({ ...c, participantKeys: keys, profileKey: keys[0] || c.profileKey }))}
+            label="👥 Participantes"
+          />
+          <EmojiPicker
+            value={favoriteDraft.icon}
+            onChange={(emoji) => setFavoriteDraft((c) => ({ ...c, icon: emoji }))}
+            label="Ícone"
+          />
+          <input placeholder="Nome curto *" value={favoriteDraft.label} onChange={(e) => setFavoriteDraft((c) => ({ ...c, label: e.target.value }))} />
+          <CategorySelect
+            categories={allCategories}
+            value={favoriteDraft.cat}
+            onChange={(val) => setFavoriteDraft((c) => ({ ...c, cat: val }))}
+          />
+          <input placeholder="Subcategoria" value={favoriteDraft.sub} onChange={(e) => setFavoriteDraft((c) => ({ ...c, sub: e.target.value }))} />
+          <input placeholder="Detalhe" value={favoriteDraft.detail} onChange={(e) => setFavoriteDraft((c) => ({ ...c, detail: e.target.value }))} />
+          <button className="save-btn" type="submit">Adicionar Favorito</button>
         </form>
       </Modal>
 
@@ -1029,78 +794,54 @@ function DashboardPage() {
           Remova ou revise os atalhos rápidos do perfil atual.
         </div>
         {(settingsProfile?.favorites ?? []).length > 0 ? (
-          settingsProfile.favorites.map((favorite) => (
-            <div key={favorite.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--bd)', fontSize: '0.85em' }}>
-              <span style={{ fontSize: '1.2em' }}>{favorite.icon}</span>
+          settingsProfile.favorites.map((fav) => (
+            <div key={fav.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--bd)', fontSize: '0.85em' }}>
+              <TwemojiImg emoji={fav.icon} size={24} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700 }}>{favorite.label}</div>
-                <div style={{ fontSize: '0.78em', color: 'var(--t3)' }}>
-                  {favorite.cat}
-                  {favorite.sub ? ` → ${favorite.sub}` : ''}
-                </div>
+                <div style={{ fontWeight: 700 }}>{fav.label}</div>
+                <div style={{ fontSize: '0.78em', color: 'var(--t3)' }}>{fav.cat}{fav.sub ? ` → ${fav.sub}` : ''}</div>
               </div>
-              <button className="ib" onClick={() => removeFavorite(settingsProfile.key, favorite.id)}>
-                ✕ Remover
-              </button>
+              <button className="ib" onClick={() => removeFavorite(settingsProfile.key, fav.id)} aria-label={`Remover ${fav.label}`}>✕ Remover</button>
             </div>
           ))
         ) : (
-          <div className="empty-state">Nenhum favorito ainda.</div>
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div className="empty-state">Nenhum favorito ainda.</div>
+            <button className="save-btn" style={{ marginTop: 10 }} onClick={() => { closeModal(); openModal('add-fav') }}>
+              ➕ Adicionar primeiro favorito
+            </button>
+          </div>
         )}
       </Modal>
 
       <Modal isOpen={modal === 'settings'} id="modal-settings" onClose={closeModal} title="⚙️ Configurações">
         <div style={{ fontSize: '0.82em' }}>
-          <div className="ti">
-            <span className="tl">👥 Perfis locais</span>
-            <button className="ib" onClick={() => openModal('add-person')}>
-              Editar
-            </button>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9em', marginBottom: 6, color: 'var(--t2)' }}>👥 Membros da família</div>
+            {nonManagerProfiles.map((p) => (
+              <div key={p.key} className="ti" style={{ gap: 8, padding: '6px 0' }}>
+                <div className="av" style={p.avatarUrl ? { backgroundImage: `url('${p.avatarUrl}')`, backgroundSize: 'cover', width: 28, height: 28, fontSize: '0.7em' } : { background: p.color, width: 28, height: 28, fontSize: '0.7em' }}>
+                  {!p.avatarUrl && p.name[0]}
+                </div>
+                <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
+                <span style={{ color: 'var(--t3)', fontSize: '0.85em' }}>{p.relation || p.profileType}</span>
+                <button className="ib" onClick={() => { closeModal(); openEditMember(p) }}>✏️ Editar</button>
+              </div>
+            ))}
+            <button className="ib" style={{ marginTop: 6 }} onClick={() => openModal('add-person')}>➕ Adicionar membro</button>
           </div>
-          <div className="ti">
-            <span className="tl">📂 Categorias</span>
-            <button className="ib" onClick={() => openModal('category')}>
-              Editar
-            </button>
-          </div>
-          <div className="ti">
-            <span className="tl">🔌 Sincronização com backend</span>
-            <span className="tt">{syncState.loading ? 'Sincronizando' : 'Ativo'}</span>
-          </div>
-          <div className="ti">
-            <span className="tl">🔐 Papel atual</span>
-            <span className="tt">{user?.role}</span>
-          </div>
-          {user?.role === 'super_admin' ? (
-            <div className="ti">
-              <span className="tl">🏢 Painel do super admin</span>
-              <button className="ib" onClick={() => navigate('/super-admin')}>
-                Abrir
-              </button>
-            </div>
-          ) : null}
+          <div className="ti"><span className="tl">📂 Categorias</span><button className="ib" onClick={() => openModal('category')}>Editar</button></div>
+          <div className="ti"><span className="tl">🔌 Sincronização</span><span className="tt">{syncState.loading ? 'Sincronizando' : 'Ativo'}</span></div>
+          <div className="ti"><span className="tl">🔐 Papel atual</span><span className="tt">{user?.role}</span></div>
+          {user?.role === 'super_admin' && (
+            <div className="ti"><span className="tl">🏢 Painel super admin</span><button className="ib" onClick={() => navigate('/super-admin')}>Abrir</button></div>
+          )}
           <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
-            <button className="ib" onClick={() => logout()}>
-              Sair
-            </button>
+            <button className="ib" onClick={() => logout()}>Sair</button>
           </div>
         </div>
       </Modal>
     </>
-  )
-}
-
-function Modal({ isOpen, id, onClose, title, children }) {
-  return (
-    <div className={`modal-bg${isOpen ? ' on' : ''}`} id={id} onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="modal">
-        <button className="modal-close" onClick={onClose}>
-          ✕
-        </button>
-        <h3>{title}</h3>
-        {children}
-      </div>
-    </div>
   )
 }
 

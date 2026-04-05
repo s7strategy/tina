@@ -5,6 +5,9 @@ node_modules/
 dist/
 frontend/dist/
 
+# Deploy — senha SSH (não commitar)
+deploy.credentials.env
+
 # Secrets — NUNCA subir
 .env
 .env.*

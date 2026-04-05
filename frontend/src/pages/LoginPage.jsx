@@ -6,7 +6,7 @@ import { demoAccounts } from '../lib/seed.js'
 function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
-  const [form, setForm] = useState({ email: 'admin@tina.local', password: 'admin123' })
+  const [form, setForm] = useState(import.meta.env.PROD ? { email: '', password: '' } : { email: 'admin@tina.local', password: 'admin123' })
   const [feedback, setFeedback] = useState('')
 
   async function handleSubmit(event) {
@@ -41,7 +41,7 @@ function LoginPage() {
             <div className="auth-badge">Painel isolado de super admin</div>
           </div>
         </div>
-        <div className="muted">Backend real da TINA em Express + SQLite com estrutura pronta para crescer.</div>
+        <div className="muted">Backend real da TINA em Express + PostgreSQL com estrutura pronta para escalar.</div>
       </aside>
 
       <main className="auth-panel">
@@ -85,23 +85,27 @@ function LoginPage() {
             </button>
           </div>
 
-          <div className="demo-list">
-            {demoAccounts.map((account) => (
-              <button
-                className="demo-pill"
-                type="button"
-                key={account.email}
-                onClick={() => fillDemo(account)}
-              >
-                {account.role} · {account.email}
-              </button>
-            ))}
-          </div>
+          {!import.meta.env.PROD && (
+            <>
+              <div className="demo-list">
+                {demoAccounts.map((account) => (
+                  <button
+                    className="demo-pill"
+                    type="button"
+                    key={account.email}
+                    onClick={() => fillDemo(account)}
+                  >
+                    {account.role} · {account.email}
+                  </button>
+                ))}
+              </div>
 
-          <div className="auth-note">
-            Contas seed: super admin, admin da família e usuário padrão. Você pode criar outras
-            pelo cadastro ou pelo painel de super admin.
-          </div>
+              <div className="auth-note">
+                Contas seed: super admin, admin da família e usuário padrão. Você pode criar outras
+                pelo cadastro ou pelo painel de super admin.
+              </div>
+            </>
+          )}
 
           <div className="auth-switch">
             Ainda não tem conta?&nbsp;

@@ -17,6 +17,10 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'Usuário inválido.' })
     }
 
+    if (user.status !== 'active') {
+      return res.status(403).json({ error: 'Conta suspensa ou inativa.' })
+    }
+
     req.user = user
     next()
   } catch (error) {

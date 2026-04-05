@@ -125,12 +125,17 @@ export function AppDataProvider({ children }) {
       setCurrentView(view) {
         setWorkspace((current) => ({ ...current, currentView: view }))
       },
-      async addTask({ profileKey, title, tag, points }) {
+      async addTask({ profileKey, participants, title, timeType, timeValue, recurrence, priority, reward, points }) {
         await reloadAfterMutation(() =>
           api.createTask(token, {
-            profileKey,
+            profileKey: profileKey || (participants && participants[0]) || '',
+            participantKeys: participants || (profileKey ? [profileKey] : []),
             title,
-            tag,
+            timeType: timeType || 'none',
+            timeValue: timeValue || '',
+            recurrence: recurrence || 'única',
+            priority: Number(priority) || 0,
+            reward: reward || '',
             points: Number(points) || 0,
             done: false,
           }),
@@ -148,20 +153,29 @@ export function AppDataProvider({ children }) {
             profileKey,
             icon,
             name,
-            visibilityScope: visibility,
+            visibilityScope: Array.isArray(visibility) ? visibility : [visibility || 'Todos'],
           }),
         )
       },
-      async addCalendarEvent({ dayKey, title, time, members, cls }) {
+      async addCalendarEvent({ eventDate, dayKey, title, time, members, cls, recurrenceType, recurrenceDays }) {
         await reloadAfterMutation(() =>
           api.createEvent(token, {
-            dayKey,
+            eventDate: eventDate || '',
+            dayKey: dayKey || '',
             title,
             time,
             members,
-            cls,
+            cls: cls || 'ce-all',
+            recurrenceType: recurrenceType || 'único',
+            recurrenceDays: recurrenceDays || '',
           }),
         )
+      },
+      async updateCalendarEvent(eventId, updates) {
+        await reloadAfterMutation(() => api.updateEvent(token, eventId, updates))
+      },
+      async deleteCalendarEvent(eventId) {
+        await reloadAfterMutation(() => api.deleteEvent(token, eventId))
       },
       async addReward({ tierId, value }) {
         await reloadAfterMutation(() => api.createReward(token, { tierId, value }))
@@ -180,6 +194,15 @@ export function AppDataProvider({ children }) {
           }),
         )
       },
+      async updateProfile(memberId, updates) {
+        await reloadAfterMutation(() => api.updateMember(token, memberId, updates))
+      },
+      async fetchEventsDirect(params = {}) {
+        return api.listEvents(token, params)
+      },
+      async fetchTaskHistory(params = {}) {
+        return api.getTaskHistory(token, params)
+      },
       async addFavorite(profileKey, favorite) {
         await reloadAfterMutation(() =>
           api.createFavorite(token, {
@@ -189,6 +212,7 @@ export function AppDataProvider({ children }) {
             cat: favorite.cat,
             sub: favorite.sub,
             detail: favorite.detail,
+            participantKeys: favorite.participantKeys || [profileKey],
           }),
         )
       },
@@ -223,6 +247,12 @@ export function AppDataProvider({ children }) {
       async stopTimer(profileKey) {
         await reloadAfterMutation(() => api.stopTimeEntry(token, { profileKey }))
       },
+      async updateTimeEntry(entryId, updates) {
+        await reloadAfterMutation(() => api.updateTimeEntry(token, entryId, updates))
+      },
+      async deleteTimeEntry(entryId) {
+        await reloadAfterMutation(() => api.deleteTimeEntry(token, entryId))
+      },
       formatClock,
       formatMinutes,
     }),
@@ -235,7 +265,7 @@ export function AppDataProvider({ children }) {
 export function useAppData() {
   const context = useContext(AppDataContext)
   if (!context) {
-    throw new Error('useAppData deve ser usado dentro de AuthProvider')
+    throw new Error('useAppData deve ser usado dentro de AppDataProvider')
   }
   return context
 }

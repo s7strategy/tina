@@ -162,7 +162,7 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, profile_key, icon, label, cat, sub, detail
+        SELECT id, profile_key, icon, label, cat, sub, detail, participant_keys_json
         FROM favorites
         WHERE owner_user_id = $1
         ORDER BY created_at ASC
@@ -258,10 +258,12 @@ async function getWorkspaceForUser(user) {
         cat: favorite.cat,
         sub: favorite.sub || '',
         detail: favorite.detail || '',
+        participantKeys: JSON.parse(favorite.participant_keys_json || '[]'),
       }))
 
     const memberEntries = timeEntries.filter((entry) => entry.profile_key === member.key)
     profiles[member.key] = {
+      id: member.id,
       key: member.key,
       name: member.name,
       short: buildMemberShort(member, memberTasks),

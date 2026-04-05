@@ -4,6 +4,8 @@ const fs = require('fs')
 const path = require('path')
 const express = require('express')
 const cors = require('cors')
+const helmet = require('helmet')
+const rateLimit = require('express-rate-limit')
 const { migrate, query, seed } = require('./lib/db')
 const authRoutes = require('./routes/auth')
 const dashboardRoutes = require('./routes/dashboard')
@@ -28,6 +30,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .map((origin) => origin.trim())
   .filter(Boolean)
 
+app.use(helmet({ contentSecurityPolicy: false }))
 app.use(
   cors({
     origin(origin, callback) {
@@ -41,6 +44,24 @@ app.use(
   }),
 )
 app.use(express.json())
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisições. Tente novamente em alguns minutos.' },
+})
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas tentativas de login. Tente novamente em 15 minutos.' },
+})
+
+app.use('/api', apiLimiter)
 
 app.get('/api/health', async (_req, res, next) => {
   try {
@@ -56,7 +77,7 @@ app.get('/api/health', async (_req, res, next) => {
   }
 })
 
-app.use('/api/auth', authRoutes)
+app.use('/api/auth', authLimiter, authRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/tasks', taskRoutes)

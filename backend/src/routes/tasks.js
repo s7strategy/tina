@@ -19,15 +19,20 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/history', async (req, res) => {
-  const history = await many(`
+  const { from, to } = req.query
+  let sql = `
     SELECT h.id, h.task_id as "taskId", h.profile_key as "profileKey", h.completed_at as "completedAt",
            t.title, t.reward, t.points
     FROM task_history h
     JOIN tasks t ON h.task_id = t.id
     WHERE h.owner_user_id = $1
-    ORDER BY h.completed_at DESC
-    LIMIT 200
-  `, [req.user.id])
+  `
+  const params = [req.user.id]
+  if (from) { params.push(from); sql += ` AND h.completed_at >= $${params.length}` }
+  if (to) { params.push(to); sql += ` AND h.completed_at <= $${params.length}` }
+  sql += ' ORDER BY h.completed_at DESC LIMIT 200'
+
+  const history = await many(sql, params)
   res.json({ history })
 })
 

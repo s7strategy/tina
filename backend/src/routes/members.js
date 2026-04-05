@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
 })
 
 router.patch('/:id', async (req, res) => {
-  const { name, relation, profileType, age, color } = req.body
+  const { name, relation, profileType, age, color, avatarUrl } = req.body
 
   const member = await one('SELECT * FROM members WHERE id = $1 AND owner_user_id = $2', [req.params.id, req.user.id])
   if (!member) {
@@ -102,11 +102,13 @@ router.patch('/:id', async (req, res) => {
     profile_type: profileType !== undefined ? profileType : member.profile_type,
     age: age !== undefined ? (age ? Number(age) : null) : member.age,
     color: color !== undefined ? color : member.color,
+    avatar_url: avatarUrl !== undefined ? avatarUrl : member.avatar_url,
+    avatar_text: (name !== undefined && name) ? name[0]?.toUpperCase() || member.avatar_text : member.avatar_text,
   }
 
   await query(
-    `UPDATE members SET name = $1, relation = $2, profile_type = $3, age = $4, color = $5 WHERE id = $6 AND owner_user_id = $7`,
-    [next.name, next.relation, next.profile_type, next.age, next.color, req.params.id, req.user.id]
+    `UPDATE members SET name = $1, relation = $2, profile_type = $3, age = $4, color = $5, avatar_url = $6, avatar_text = $7 WHERE id = $8 AND owner_user_id = $9`,
+    [next.name, next.relation, next.profile_type, next.age, next.color, next.avatar_url, next.avatar_text, req.params.id, req.user.id]
   )
 
   res.json({ success: true, member: next })

@@ -142,8 +142,13 @@ async function migrate() {
         id TEXT PRIMARY KEY,
         owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         profile_key TEXT NOT NULL,
+        participant_keys_json TEXT DEFAULT '[]',
         title TEXT NOT NULL,
-        tag TEXT NOT NULL,
+        tag TEXT NOT NULL DEFAULT '',
+        time_type TEXT NOT NULL DEFAULT 'none',
+        time_value TEXT NOT NULL DEFAULT '',
+        priority INTEGER NOT NULL DEFAULT 0,
+        reward TEXT NOT NULL DEFAULT '',
         points INTEGER NOT NULL DEFAULT 0,
         done BOOLEAN NOT NULL DEFAULT FALSE,
         recurrence TEXT,
@@ -201,6 +206,7 @@ async function migrate() {
         cat TEXT NOT NULL,
         sub TEXT,
         detail TEXT,
+        participant_keys_json TEXT DEFAULT '[]',
         created_at TIMESTAMPTZ NOT NULL
       )
     `,
@@ -261,6 +267,10 @@ async function migrate() {
   for (const statement of statements) {
     await query(statement)
   }
+
+  try {
+    await query(`ALTER TABLE favorites ADD COLUMN participant_keys_json TEXT DEFAULT '[]'`)
+  } catch (_) { /* column already exists */ }
 }
 
 async function initializeCustomerAccountForUser(userId, customerData = {}, executor = db) {
@@ -343,8 +353,8 @@ async function initializeWorkspaceForUser(userId, name, customerData = {}, execu
 
   await query(
     `
-      INSERT INTO tasks (id, owner_user_id, profile_key, title, tag, points, done, recurrence, created_at, updated_at)
-      VALUES ($1, $2, 'self', 'Organizar agenda', 'Manhã', 5, FALSE, 'diario', $3, $4)
+      INSERT INTO tasks (id, owner_user_id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, created_at, updated_at)
+      VALUES ($1, $2, 'self', '["self"]', 'Organizar agenda', 'Manhã', 'none', '', 0, '', 5, FALSE, 'diario', $3, $4)
     `,
     [uid('task'), userId, now, now],
     executor,
@@ -537,10 +547,10 @@ async function seed() {
       for (const task of taskSeeds) {
         await query(
           `
-            INSERT INTO tasks (id, owner_user_id, profile_key, title, tag, points, done, recurrence, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            INSERT INTO tasks (id, owner_user_id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, 'none', '', 0, '', $7, $8, $9, $10, $11)
           `,
-          [uid('task'), task.ownerUserId, task.profileKey, task.title, task.tag, task.points, task.done, task.recurrence, now, now],
+          [uid('task'), task.ownerUserId, task.profileKey, JSON.stringify([task.profileKey]), task.title, task.tag, task.points, task.done, task.recurrence, now, now],
           client,
         )
       }
@@ -749,10 +759,10 @@ async function seed() {
       for (const [ownerUserId, dayKey, title, time, cls, memberKeys] of eventSeeds) {
         await query(
           `
-            INSERT INTO events (id, owner_user_id, day_key, title, time, cls, member_keys_json, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO events (id, owner_user_id, day_key, title, time, cls, member_keys_json, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           `,
-          [uid('evt'), ownerUserId, dayKey, title, time, cls, JSON.stringify(memberKeys), now],
+          [uid('evt'), ownerUserId, dayKey, title, time, cls, JSON.stringify(memberKeys), now, now],
           client,
         )
       }
