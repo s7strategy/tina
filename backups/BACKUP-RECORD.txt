@@ -1,0 +1,19 @@
+TINA1 backup baseline — 2026-04-05
+Motivo: antes de mudancas criticas (plano de backup)
+
+Commit (full): 6ebd11f9c7deec7915ad1cfecb70b2b59369f0fe
+Commit (short): 6ebd11f
+Mensagem: chore: snapshot before critical work (backup baseline)
+
+Tag anotada: backup-2026-04-05-pre-critico
+Branch: backup/pre-critico-2026-04-05
+
+Bundle (nesta pasta): tina1-backup-2026-04-05.bundle
+Restaurar em outro lugar (so o historico Git a partir do bundle):
+  git clone /caminho/para/tina1/backups/tina1-backup-2026-04-05.bundle pasta-restaurada
+
+Push remoto: nao usado (projeto pode ficar so local).
+
+Voltar a este estado no repo ja existente:
+  git checkout backup-2026-04-05-pre-critico
+  ou: git checkout backup/pre-critico-2026-04-05
