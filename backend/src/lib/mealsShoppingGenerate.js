@@ -92,6 +92,25 @@ function stripIngredientLabelToProduct(rawName) {
   return s
 }
 
+/** Frases de preparo/corte (remover antes dos tokens soltos; ordem: mais longo primeiro). */
+const INGREDIENT_PREP_PHRASES = [
+  /\bcortad[oa]s?\s+em\s+fatias?\s+finas?\b/gi,
+  /\bcortad[oa]s?\s+em\s+fatias?\b/gi,
+  /\bfatiad[oa]s?\s+em\s+fatias?\s+finas?\b/gi,
+  /\bfatiad[oa]s?\s+em\s+fatias?\b/gi,
+  /\bem\s+fatias?\s+finas?\b/gi,
+  /\bem\s+fatias?\b/gi,
+  /\bfatias?\s+finas?\b/gi,
+  /\bem\s+rodelas?\b/gi,
+  /\bem\s+meia\s+lua\b/gi,
+  /\bem\s+lascas?\b/gi,
+  /\bem\s+julienne\b/gi,
+  /\bcortad[oa]s?\s+em\s+cubos?\b/gi,
+  /\bfres(?:co|ca)\s+em\s+cubos?\b/gi,
+  /\bem\s+cubos?\s+(pequenos?|grandes?|m[eé]dios?)\b/gi,
+  /\bem\s+conserva\b/gi,
+]
+
 /**
  * Chave para fundir o mesmo insumo escrito de formas diferentes
  * ("Cebola média picada", "Cebola", "Alho socado" → cebola / alho).
@@ -101,22 +120,24 @@ function canonicalIngredientKey(rawName) {
   if (!s) return ''
   s = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
   s = s.replace(/^\d+[,.]?\d*\s*%?\s*/, '').trim()
+  for (let pass = 0; pass < 10; pass += 1) {
+    const before = s
+    for (const ph of INGREDIENT_PREP_PHRASES) {
+      s = s.replace(ph, ' ').replace(/\s+/g, ' ').trim()
+    }
+    if (s === before) break
+  }
   const descriptors =
-    /\b(picad[oa]s?|ralad[oa]s?|fatiad[oa]s?|cortad[oa]s?|em cubos?|m[oô]id[oa]s?|triturad[oa]s?|desfiad[oa]s?|socad[oa]s?|amassad[oa]s?|peneirad[oa]s?|grelhad[oa]s?|assad[oa]s?|fervid[oa]s?|cozid[oa]s?|refogad[oa]s?|torrad[oa]s?|dou?rad[oa]s?|al dente|em rodelas?|em tiras?|em peda[cç]os?|em cubinhos?|descascad[oa]s?|sem pele|sem sementes?|madur[oa]s?|fres(?:co|ca|cos|cas)|congelad[oa]s?|descongelad[oa]s?|demolhad[oa]s?|lavad[oa]s?|escorrido?s?|temperad[oa]s?|marinad[oa]s?|baby)\b/gi
-  s = s.replace(descriptors, ' ').replace(/\s+/g, ' ').trim()
+    /\b(picad[oa]s?|ralad[oa]s?|fatiad[oa]s?|cortad[oa]s?|em cubos?|em cubinhos?|m[oô]id[oa]s?|triturad[oa]s?|desfiad[oa]s?|socad[oa]s?|amassad[oa]s?|peneirad[oa]s?|grelhad[oa]s?|assad[oa]s?|fervid[oa]s?|cozid[oa]s?|refogad[oa]s?|torrad[oa]s?|dou?rad[oa]s?|al dente|em rodelas?|em tiras?|em peda[cç]os?|descascad[oa]s?|sem pele|sem sementes?|madur[oa]s?|fres(?:co|ca|cos|cas)|congelad[oa]s?|descongelad[oa]s?|demolhad[oa]s?|lavad[oa]s?|escorrido?s?|temperad[oa]s?|marinad[oa]s?|baby|em pedacin(?:hos?)?|em tirinhas?)\b/gi
+  for (let pass = 0; pass < 12; pass += 1) {
+    const before = s
+    s = s.replace(descriptors, ' ').replace(/\s+/g, ' ').trim()
+    if (s === before) break
+  }
   s = s.replace(/\s+a gosto\s*$/i, '').trim()
   s = s.replace(/\s*,\s*/g, ' ').replace(/\s+/g, ' ').trim()
   if (!s) return normalizeIngredientName(rawName)
   return s
-}
-
-function pickShorterDisplayName(prev, next) {
-  const a = String(prev || '').trim()
-  const b = String(next || '').trim()
-  if (!a) return b
-  if (!b) return a
-  if (a.length !== b.length) return a.length <= b.length ? a : b
-  return a.localeCompare(b, 'pt-BR') <= 0 ? a : b
 }
 
 /** Junta plural comum na última palavra (abobrinhas→abobrinha, tomates→tomate, ovos→ovo). */
@@ -301,13 +322,15 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
   /** Uma linha por insumo: gramas + ml + outras unidades fundidas. */
   const agg = new Map()
 
-  function touchAgg(keyCanon, rawName) {
+  /** Nome na lista = insumo fundido (chave), não o texto cru da receita — evita “Abacaxi Fresco Em Cubos” quando a chave é “abacaxi”. */
+  function touchAgg(keyCanon) {
+    const display = prettyIngredientLabel(keyCanon)
     let e = agg.get(keyCanon)
     if (!e) {
-      e = { name: rawName, grams: 0, ml: 0, byUnit: new Map() }
+      e = { name: display, grams: 0, ml: 0, byUnit: new Map() }
       agg.set(keyCanon, e)
     } else {
-      e.name = pickShorterDisplayName(e.name, rawName)
+      e.name = display
     }
     return e
   }
@@ -381,27 +404,26 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     for (const ing of ingredients) {
       const rawName = String(ing.name || '').trim()
       if (!rawName) continue
-      const productLabel = stripIngredientLabelToProduct(rawName) || rawName
       const unit = ing.unit != null ? String(ing.unit).trim().toLowerCase() : ''
       const qNum = tryParseQuantity(ing.quantity)
       const mergeKey = ingredientMergeKey(rawName)
 
       const gBase = qNum != null ? gramsPerBaseDishKg(qNum, unit) : null
       if (gBase != null) {
-        const e = touchAgg(mergeKey, productLabel)
+        const e = touchAgg(mergeKey)
         e.grams += gBase * totalScale
         continue
       }
 
       const mlBase = qNum != null ? mlPerBaseDishKg(qNum, unit) : null
       if (mlBase != null) {
-        const e = touchAgg(mergeKey, productLabel)
+        const e = touchAgg(mergeKey)
         e.ml += mlBase * totalScale
         continue
       }
 
       const uKey = normalizeUnitMergeKey(unit)
-      const e = touchAgg(mergeKey, productLabel)
+      const e = touchAgg(mergeKey)
       let uEnt = e.byUnit.get(uKey)
       if (!uEnt) {
         uEnt = { sum: 0, texts: [] }
