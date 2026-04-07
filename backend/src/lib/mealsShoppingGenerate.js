@@ -1,4 +1,4 @@
-const { many, one } = require('./db')
+const { many, one, db } = require('./db')
 const { getFamilyMealSettings, DEFAULT_SPOONS } = require('./mealsFamilyPortions')
 const { isWholeRecipeYieldCategory } = require('./mealCategories')
 
@@ -184,6 +184,14 @@ function ingredientMergeKey(rawName) {
   return mergePluralStem(base)
 }
 
+/** Normaliza texto sugerido pelo LLM para a mesma chave de fusão das regras. */
+function mergeKeyFromSuggestedProductLabel(text) {
+  const cleaned = stripIngredientLabelToProduct(String(text || '').trim()) || String(text || '').trim()
+  if (!cleaned) return ''
+  const base = canonicalIngredientKey(cleaned) || normalizeIngredientName(cleaned)
+  return mergePluralStem(base)
+}
+
 /** Agrupa unidades equivalentes para somar quantidades na mesma linha. */
 function normalizeUnitMergeKey(unitRaw) {
   const u = String(unitRaw || '')
@@ -319,6 +327,29 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     recipeCounts[rid] = (recipeCounts[rid] || 0) + 1
   }
 
+  const recipeIdList = Object.keys(recipeCounts)
+  const nameRows =
+    recipeIdList.length > 0
+      ? await many(
+          `
+            SELECT DISTINCT trim(name) AS name
+            FROM recipe_ingredients
+            WHERE recipe_id = ANY($1::text[])
+              AND length(trim(name)) > 0
+          `,
+          [recipeIdList],
+        )
+      : []
+  const uniqueIngredientNames = nameRows.map((r) => String(r.name || '').trim()).filter(Boolean)
+
+  let mergeKeyByNorm = new Map()
+  try {
+    const { resolveShoppingIngredientMergeKeys } = require('./mealsShoppingIngredientAi')
+    mergeKeyByNorm = await resolveShoppingIngredientMergeKeys(uniqueIngredientNames, db)
+  } catch (e) {
+    console.warn('[shopping] merge keys LLM:', e?.message || e)
+  }
+
   /** Uma linha por insumo: gramas + ml + outras unidades fundidas. */
   const agg = new Map()
 
@@ -406,7 +437,9 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       if (!rawName) continue
       const unit = ing.unit != null ? String(ing.unit).trim().toLowerCase() : ''
       const qNum = tryParseQuantity(ing.quantity)
-      const mergeKey = ingredientMergeKey(rawName)
+      const normN = normalizeIngredientName(rawName)
+      const mergeKey =
+        mergeKeyByNorm.get(normN) || ingredientMergeKey(rawName)
 
       const gBase = qNum != null ? gramsPerBaseDishKg(qNum, unit) : null
       if (gBase != null) {
@@ -522,4 +555,7 @@ module.exports = {
   generateShoppingItemsFromPlanner,
   ymdAppTz,
   stripIngredientLabelToProduct,
+  ingredientMergeKey,
+  mergeKeyFromSuggestedProductLabel,
+  normalizeIngredientName,
 }
