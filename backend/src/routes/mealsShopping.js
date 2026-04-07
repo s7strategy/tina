@@ -1,6 +1,9 @@
 const express = require('express')
 const { many, one, query, uid, transaction } = require('../lib/db')
-const { generateShoppingItemsFromPlanner } = require('../lib/mealsShoppingGenerate')
+const {
+  generateShoppingItemsFromPlanner,
+  stripIngredientLabelToProduct,
+} = require('../lib/mealsShoppingGenerate')
 const {
   getOrCreateDefaultShoppingList,
   mergeGeneratedShoppingItems,
@@ -95,6 +98,7 @@ router.get('/ingredient-suggestions', async (req, res) => {
     .replace(/\p{M}/gu, '')
     .toLowerCase()
 
+  const fetchLimit = Math.min(100, Math.max(limit * 4, limit + 10))
   const rows = await many(
     `
     SELECT name FROM (
@@ -102,21 +106,36 @@ router.get('/ingredient-suggestions', async (req, res) => {
       FROM recipe_ingredients ri
       INNER JOIN recipes r ON r.id = ri.recipe_id AND r.owner_user_id = $1
       WHERE length(trim(ri.name)) > 0
-        AND translate(lower(trim(ri.name)), $3, $4) LIKE $2 || '%'
+        AND translate(lower(trim(ri.name)), $3, $4) LIKE '%' || $2 || '%'
       UNION
       SELECT DISTINCT trim(si.name) AS name
       FROM shopping_items si
       INNER JOIN shopping_lists sl ON sl.id = si.list_id AND sl.owner_user_id = $1
       WHERE length(trim(si.name)) > 0
-        AND translate(lower(trim(si.name)), $3, $4) LIKE $2 || '%'
+        AND translate(lower(trim(si.name)), $3, $4) LIKE '%' || $2 || '%'
     ) u
     ORDER BY name ASC
     LIMIT $5
     `,
-    [req.user.id, folded, PT_ACCENT_FROM, PT_ACCENT_TO, limit],
+    [req.user.id, folded, PT_ACCENT_FROM, PT_ACCENT_TO, fetchLimit],
   )
 
-  res.json({ suggestions: rows.map((r) => r.name).filter(Boolean) })
+  const seen = new Set()
+  const out = []
+  for (const r of rows) {
+    const raw = String(r.name || '').trim()
+    if (!raw) continue
+    const c = stripIngredientLabelToProduct(raw) || raw
+    const k = c
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
+    if (seen.has(k)) continue
+    seen.add(k)
+    out.push(c)
+  }
+  out.sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  res.json({ suggestions: out.slice(0, limit) })
 })
 
 router.get('/lists', async (req, res) => {

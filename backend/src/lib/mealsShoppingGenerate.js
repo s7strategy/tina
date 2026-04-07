@@ -67,6 +67,32 @@ function normalizeIngredientName(name) {
 }
 
 /**
+ * Lista de compras: só o insumo/produto — remove trechos entre parênteses
+ * (unidades abreviadas, instruções), colchetes, sufixos "ou até…" e prefixos "de/da/do".
+ */
+function stripIngredientLabelToProduct(rawName) {
+  let s = String(rawName || '').replace(/\u00a0/g, ' ').trim()
+  if (!s) return ''
+  let guard = 0
+  while (/\([^)]*\)/.test(s) && guard++ < 40) {
+    s = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+  guard = 0
+  while (/\[[^\]]*\]/.test(s) && guard++ < 20) {
+    s = s.replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+  s = s.replace(/\s+ou\s+at[eé]\b.*$/i, '').trim()
+  s = s.replace(/\s+at[eé]\s+ficar\b.*$/i, '').trim()
+  for (let k = 0; k < 8; k++) {
+    const n = s.replace(/^(de|da|do|dos|das)\s+/i, '').trim()
+    if (n === s) break
+    s = n
+  }
+  s = s.replace(/\s+/g, ' ').trim()
+  return s
+}
+
+/**
  * Chave para fundir o mesmo insumo escrito de formas diferentes
  * ("Cebola média picada", "Cebola", "Alho socado" → cebola / alho).
  */
@@ -130,7 +156,10 @@ function prettyIngredientLabel(name) {
 
 /** Chave final: canónico + reduce plural (uma entrada por insumo “base”). */
 function ingredientMergeKey(rawName) {
-  const base = canonicalIngredientKey(rawName.replace(/\u00a0/g, ' ')) || normalizeIngredientName(rawName)
+  const cleaned = stripIngredientLabelToProduct(rawName)
+  const source =
+    cleaned || String(rawName || '').replace(/\u00a0/g, ' ').trim()
+  const base = canonicalIngredientKey(source) || normalizeIngredientName(source)
   return mergePluralStem(base)
 }
 
@@ -352,26 +381,27 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     for (const ing of ingredients) {
       const rawName = String(ing.name || '').trim()
       if (!rawName) continue
+      const productLabel = stripIngredientLabelToProduct(rawName) || rawName
       const unit = ing.unit != null ? String(ing.unit).trim().toLowerCase() : ''
       const qNum = tryParseQuantity(ing.quantity)
       const mergeKey = ingredientMergeKey(rawName)
 
       const gBase = qNum != null ? gramsPerBaseDishKg(qNum, unit) : null
       if (gBase != null) {
-        const e = touchAgg(mergeKey, rawName)
+        const e = touchAgg(mergeKey, productLabel)
         e.grams += gBase * totalScale
         continue
       }
 
       const mlBase = qNum != null ? mlPerBaseDishKg(qNum, unit) : null
       if (mlBase != null) {
-        const e = touchAgg(mergeKey, rawName)
+        const e = touchAgg(mergeKey, productLabel)
         e.ml += mlBase * totalScale
         continue
       }
 
       const uKey = normalizeUnitMergeKey(unit)
-      const e = touchAgg(mergeKey, rawName)
+      const e = touchAgg(mergeKey, productLabel)
       let uEnt = e.byUnit.get(uKey)
       if (!uEnt) {
         uEnt = { sum: 0, texts: [] }
@@ -469,4 +499,5 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
 module.exports = {
   generateShoppingItemsFromPlanner,
   ymdAppTz,
+  stripIngredientLabelToProduct,
 }
