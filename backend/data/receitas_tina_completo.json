@@ -1349,7 +1349,7 @@
     },
     {
       "nome": "Farofa de Legumes com Bacon",
-      "categoria": "protein_carb",
+      "categoria": "farofa",
       "modo_preparo": [
         "Em uma frigideira grande, frite o bacon e doure a cebola e o alho.",
         "Em fogo brando, adicione a cenoura e a ervilha. crescente os ovos crus e mexa até misturar bem.",
@@ -8435,7 +8435,7 @@
     },
     {
       "nome": "Feijão preto",
-      "categoria": "carb",
+      "categoria": "leguminosas",
       "tags": [
         "comum"
       ],
@@ -8487,9 +8487,10 @@
     },
     {
       "nome": "Feijão com linguiça",
-      "categoria": "protein_carb",
+      "categoria": "leguminosas",
       "tags": [
-        "comum"
+        "comum",
+        "com-carb"
       ],
       "ingredientes": [
         {
@@ -12450,7 +12451,7 @@
     },
     {
       "nome": "Farofa de Miúdos",
-      "categoria": "protein_carb",
+      "categoria": "farofa",
       "ingredientes": [
         {
           "nome": "Azeite",

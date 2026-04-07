@@ -387,7 +387,7 @@
     },
     {
       "nome": "Farofa de Miúdos",
-      "categoria": "Proteína",
+      "categoria": "farofa",
       "ingredientes": [
         { "nome": "Azeite", "quantidade": 1, "unidade": "colher_sopa" },
         { "nome": "Coração de galinha picado", "quantidade": 150, "unidade": "g" },
