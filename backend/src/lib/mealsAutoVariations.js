@@ -237,6 +237,7 @@ async function generateAutoVariationsForMenu(ownerUserId, menu, count, executor 
       const model = await getLlmModel(executor)
       const alt = buildAlternativesByCategory(pools, variations)
       const refined = await refineAutoVariationsWithLlm({
+        executor,
         apiKeys,
         model,
         variations,

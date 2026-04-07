@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import SuperAdminPage from './pages/SuperAdminPage.jsx'
+import SuperAdminIntegrationsPage from './pages/SuperAdminIntegrationsPage.jsx'
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth()
@@ -42,6 +43,14 @@ function App() {
         element={
           <RoleRoute allowedRoles={['super_admin']}>
             <SuperAdminPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/super-admin/integrations"
+        element={
+          <RoleRoute allowedRoles={['super_admin']}>
+            <SuperAdminIntegrationsPage />
           </RoleRoute>
         }
       />

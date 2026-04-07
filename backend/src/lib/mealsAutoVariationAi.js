@@ -10,7 +10,7 @@
  * Ele só pode trocar recipeId dentro do mesmo slot (mesma mealCategory); não adiciona/remove slots.
  */
 
-const { inferProviderFromKeys } = require('./platformSettings')
+const { llmJsonCompletion } = require('./llmClient')
 
 const MEAL_KIND_LABEL = {
   almoco: 'Almoço',
@@ -132,75 +132,23 @@ function mergeRefined(original, aiParsed, altByCat) {
   return out.length === original.length ? out : null
 }
 
-function normalizeModelForProvider(model, provider) {
-  const m = (model || '').trim()
-  if (provider === 'groq') {
-    if (!m || /^groq$/i.test(m) || /gpt-4|gpt-3\.5|^o1|o3|davinci/i.test(m)) return 'llama-3.1-8b-instant'
-    return m
-  }
-  if (!m || /^llama-|mixtral|gemma/i.test(m)) return 'gpt-4o-mini'
-  return m
-}
-
-function chatUrlForProvider(provider) {
-  return provider === 'groq'
-    ? 'https://api.groq.com/openai/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions'
-}
-
-async function fetchChatJson({ apiKey, url, model, userPayload, system, useJsonObjectFormat }) {
-  const controller = new AbortController()
-  const t = setTimeout(() => controller.abort(), 55000)
-  try {
-    const body = {
-      model,
-      temperature: 0.35,
-      max_tokens: 8000,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: JSON.stringify(userPayload) },
-      ],
-    }
-    if (useJsonObjectFormat) body.response_format = { type: 'json_object' }
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    })
-    const raw = await res.text()
-    if (!res.ok) {
-      const err = new Error(raw.slice(0, 300))
-      err.status = res.status
-      err.bodyPreview = raw
-      throw err
-    }
-    const data = JSON.parse(raw)
-    const content = data?.choices?.[0]?.message?.content
-    if (!content || typeof content !== 'string') return null
-    try {
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
-  } finally {
-    clearTimeout(t)
-  }
-}
-
-async function tryRefineWithOneKey({ apiKey, url, model, variations, alternativesByCategory, userPayload, system }) {
+async function tryRefineWithOneKey({
+  executor,
+  apiKey,
+  model,
+  variations,
+  alternativesByCategory,
+  userPayload,
+  system,
+}) {
   for (const useJson of [true, false]) {
     try {
-      const parsed = await fetchChatJson({
+      const parsed = await llmJsonCompletion({
+        executor,
         apiKey,
-        url,
         model,
-        userPayload,
         system,
+        userPayload,
         useJsonObjectFormat: useJson,
       })
       if (!parsed) continue
@@ -214,6 +162,7 @@ async function tryRefineWithOneKey({ apiKey, url, model, variations, alternative
 }
 
 async function refineAutoVariationsWithLlm({
+  executor,
   apiKeys,
   model,
   variations,
@@ -223,9 +172,7 @@ async function refineAutoVariationsWithLlm({
 }) {
   if (!apiKeys?.length || !variations?.length) return null
 
-  const provider = inferProviderFromKeys(apiKeys)
-  const url = chatUrlForProvider(provider)
-  const useModel = normalizeModelForProvider(model, provider)
+  const useModel = model
 
   const tipo =
     (mealKind && MEAL_KIND_LABEL[String(mealKind)]) || 'não especificado (inferir pelos slots e nomes)'
@@ -258,8 +205,8 @@ async function refineAutoVariationsWithLlm({
     const apiKey = apiKeys[i]
     try {
       let merged = await tryRefineWithOneKey({
+        executor,
         apiKey,
-        url,
         model: useModel,
         variations,
         alternativesByCategory,
@@ -273,8 +220,8 @@ async function refineAutoVariationsWithLlm({
             'O teu resultado aceite pelo validador foi IGUAL ao de entrada (nenhuma receita mudou). Gera de novo o mesmo JSON de saída mas com várias trocas reais de recipeId (orientação: pelo menos 6 a 20 pratos com pelo menos um slot diferente), para melhorar harmonia no Brasil e variedade entre dias. Não devolvas o mesmo conjunto de IDs; só uses IDs listados em alternativasPorCategoria.',
         }
         const merged2 = await tryRefineWithOneKey({
+          executor,
           apiKey,
-          url,
           model: useModel,
           variations,
           alternativesByCategory,
@@ -297,6 +244,7 @@ async function refineAutoVariationsWithOpenAI(opts) {
   const k = opts.apiKey
   if (!k) return null
   return refineAutoVariationsWithLlm({
+    executor: opts.executor,
     apiKeys: [k],
     model: opts.model,
     variations: opts.variations,

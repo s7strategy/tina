@@ -1,9 +1,10 @@
 /**
- * Opcional: normaliza nomes de ingredientes para fusão na lista de compras via LLM (mesmas chaves OpenAI/Groq da plataforma).
+ * Opcional: normaliza nomes de ingredientes para fusão na lista de compras via LLM (mesmas chaves da plataforma).
  * Desativar: SHOPPING_INGREDIENT_AI=0 ou false no env.
  */
 
-const { getLlmApiKeyList, getLlmModel, inferProviderFromKeys } = require('./platformSettings')
+const { getLlmApiKeyList, getLlmModel } = require('./platformSettings')
+const { llmJsonCompletion } = require('./llmClient')
 
 const SHOPPING_LLM_SYSTEM = `És um assistente para lista de compras de supermercado no Brasil.
 
@@ -25,75 +26,20 @@ O campo "in" deve ser EXACTAMENTE igual a uma das strings recebidas em "ingredie
 const mergeKeyCache = new Map()
 const MAX_CHUNK = 44
 
-function normalizeModelForProvider(model, provider) {
-  const m = (model || '').trim()
-  if (provider === 'groq') {
-    if (!m || /^groq$/i.test(m) || /gpt-4|gpt-3\.5|^o1|o3|davinci/i.test(m)) return 'llama-3.1-8b-instant'
-    return m
-  }
-  if (!m || /^llama-|mixtral|gemma/i.test(m)) return 'gpt-4o-mini'
-  return m
-}
-
-function chatUrlForProvider(provider) {
-  return provider === 'groq'
-    ? 'https://api.groq.com/openai/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions'
-}
-
-async function fetchShoppingLlmJson({ apiKey, url, model, ingredientes, useJsonObjectFormat }) {
-  const controller = new AbortController()
-  const t = setTimeout(() => controller.abort(), 32000)
-  try {
-    const body = {
-      model,
-      temperature: 0.12,
-      max_tokens: 4500,
-      messages: [
-        { role: 'system', content: SHOPPING_LLM_SYSTEM },
-        { role: 'user', content: JSON.stringify({ ingredientes }) },
-      ],
-    }
-    if (useJsonObjectFormat) body.response_format = { type: 'json_object' }
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    })
-    const raw = await res.text()
-    if (!res.ok) {
-      const err = new Error(raw.slice(0, 400))
-      err.status = res.status
-      throw err
-    }
-    const data = JSON.parse(raw)
-    const content = data?.choices?.[0]?.message?.content
-    if (!content || typeof content !== 'string') return null
-    try {
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
-  } finally {
-    clearTimeout(t)
-  }
-}
-
-async function tryResolveChunkWithKey({ apiKey, url, model, ingredientes, normalizeIngredientName }) {
+async function tryResolveChunkWithKey({ executor, apiKey, model, ingredientes, normalizeIngredientName }) {
   const parsedArrays = []
   for (const useJson of [true, false]) {
     try {
-      const parsed = await fetchShoppingLlmJson({
+      const parsed = await llmJsonCompletion({
+        executor,
         apiKey,
-        url,
         model,
-        ingredientes,
+        system: SHOPPING_LLM_SYSTEM,
+        userPayload: { ingredientes },
         useJsonObjectFormat: useJson,
+        temperature: 0.12,
+        maxTokens: 4500,
+        timeoutMs: 32000,
       })
       if (parsed?.items && Array.isArray(parsed.items)) {
         parsedArrays.push(parsed.items)
@@ -166,10 +112,7 @@ async function resolveShoppingIngredientMergeKeys(rawNames, executor = undefined
     return out
   }
 
-  const provider = inferProviderFromKeys(apiKeys)
-  const url = chatUrlForProvider(provider)
   const modelRaw = await getLlmModel(executor)
-  const model = normalizeModelForProvider(modelRaw, provider)
 
   for (const partNorms of chunk(toRequest, MAX_CHUNK)) {
     const ingredientes = partNorms.map((n) => normToRaw.get(n))
@@ -177,9 +120,9 @@ async function resolveShoppingIngredientMergeKeys(rawNames, executor = undefined
     for (let ki = 0; ki < apiKeys.length; ki++) {
       try {
         byNormBase = await tryResolveChunkWithKey({
+          executor,
           apiKey: apiKeys[ki],
-          url,
-          model,
+          model: modelRaw,
           ingredientes,
           normalizeIngredientName,
         })

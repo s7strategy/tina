@@ -19,11 +19,32 @@ function dedupeKeys(arr) {
   return out
 }
 
-/** Detecta Groq vs OpenAI pelo prefixo da primeira chave. */
-function inferProviderFromKeys(keys) {
-  const k0 = keys[0] || ''
-  if (k0.startsWith('gsk_')) return 'groq'
+/** Prefixo típico da chave → provedor API (gsk_=Groq, AIza=Gemini, resto OpenAI). */
+function inferProviderFromKeyPrefix(k0) {
+  if (!k0) return 'openai'
+  const s = String(k0)
+  if (s.startsWith('gsk_')) return 'groq'
+  if (s.startsWith('AIza')) return 'gemini'
   return 'openai'
+}
+
+function inferProviderFromKeys(keys) {
+  return inferProviderFromKeyPrefix(keys && keys[0])
+}
+
+/**
+ * Provedor LLM: LLM_PROVIDER no env > llm_provider na base > prefixo da primeira chave efectiva.
+ */
+async function resolveLlmProvider(executor) {
+  const envP = process.env.LLM_PROVIDER?.trim().toLowerCase()
+  if (envP === 'groq' || envP === 'openai' || envP === 'gemini') return envP
+
+  const row = await one(`SELECT value FROM platform_settings WHERE key = $1`, ['llm_provider'], executor)
+  const stored = row?.value?.trim().toLowerCase()
+  if (stored === 'groq' || stored === 'openai' || stored === 'gemini') return stored
+
+  const keys = await getLlmApiKeyList(executor)
+  return inferProviderFromKeyPrefix(keys[0])
 }
 
 /** Só chaves gravadas na base (painel Super Admin). */
@@ -85,6 +106,7 @@ async function getPlatformIntegrationSummary(executor) {
   const rowMulti = await one(`SELECT value, updated_at FROM platform_settings WHERE key = $1`, ['llm_api_keys'], executor)
   const rowSingle = await one(`SELECT value, updated_at FROM platform_settings WHERE key = $1`, ['openai_api_key'], executor)
   const rowModel = await one(`SELECT value FROM platform_settings WHERE key = $1`, ['openai_model'], executor)
+  const rowLlmProv = await one(`SELECT value FROM platform_settings WHERE key = $1`, ['llm_provider'], executor)
 
   let dbKeyCountBase = 0
   const dbHints = []
@@ -94,7 +116,7 @@ async function getPlatformIntegrationSummary(executor) {
       if (Array.isArray(j)) {
         const arr = j.map((x) => String(x).trim()).filter(Boolean)
         dbKeyCountBase = arr.length
-        for (const k of arr.slice(0, 8)) dbHints.push(maskKeyHint(k))
+        for (const k of arr) dbHints.push(maskKeyHint(k))
       }
     } catch {
       /* */
@@ -119,6 +141,13 @@ async function getPlatformIntegrationSummary(executor) {
 
   const allKeysPreview = await getLlmApiKeyList(executor)
   const providerGuess = inferProviderFromKeys(allKeysPreview)
+  let llmProviderEffective = providerGuess
+  try {
+    llmProviderEffective = await resolveLlmProvider(executor)
+  } catch {
+    /* */
+  }
+  const llmProviderStored = rowLlmProv?.value?.trim() || null
 
   const mergedEnvAndDb = fromEnvKeys && dbKeyCountBase > 0
 
@@ -131,6 +160,8 @@ async function getPlatformIntegrationSummary(executor) {
     llmKeysFromEnv: fromEnvKeys,
     llmKeysMergedEnvAndDb: mergedEnvAndDb,
     llmProviderGuess: providerGuess,
+    llmProviderEffective,
+    llmProviderStored,
     openAiKeyFromEnv: fromEnvKeys,
     openAiModel: model,
     openAiModelFromEnv: modelFromEnv,
@@ -147,6 +178,7 @@ async function updatePlatformIntegration(body, executor) {
     clearOpenAiApiKey,
     clearLlmApiKeys,
     openAiModel,
+    llmProvider,
   } = body || {}
   const now = new Date().toISOString()
 
@@ -187,6 +219,21 @@ async function updatePlatformIntegration(body, executor) {
       executor,
     )
   }
+
+  const pv = typeof llmProvider === 'string' ? llmProvider.trim().toLowerCase() : ''
+  if (pv === 'groq' || pv === 'openai' || pv === 'gemini') {
+    if (!process.env.LLM_PROVIDER?.trim()) {
+      await query(
+        `
+        INSERT INTO platform_settings (key, value, updated_at)
+        VALUES ('llm_provider', $1, $2)
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at
+      `,
+        [pv, now],
+        executor,
+      )
+    }
+  }
 }
 
 /** @deprecated usar getLlmApiKeyList — mantido para chamadas antigas */
@@ -209,5 +256,7 @@ module.exports = {
   getPlatformIntegrationSummary,
   updatePlatformIntegration,
   inferProviderFromKeys,
+  inferProviderFromKeyPrefix,
+  resolveLlmProvider,
   maskKeyHint,
 }
