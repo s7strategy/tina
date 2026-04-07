@@ -317,34 +317,41 @@ export default function MealsShopping({ token, embedded = false }) {
 
         {items.length > 0 ? (
           <div className="meals-shop-items">
-            {items.map((it) => (
-              <div key={it.id} className="meals-shop-row">
-                <span
-                  role="checkbox"
-                  aria-checked={it.checked}
-                  tabIndex={0}
-                  className={`meals-shop-check${it.checked ? ' is-on' : ''}`}
-                  onClick={() => toggleItem(it)}
-                  onKeyDown={(e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                      e.preventDefault()
-                      toggleItem(it)
-                    }
-                  }}
-                />
-                <span className={`meals-shop-name${it.checked ? ' is-done' : ''}`}>
-                  <span className="meals-shop-name-text">{it.name}</span>
-                  <SourceTag source={it.source === 'generated' ? 'generated' : 'manual'} />
-                </span>
-                <div className="meals-shop-measures">
-                  <QtyButton item={it} token={token} onSaved={load} />
-                  <UnitSelect item={it} token={token} onSaved={load} />
+            {items.map((it) => {
+              const compositeQty = String(it.quantityText || '').includes(' + ')
+              return (
+                <div key={it.id} className="meals-shop-row">
+                  <span
+                    role="checkbox"
+                    aria-checked={it.checked}
+                    tabIndex={0}
+                    className={`meals-shop-check${it.checked ? ' is-on' : ''}`}
+                    onClick={() => toggleItem(it)}
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault()
+                        toggleItem(it)
+                      }
+                    }}
+                  />
+                  <div className="meals-shop-row-body">
+                    <div className={`meals-shop-name-stack${it.checked ? ' is-done' : ''}`}>
+                      <span className="meals-shop-name-text">{it.name}</span>
+                      <SourceTag source={it.source === 'generated' ? 'generated' : 'manual'} />
+                    </div>
+                    <div className="meals-shop-meta-row">
+                      <div className={`meals-shop-measures${compositeQty ? ' meals-shop-measures--wide' : ''}`}>
+                        <QtyButton item={it} token={token} onSaved={load} />
+                        {!compositeQty ? <UnitSelect item={it} token={token} onSaved={load} /> : null}
+                      </div>
+                      <button type="button" className="meals-shop-rm" aria-label="Remover" onClick={() => deleteItem(it.id)}>
+                        ✕
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button type="button" className="meals-shop-rm" aria-label="Remover" onClick={() => deleteItem(it.id)}>
-                  ✕
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : null}
       </section>

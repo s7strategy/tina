@@ -58,6 +58,7 @@ function kgPerPerson(servings, amountUnit) {
 /** Nome estável para juntar "Carne", "carne", "carne  " entre receitas. */
 function normalizeIngredientName(name) {
   return String(name || '')
+    .replace(/\u00a0/g, ' ')
     .trim()
     .toLowerCase()
     .normalize('NFD')
@@ -75,7 +76,7 @@ function canonicalIngredientKey(rawName) {
   s = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
   s = s.replace(/^\d+[,.]?\d*\s*%?\s*/, '').trim()
   const descriptors =
-    /\b(picad[oa]s?|ralad[oa]s?|fatiad[oa]s?|em cubos?|m[oô]id[oa]s?|triturad[oa]s?|desfiad[oa]s?|socad[oa]s?|amassad[oa]s?|peneirad[oa]s?|grelhad[oa]s?|assad[oa]s?|fervid[oa]s?|cozid[oa]s?|refogad[oa]s?|torrad[oa]s?|dou?rad[oa]s?|al dente|em rodelas?|em tiras?|em peda[cç]os?|em cubinhos?|descascad[oa]s?|sem pele|sem sementes?|madur[oa]s?|fres(?:co|ca|cos|cas)|congelad[oa]s?|descongelad[oa]s?|demolhad[oa]s?|lavad[oa]s?|escorrido?s?|temperad[oa]s?|marinad[oa]s?)\b/gi
+    /\b(picad[oa]s?|ralad[oa]s?|fatiad[oa]s?|cortad[oa]s?|em cubos?|m[oô]id[oa]s?|triturad[oa]s?|desfiad[oa]s?|socad[oa]s?|amassad[oa]s?|peneirad[oa]s?|grelhad[oa]s?|assad[oa]s?|fervid[oa]s?|cozid[oa]s?|refogad[oa]s?|torrad[oa]s?|dou?rad[oa]s?|al dente|em rodelas?|em tiras?|em peda[cç]os?|em cubinhos?|descascad[oa]s?|sem pele|sem sementes?|madur[oa]s?|fres(?:co|ca|cos|cas)|congelad[oa]s?|descongelad[oa]s?|demolhad[oa]s?|lavad[oa]s?|escorrido?s?|temperad[oa]s?|marinad[oa]s?|baby)\b/gi
   s = s.replace(descriptors, ' ').replace(/\s+/g, ' ').trim()
   s = s.replace(/\s+a gosto\s*$/i, '').trim()
   s = s.replace(/\s*,\s*/g, ' ').replace(/\s+/g, ' ').trim()
@@ -90,6 +91,47 @@ function pickShorterDisplayName(prev, next) {
   if (!b) return a
   if (a.length !== b.length) return a.length <= b.length ? a : b
   return a.localeCompare(b, 'pt-BR') <= 0 ? a : b
+}
+
+/** Junta plural comum na última palavra (abobrinhas→abobrinha, tomates→tomate, ovos→ovo). */
+function mergePluralStem(canon) {
+  const parts = String(canon || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (parts.length === 0) return String(canon || '').trim()
+  let w = parts[parts.length - 1]
+  if (w.length < 4) return parts.join(' ')
+  if (/ões$|ães$/i.test(w)) return parts.join(' ')
+  if (/tes$/i.test(w) && w.length >= 5) {
+    w = w.slice(0, -1)
+  } else if (/as$/i.test(w) && w.length >= 7) {
+    w = w.slice(0, -1)
+  } else if (/os$/i.test(w) && w.length >= 4) {
+    w = w.slice(0, -1)
+  }
+  parts[parts.length - 1] = w
+  return parts.join(' ')
+}
+
+/** Nome legível na lista (Title case pt-BR). */
+function prettyIngredientLabel(name) {
+  const s = String(name || '')
+    .trim()
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+  if (!s) return ''
+  return s
+    .split(' ')
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toLocaleUpperCase('pt-BR') + p.slice(1).toLocaleLowerCase('pt-BR'))
+    .join(' ')
+}
+
+/** Chave final: canónico + reduce plural (uma entrada por insumo “base”). */
+function ingredientMergeKey(rawName) {
+  const base = canonicalIngredientKey(rawName.replace(/\u00a0/g, ' ')) || normalizeIngredientName(rawName)
+  return mergePluralStem(base)
 }
 
 /** Agrupa unidades equivalentes para somar quantidades na mesma linha. */
@@ -218,12 +260,19 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     recipeCounts[rid] = (recipeCounts[rid] || 0) + 1
   }
 
-  /** mass: Map key mass:${canon} -> { name, grams } */
-  const massMap = new Map()
-  /** ml: Map key ml:${canon} -> { name, ml } */
-  const mlMap = new Map()
-  /** outras unidades: uma linha por insumo (canon), várias unidades somadas em quantityText */
-  const otherMap = new Map()
+  /** Uma linha por insumo: gramas + ml + outras unidades fundidas. */
+  const agg = new Map()
+
+  function touchAgg(keyCanon, rawName) {
+    let e = agg.get(keyCanon)
+    if (!e) {
+      e = { name: rawName, grams: 0, ml: 0, byUnit: new Map() }
+      agg.set(keyCanon, e)
+    } else {
+      e.name = pickShorterDisplayName(e.name, rawName)
+    }
+    return e
+  }
 
   let cachedFamilyKg = null
   async function resolveFamilyPlateKg() {
@@ -296,42 +345,28 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       if (!rawName) continue
       const unit = ing.unit != null ? String(ing.unit).trim().toLowerCase() : ''
       const qNum = tryParseQuantity(ing.quantity)
-      const norm = normalizeIngredientName(rawName)
-      const canon = canonicalIngredientKey(rawName) || norm
+      const mergeKey = ingredientMergeKey(rawName)
 
       const gBase = qNum != null ? gramsPerBaseDishKg(qNum, unit) : null
       if (gBase != null) {
-        const key = `mass:${canon}`
-        const prev = massMap.get(key) || { name: rawName, grams: 0 }
-        prev.name = pickShorterDisplayName(prev.name, rawName)
-        prev.grams += gBase * totalScale
-        massMap.set(key, prev)
+        const e = touchAgg(mergeKey, rawName)
+        e.grams += gBase * totalScale
         continue
       }
 
       const mlBase = qNum != null ? mlPerBaseDishKg(qNum, unit) : null
       if (mlBase != null) {
-        const key = `ml:${canon}`
-        const prev = mlMap.get(key) || { name: rawName, ml: 0 }
-        prev.name = pickShorterDisplayName(prev.name, rawName)
-        prev.ml += mlBase * totalScale
-        mlMap.set(key, prev)
+        const e = touchAgg(mergeKey, rawName)
+        e.ml += mlBase * totalScale
         continue
       }
 
       const uKey = normalizeUnitMergeKey(unit)
-      const oKey = `other:${canon}`
-      let oEnt = otherMap.get(oKey)
-      if (!oEnt) {
-        oEnt = { name: rawName, byUnit: new Map() }
-        otherMap.set(oKey, oEnt)
-      } else {
-        oEnt.name = pickShorterDisplayName(oEnt.name, rawName)
-      }
-      let uEnt = oEnt.byUnit.get(uKey)
+      const e = touchAgg(mergeKey, rawName)
+      let uEnt = e.byUnit.get(uKey)
       if (!uEnt) {
         uEnt = { sum: 0, texts: [] }
-        oEnt.byUnit.set(uKey, uEnt)
+        e.byUnit.set(uKey, uEnt)
       }
       if (qNum != null && Number.isFinite(qNum)) {
         uEnt.sum += qNum * totalScale
@@ -340,29 +375,6 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
         if (!uEnt.texts.includes(fragment)) uEnt.texts.push(fragment)
       }
     }
-  }
-
-  const out = []
-
-  for (const [, v] of massMap) {
-    const { quantityText, unit } = formatMassFromTotalGrams(v.grams)
-    out.push({
-      name: v.name,
-      quantityText,
-      unit,
-    })
-  }
-
-  for (const [, v] of mlMap) {
-    let quantityText = ''
-    if (v.ml != null && v.ml > 0) {
-      quantityText = formatQtyNumber(v.ml)
-    }
-    out.push({
-      name: v.name,
-      quantityText,
-      unit: 'ml',
-    })
   }
 
   const otherUnitOrder = [
@@ -381,7 +393,18 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     'a_gosto',
   ]
 
-  for (const [, entry] of otherMap) {
+  const out = []
+
+  for (const [, entry] of agg) {
+    const qtyParts = []
+    if (entry.grams > 0) {
+      const { quantityText: qMass, unit: uMass } = formatMassFromTotalGrams(entry.grams)
+      if (qMass) qtyParts.push(`${qMass} ${uMass}`.trim())
+    }
+    if (entry.ml > 0) {
+      qtyParts.push(`${formatQtyNumber(entry.ml)} ml`.trim())
+    }
+
     const keys = [...entry.byUnit.keys()].sort((a, b) => {
       const ia = otherUnitOrder.indexOf(a)
       const ib = otherUnitOrder.indexOf(b)
@@ -389,7 +412,6 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       const db = ib === -1 ? 999 : ib
       return da - db || String(a).localeCompare(String(b))
     })
-    const qtyParts = []
     for (const uk of keys) {
       const v = entry.byUnit.get(uk)
       if (!v) continue
@@ -405,16 +427,27 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
         if (t && !qtyParts.includes(t)) qtyParts.push(t)
       }
     }
+
+    const nGrams = entry.grams > 0 ? 1 : 0
+    const nMl = entry.ml > 0 ? 1 : 0
+    const nOtherNum = [...entry.byUnit.values()].filter((v) => v && v.sum > 0).length
     let primaryUnit = null
-    if (entry.byUnit.size === 1 && keys.length === 1) {
-      const only = keys[0]
-      const v = entry.byUnit.get(only)
-      if (v && v.sum > 0 && v.texts.length === 0 && (only === 'un' || only === 'dente')) {
-        primaryUnit = 'un'
+    if (nGrams + nMl + nOtherNum === 1) {
+      if (nGrams) {
+        primaryUnit = formatMassFromTotalGrams(entry.grams).unit
+      } else if (nMl) {
+        primaryUnit = 'ml'
+      } else if (entry.byUnit.size === 1 && keys.length === 1) {
+        const only = keys[0]
+        const v = entry.byUnit.get(only)
+        if (v && v.sum > 0 && v.texts.length === 0 && (only === 'un' || only === 'dente')) {
+          primaryUnit = 'un'
+        }
       }
     }
+
     out.push({
-      name: entry.name,
+      name: prettyIngredientLabel(entry.name),
       quantityText: qtyParts.join(' + '),
       unit: primaryUnit,
     })
