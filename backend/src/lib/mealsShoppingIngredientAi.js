@@ -28,7 +28,7 @@ const MAX_CHUNK = 44
 function normalizeModelForProvider(model, provider) {
   const m = (model || '').trim()
   if (provider === 'groq') {
-    if (!m || /gpt-4|gpt-3\.5|^o1|o3|davinci/i.test(m)) return 'llama-3.1-8b-instant'
+    if (!m || /^groq$/i.test(m) || /gpt-4|gpt-3\.5|^o1|o3|davinci/i.test(m)) return 'llama-3.1-8b-instant'
     return m
   }
   if (!m || /^llama-|mixtral|gemma/i.test(m)) return 'gpt-4o-mini'
