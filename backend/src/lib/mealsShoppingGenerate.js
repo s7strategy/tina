@@ -65,6 +65,69 @@ function normalizeIngredientName(name) {
     .replace(/\s+/g, ' ')
 }
 
+/**
+ * Chave para fundir o mesmo insumo escrito de formas diferentes
+ * ("Cebola média picada", "Cebola", "Alho socado" → cebola / alho).
+ */
+function canonicalIngredientKey(rawName) {
+  let s = normalizeIngredientName(rawName)
+  if (!s) return ''
+  s = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
+  s = s.replace(/^\d+[,.]?\d*\s*%?\s*/, '').trim()
+  const descriptors =
+    /\b(picad[oa]s?|ralad[oa]s?|fatiad[oa]s?|em cubos?|m[oô]id[oa]s?|triturad[oa]s?|desfiad[oa]s?|socad[oa]s?|amassad[oa]s?|peneirad[oa]s?|grelhad[oa]s?|assad[oa]s?|fervid[oa]s?|cozid[oa]s?|refogad[oa]s?|torrad[oa]s?|dou?rad[oa]s?|al dente|em rodelas?|em tiras?|em peda[cç]os?|em cubinhos?|descascad[oa]s?|sem pele|sem sementes?|madur[oa]s?|fres(?:co|ca|cos|cas)|congelad[oa]s?|descongelad[oa]s?|demolhad[oa]s?|lavad[oa]s?|escorrido?s?|temperad[oa]s?|marinad[oa]s?)\b/gi
+  s = s.replace(descriptors, ' ').replace(/\s+/g, ' ').trim()
+  s = s.replace(/\s+a gosto\s*$/i, '').trim()
+  s = s.replace(/\s*,\s*/g, ' ').replace(/\s+/g, ' ').trim()
+  if (!s) return normalizeIngredientName(rawName)
+  return s
+}
+
+function pickShorterDisplayName(prev, next) {
+  const a = String(prev || '').trim()
+  const b = String(next || '').trim()
+  if (!a) return b
+  if (!b) return a
+  if (a.length !== b.length) return a.length <= b.length ? a : b
+  return a.localeCompare(b, 'pt-BR') <= 0 ? a : b
+}
+
+/** Agrupa unidades equivalentes para somar quantidades na mesma linha. */
+function normalizeUnitMergeKey(unitRaw) {
+  const u = String(unitRaw || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+  if (u === 'a_gosto') return 'a_gosto'
+  if (!u) return 'un'
+  if (u === 'un' || u === 'unidade' || u === 'und' || u === 'uni' || u === 'unit' || u === 'units') return 'un'
+  if (u.includes('dente')) return 'dente'
+  if (u.includes('folha')) return 'folha'
+  if (u.includes('ramo')) return 'ramo'
+  if (u.includes('maco') || u.includes('maço')) return 'maco'
+  if (u.includes('xicara') || u.includes('xícara') || u === 'xic' || /^xic(cha)?$/.test(u)) return 'xicara'
+  if (u.includes('colher_sopa') || u.includes('colheres_sopa') || u === 'colsopa' || u === 'cs' || u === 'colher' || u === 'colheres') return 'colher_sopa'
+  if (u.includes('colher_cha') || u.includes('colher_chá') || u.includes('colheres_cha') || u === 'cc') return 'colher_cha'
+  if (u === 'pitada' || u.includes('pitadas')) return 'pitada'
+  if (u === 'l' || u === 'lt' || u === 'litro' || u === 'litros') return 'l'
+  return u
+}
+
+function friendlyUnitLabel(unitKey) {
+  const k = String(unitKey || '')
+  if (k === 'un') return 'un'
+  if (k === 'dente') return 'dentes'
+  if (k === 'folha') return 'folhas'
+  if (k === 'maco') return 'maço'
+  if (k === 'xicara') return 'xíc.'
+  if (k === 'colher_sopa') return 'col. sopa'
+  if (k === 'colher_cha') return 'col. chá'
+  if (k === 'pitada') return 'pitadas'
+  if (k === 'l') return 'L'
+  return k || 'un'
+}
+
 /** Alinha unidades do catálogo JSON / formulário às chaves usadas em gramas. */
 function normalizeMassUnit(unit) {
   const u = String(unit || '').trim().toLowerCase()
@@ -155,11 +218,11 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     recipeCounts[rid] = (recipeCounts[rid] || 0) + 1
   }
 
-  /** mass: Map key mass:${norm} -> { name, grams } */
+  /** mass: Map key mass:${canon} -> { name, grams } */
   const massMap = new Map()
-  /** ml: Map key ml:${norm} -> { name, ml } */
+  /** ml: Map key ml:${canon} -> { name, ml } */
   const mlMap = new Map()
-  /** legado / texto: chave composta */
+  /** outras unidades: uma linha por insumo (canon), várias unidades somadas em quantityText */
   const otherMap = new Map()
 
   let cachedFamilyKg = null
@@ -234,11 +297,13 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       const unit = ing.unit != null ? String(ing.unit).trim().toLowerCase() : ''
       const qNum = tryParseQuantity(ing.quantity)
       const norm = normalizeIngredientName(rawName)
+      const canon = canonicalIngredientKey(rawName) || norm
 
       const gBase = qNum != null ? gramsPerBaseDishKg(qNum, unit) : null
       if (gBase != null) {
-        const key = `mass:${norm}`
+        const key = `mass:${canon}`
         const prev = massMap.get(key) || { name: rawName, grams: 0 }
+        prev.name = pickShorterDisplayName(prev.name, rawName)
         prev.grams += gBase * totalScale
         massMap.set(key, prev)
         continue
@@ -246,24 +311,34 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
 
       const mlBase = qNum != null ? mlPerBaseDishKg(qNum, unit) : null
       if (mlBase != null) {
-        const key = `ml:${norm}`
+        const key = `ml:${canon}`
         const prev = mlMap.get(key) || { name: rawName, ml: 0 }
+        prev.name = pickShorterDisplayName(prev.name, rawName)
         prev.ml += mlBase * totalScale
         mlMap.set(key, prev)
         continue
       }
 
-      const key = `${norm}|${unit}`
-      const prev = otherMap.get(key) || { name: rawName, unit, numeric: null, textParts: [] }
-
-      if (qNum != null) {
-        prev.numeric = (prev.numeric || 0) + qNum * totalScale
-      } else if (String(ing.quantity || '').trim()) {
-        prev.textParts.push(`${String(ing.quantity).trim()} (${occurrences}x receita)`)
+      const uKey = normalizeUnitMergeKey(unit)
+      const oKey = `other:${canon}`
+      let oEnt = otherMap.get(oKey)
+      if (!oEnt) {
+        oEnt = { name: rawName, byUnit: new Map() }
+        otherMap.set(oKey, oEnt)
       } else {
-        prev.textParts.push(`(${occurrences}x)`)
+        oEnt.name = pickShorterDisplayName(oEnt.name, rawName)
       }
-      otherMap.set(key, prev)
+      let uEnt = oEnt.byUnit.get(uKey)
+      if (!uEnt) {
+        uEnt = { sum: 0, texts: [] }
+        oEnt.byUnit.set(uKey, uEnt)
+      }
+      if (qNum != null && Number.isFinite(qNum)) {
+        uEnt.sum += qNum * totalScale
+      } else if (String(ing.quantity || '').trim()) {
+        const fragment = String(ing.quantity).trim()
+        if (!uEnt.texts.includes(fragment)) uEnt.texts.push(fragment)
+      }
     }
   }
 
@@ -290,19 +365,58 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
     })
   }
 
-  for (const [, v] of otherMap) {
-    let quantityText = ''
-    if (v.numeric != null && v.numeric > 0) {
-      quantityText = formatQtyNumber(v.numeric)
-    } else if (v.textParts.length) {
-      quantityText = v.textParts.join('; ')
-    } else {
-      quantityText = ''
+  const otherUnitOrder = [
+    'kg',
+    'g',
+    'ml',
+    'l',
+    'xicara',
+    'colher_sopa',
+    'colher_cha',
+    'un',
+    'dente',
+    'folha',
+    'maco',
+    'pitada',
+    'a_gosto',
+  ]
+
+  for (const [, entry] of otherMap) {
+    const keys = [...entry.byUnit.keys()].sort((a, b) => {
+      const ia = otherUnitOrder.indexOf(a)
+      const ib = otherUnitOrder.indexOf(b)
+      const da = ia === -1 ? 999 : ia
+      const db = ib === -1 ? 999 : ib
+      return da - db || String(a).localeCompare(String(b))
+    })
+    const qtyParts = []
+    for (const uk of keys) {
+      const v = entry.byUnit.get(uk)
+      if (!v) continue
+      if (uk === 'a_gosto' && v.sum <= 0 && v.texts.length === 0) {
+        if (!qtyParts.includes('a gosto')) qtyParts.push('a gosto')
+        continue
+      }
+      if (v.sum > 0) {
+        const lbl = friendlyUnitLabel(uk)
+        qtyParts.push(`${formatQtyNumber(v.sum)} ${lbl}`.trim())
+      }
+      for (const t of v.texts) {
+        if (t && !qtyParts.includes(t)) qtyParts.push(t)
+      }
+    }
+    let primaryUnit = null
+    if (entry.byUnit.size === 1 && keys.length === 1) {
+      const only = keys[0]
+      const v = entry.byUnit.get(only)
+      if (v && v.sum > 0 && v.texts.length === 0 && (only === 'un' || only === 'dente')) {
+        primaryUnit = 'un'
+      }
     }
     out.push({
-      name: v.name,
-      quantityText,
-      unit: v.unit || null,
+      name: entry.name,
+      quantityText: qtyParts.join(' + '),
+      unit: primaryUnit,
     })
   }
 

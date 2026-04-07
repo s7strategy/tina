@@ -7,6 +7,7 @@ const {
   saveAutoVariationsForMenu,
   randomizePlannerSlotRecipe,
 } = require('../lib/mealsAutoVariations')
+const { refreshDefaultShoppingGeneratedForUser } = require('../lib/mealsShoppingService')
 
 const router = express.Router()
 
@@ -104,6 +105,11 @@ router.post('/menus/:menuId/auto-variations/generate', async (req, res) => {
     `UPDATE menus SET auto_variations_json = $1::jsonb, auto_mode_enabled = TRUE WHERE id = $2 AND owner_user_id = $3`,
     [JSON.stringify(result.variations), req.params.menuId, req.user.id],
   )
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after auto-variations generate:', e?.message || e)
+  }
   const row = await one(`SELECT ${MENU_SELECT} FROM menus WHERE id = $1`, [req.params.menuId])
   res.json({ menu: row, variations: result.variations })
 })
@@ -120,6 +126,11 @@ router.patch('/menus/:menuId/auto-variations', async (req, res) => {
     return res.status(400).json({ error: out.error })
   }
   const row = await one(`SELECT ${MENU_SELECT} FROM menus WHERE id = $1`, [req.params.menuId])
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after auto-variations patch:', e?.message || e)
+  }
   res.json({ menu: row, variations: out.variations })
 })
 
@@ -548,6 +559,13 @@ router.post('/auto-fill-month', async (req, res) => {
   }
 
   const anyOk = results.some((r) => r.ok)
+  if (anyOk) {
+    try {
+      await refreshDefaultShoppingGeneratedForUser(req.user.id)
+    } catch (e) {
+      console.error('refresh shopping after auto-fill-month:', e?.message || e)
+    }
+  }
   return res.status(anyOk ? 200 : 400).json({ results, month: monthStr })
   } catch (e) {
     console.error('auto-fill-month', e)

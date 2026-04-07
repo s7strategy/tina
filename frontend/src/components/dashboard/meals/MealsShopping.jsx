@@ -191,6 +191,35 @@ export default function MealsShopping({ token, embedded = false }) {
     }
   }
 
+  async function clearWholeList() {
+    if (!detail?.id) return
+    const ok = window.confirm(
+      'Remover todos os produtos desta lista (incluindo os que você adicionou à mão)?\n\nAo mudar o período ou voltar a esta aba, os itens do cardápio podem ser recalculados de novo.',
+    )
+    if (!ok) return
+    try {
+      const res = await api.clearShoppingListDefault(token, { scope: 'all' })
+      if (res?.list) setDetail(res.list)
+      else await load()
+    } catch (e) {
+      window.alert(e?.message || 'Não foi possível limpar.')
+    }
+  }
+
+  async function clearGeneratedThenRefresh() {
+    if (!detail?.id) return
+    const ok = window.confirm(
+      'Remover só os itens vindos do cardápio e calcular de novo a partir do plano? Os itens que você adicionou à mão ficam.',
+    )
+    if (!ok) return
+    try {
+      await api.clearShoppingListDefault(token, { scope: 'generated' })
+      await load()
+    } catch (e) {
+      window.alert(e?.message || 'Não foi possível atualizar.')
+    }
+  }
+
   if (loading && !detail) {
     return <div className="feedback">A carregar…</div>
   }
@@ -213,17 +242,31 @@ export default function MealsShopping({ token, embedded = false }) {
       )}
 
       <div className="meals-shop-toolbar">
-        <span className="meals-shop-toolbar-lbl">Lista para</span>
-        <select
-          className="sel meals-shop-horizon"
-          value={horizonDays}
-          onChange={(e) => setHorizonDays(Number(e.target.value))}
-          aria-label="Horizonte da lista em dias"
-        >
-          <option value={7}>7 dias</option>
-          <option value={15}>15 dias</option>
-          <option value={30}>30 dias</option>
-        </select>
+        <div className="meals-shop-toolbar-left">
+          <span className="meals-shop-toolbar-lbl">Lista para</span>
+          <select
+            className="sel meals-shop-horizon"
+            value={horizonDays}
+            onChange={(e) => setHorizonDays(Number(e.target.value))}
+            aria-label="Horizonte da lista em dias"
+          >
+            <option value={7}>7 dias</option>
+            <option value={15}>15 dias</option>
+            <option value={30}>30 dias</option>
+          </select>
+        </div>
+        <div className="meals-shop-toolbar-actions">
+          <button
+            type="button"
+            className="meals-primary-btn meals-btn--delicate meals-shop-clear-secondary"
+            onClick={clearGeneratedThenRefresh}
+          >
+            Só do cardápio
+          </button>
+          <button type="button" className="meals-primary-btn meals-btn--delicate meals-shop-clear" onClick={clearWholeList}>
+            Limpar lista
+          </button>
+        </div>
       </div>
 
       <section className="meals-surface meals-shop-list-card">

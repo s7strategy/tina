@@ -434,6 +434,14 @@ export const api = {
       body: JSON.stringify(body),
     })
   },
+  /** scope: 'all' | 'generated' */
+  clearShoppingListDefault(token, payload = {}) {
+    return request('/meals/shopping/clear', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ scope: payload.scope === 'generated' ? 'generated' : 'all' }),
+    })
+  },
   listShoppingLists(token) {
     return request('/meals/shopping/lists', { token })
   },

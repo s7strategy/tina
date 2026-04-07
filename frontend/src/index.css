@@ -1180,8 +1180,12 @@ button,input,select,textarea{font:inherit;}
 .meals-shop-lead{margin:0 0 12px;font-size:0.78em;color:var(--t2);line-height:1.5;}
 .meals-shop-lead--modal{margin:0 0 12px;font-size:0.76em;}
 .meals-shopping--embedded .meals-shop-list-card{margin-top:0;}
-.meals-shop-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px;}
+.meals-shop-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px;justify-content:space-between;}
+.meals-shop-toolbar-left{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
 .meals-shop-toolbar-lbl{font-size:0.62em;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;}
+.meals-shop-toolbar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;justify-content:flex-end;}
+.meals-shop-clear,.meals-shop-clear-secondary{font-size:0.72em;padding:8px 14px;white-space:nowrap;}
+.meals-shop-clear-secondary{opacity:0.92;}
 .meals-shop-horizon{width:auto;min-width:130px;margin-bottom:0;}
 .meals-shop-list-card{padding:14px 16px;}
 .meals-field{
