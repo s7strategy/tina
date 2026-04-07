@@ -366,14 +366,14 @@ function SuperAdminPage() {
     setPlatformSaving(true)
     try {
       const body = {}
-      if (llmKeysDraft.trim() && !platformIntegration?.llmKeysFromEnv) {
+      if (llmKeysDraft.trim()) {
         body.llmApiKeysText = llmKeysDraft.trim()
       }
       if (!platformIntegration?.openAiModelFromEnv && openAiModelDraft.trim()) {
         body.openAiModel = openAiModelDraft.trim()
       }
       if (Object.keys(body).length === 0) {
-        setFeedback({ type: 'error', message: 'Coloca chaves novas ou altera o modelo.' })
+        setFeedback({ type: 'error', message: 'Cola as chaves (uma por linha) ou altera o modelo.' })
         setPlatformSaving(false)
         return
       }
@@ -457,20 +457,30 @@ function SuperAdminPage() {
           <div className="admin-card-head">
             <div>
               <div className="admin-section-label">Integrações</div>
-              <strong>LLM — pratos automáticos (OpenAI ou Groq)</strong>
+              <strong>LLM da plataforma — todas as funções com IA</strong>
             </div>
           </div>
           <p className="admin-subtitle" style={{ marginTop: 8, marginBottom: 12 }}>
-            Chaves <code style={{ fontSize: '0.9em' }}>sk-…</code> (OpenAI) ou <code style={{ fontSize: '0.9em' }}>gsk_…</code>{' '}
-            (Groq). Podes colocar <strong>várias</strong> (uma por linha): se uma falhar por limite ou revogação, o
-            servidor tenta a seguinte. Variáveis no servidor: <code>LLM_API_KEYS</code>, <code>GROQ_API_KEYS</code>,{' '}
-            <code>OPENAI_API_KEY</code>, <code>LLM_MODEL</code> / <code>OPENAI_MODEL</code> têm prioridade sobre a base.
-            Cada &quot;Gerar 30 pratos&quot; pode refininar combinações com o modelo escolhido.
+            Este bloco alimenta <strong>o mesmo conjunto de chaves</strong> para: variações automáticas dos pratos (30
+            dias), normalização de ingredientes na <strong>lista de compras</strong>, e qualquer outro recurso que use o
+            modelo no backend. Chaves <code style={{ fontSize: '0.9em' }}>sk-…</code> (OpenAI) ou{' '}
+            <code style={{ fontSize: '0.9em' }}>gsk_…</code> (Groq) — <strong>várias</strong> (uma por linha): em caso
+            de limite ou erro, o servidor tenta a seguinte. Podes também definir chaves no servidor com{' '}
+            <code>LLM_API_KEYS</code> / <code>GROQ_API_KEYS</code> / <code>OPENAI_API_KEY</code>: elas são{' '}
+            <strong>somadas</strong> às guardadas aqui (env primeiro, depois a base, sem duplicados). Modelo:{' '}
+            <code>LLM_MODEL</code> / <code>OPENAI_MODEL</code> no servidor ou o campo abaixo.
           </p>
           {platformIntegration.llmKeysFromEnv ? (
             <p className="feedback success" style={{ marginBottom: 12 }}>
-              Chaves/modelo definidos no <strong>servidor</strong> (env). Os campos abaixo não substituem isso para API;
-              ainda podes guardar modelo na base se o env não fixar modelo.
+              Há chaves no <strong>servidor</strong> (env); continuam activas e são tentadas <strong>primeiro</strong>.
+              As chaves que guardares abaixo na base <strong>acrescentam-se</strong> à rotação (útil para as tuas 5
+              chaves no painel mesmo com uma chave no env).
+            </p>
+          ) : null}
+          {platformIntegration.llmKeysMergedEnvAndDb ? (
+            <p style={{ fontSize: '0.85em', color: 'var(--t2)', marginBottom: 12 }}>
+              <strong>Env + base:</strong> estão a ser usadas chaves do servidor e da base em simultâneo (
+              {platformIntegration.llmKeyCount ?? 0} no total).
             </p>
           ) : null}
           {platformIntegration.llmConfigured ? (
@@ -509,15 +519,15 @@ function SuperAdminPage() {
                 id="llm-keys"
                 autoComplete="off"
                 className="admin-input"
-                rows={4}
+                rows={5}
                 value={llmKeysDraft}
                 onChange={(e) => setLlmKeysDraft(e.target.value)}
                 placeholder={
                   platformIntegration.llmKeysFromEnv
-                    ? 'Opcional — chaves já vêm do servidor'
-                    : 'gsk_… ou sk-…\n(gsk_… segunda chave…)'
+                    ? 'Acrescenta chaves na base (uma por linha) — somam-se às do servidor'
+                    : 'gsk_… ou sk-…\n(uma chave por linha, até várias)'
                 }
-                disabled={platformSaving || platformIntegration.llmKeysFromEnv}
+                disabled={platformSaving}
                 style={{ width: '100%', marginTop: 6, fontFamily: 'monospace', fontSize: '0.85em' }}
               />
             </div>
@@ -545,8 +555,7 @@ function SuperAdminPage() {
               <button type="submit" className="admin-button" disabled={platformSaving}>
                 {platformSaving ? 'A guardar…' : 'Guardar chaves / modelo'}
               </button>
-              {!platformIntegration.llmKeysFromEnv &&
-              (platformIntegration.llmKeyCountDb ?? 0) > 0 ? (
+              {(platformIntegration.llmKeyCountDb ?? 0) > 0 ? (
                 <button type="button" className="admin-button admin-button-ghost" disabled={platformSaving} onClick={handleClearOpenAiKey}>
                   Remover chaves da base
                 </button>

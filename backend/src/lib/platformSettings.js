@@ -26,31 +26,38 @@ function inferProviderFromKeys(keys) {
   return 'openai'
 }
 
-/**
- * Lista de chaves: LLM_API_KEYS ou GROQ_API_KEYS (várias, separadas por vírgula ou nova linha no env) > OPENAI_API_KEY >
- * base `llm_api_keys` (JSON array) > legado `openai_api_key`.
- */
-async function getLlmApiKeyList(executor) {
-  const envMulti = process.env.LLM_API_KEYS || process.env.GROQ_API_KEYS
-  const envSingle = process.env.OPENAI_API_KEY
-  const fromEnv = dedupeKeys([...splitKeyList(envMulti), ...splitKeyList(envSingle)])
-  if (fromEnv.length) return fromEnv
-
+/** Só chaves gravadas na base (painel Super Admin). */
+async function getLlmApiKeyListFromDb(executor) {
+  const out = []
   const rowMulti = await one(`SELECT value FROM platform_settings WHERE key = $1`, ['llm_api_keys'], executor)
   if (rowMulti?.value) {
     try {
       const j = JSON.parse(rowMulti.value)
       if (Array.isArray(j)) {
-        const parsed = dedupeKeys(j.map((x) => String(x).trim()).filter(Boolean))
-        if (parsed.length) return parsed
+        for (const x of j) {
+          const t = String(x).trim()
+          if (t) out.push(t)
+        }
       }
     } catch {
       /* ignore */
     }
   }
   const rowSingle = await one(`SELECT value FROM platform_settings WHERE key = $1`, ['openai_api_key'], executor)
-  if (rowSingle?.value?.trim()) return [rowSingle.value.trim()]
-  return []
+  if (rowSingle?.value?.trim()) out.push(rowSingle.value.trim())
+  return dedupeKeys(out)
+}
+
+/**
+ * Chaves LLM efectivas: funde env (tentadas primeiro) + base de dados (painel).
+ * Assim várias chaves guardadas no painel são sempre usadas, mesmo com OPENAI_API_KEY no servidor.
+ */
+async function getLlmApiKeyList(executor) {
+  const envMulti = process.env.LLM_API_KEYS || process.env.GROQ_API_KEYS
+  const envSingle = process.env.OPENAI_API_KEY
+  const fromEnv = dedupeKeys([...splitKeyList(envMulti), ...splitKeyList(envSingle)])
+  const fromDb = await getLlmApiKeyListFromDb(executor)
+  return dedupeKeys([...fromEnv, ...fromDb])
 }
 
 async function getLlmModel(executor) {
@@ -113,6 +120,8 @@ async function getPlatformIntegrationSummary(executor) {
   const allKeysPreview = await getLlmApiKeyList(executor)
   const providerGuess = inferProviderFromKeys(allKeysPreview)
 
+  const mergedEnvAndDb = fromEnvKeys && dbKeyCountBase > 0
+
   return {
     openAiConfigured: allKeysPreview.length > 0,
     llmConfigured: allKeysPreview.length > 0,
@@ -120,6 +129,7 @@ async function getPlatformIntegrationSummary(executor) {
     llmKeyCountDb: dbKeyCountBase,
     llmKeyCountEnv: envKeyCount,
     llmKeysFromEnv: fromEnvKeys,
+    llmKeysMergedEnvAndDb: mergedEnvAndDb,
     llmProviderGuess: providerGuess,
     openAiKeyFromEnv: fromEnvKeys,
     openAiModel: model,
@@ -192,6 +202,7 @@ async function getOpenAiModel(executor) {
 
 module.exports = {
   getLlmApiKeyList,
+  getLlmApiKeyListFromDb,
   getLlmModel,
   getOpenAiApiKey,
   getOpenAiModel,
