@@ -7,6 +7,7 @@ const { forkGlobalRecipeToUser } = require('../lib/forkGlobalRecipe')
 const { buildMemberServingsFromFamily } = require('../lib/mealsFamilyPortions')
 const { mapGlobalIngredient } = require('../lib/mealsGlobalFork')
 const { normalizeTagsArray, normalizeTagSlug, DEFAULT_TAG_IDS } = require('../lib/recipeTags')
+const { refreshDefaultShoppingGeneratedForUser } = require('../lib/mealsShoppingService')
 
 const router = express.Router()
 
@@ -638,6 +639,11 @@ router.delete('/:id', async (req, res) => {
     safeUnlink(req.user.id, existing.image_url)
   }
   await query(`DELETE FROM recipes WHERE id = $1 AND owner_user_id = $2`, [req.params.id, req.user.id])
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after recipe delete:', e?.message || e)
+  }
   res.status(204).send()
 })
 

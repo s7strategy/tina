@@ -1,6 +1,7 @@
 const express = require('express')
 const { many, one, query, uid, transaction } = require('../lib/db')
 const { normalizeMealCategory } = require('../lib/mealCategories')
+const { refreshDefaultShoppingGeneratedForUser } = require('../lib/mealsShoppingService')
 
 const router = express.Router()
 
@@ -240,6 +241,13 @@ router.post('/:id/apply', async (req, res) => {
     return res.status(400).json({ error: 'Não foi possível aplicar ao cardápio.' })
   }
 
+  if (inserted > 0) {
+    try {
+      await refreshDefaultShoppingGeneratedForUser(req.user.id)
+    } catch (e) {
+      console.error('refresh shopping after combo apply:', e?.message || e)
+    }
+  }
   res.json({ success: true, inserted, days: dates.length })
 })
 

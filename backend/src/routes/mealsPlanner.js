@@ -291,6 +291,13 @@ router.post('/slots', async (req, res) => {
     `,
     [id],
   )
+  if (hasRecipe) {
+    try {
+      await refreshDefaultShoppingGeneratedForUser(req.user.id)
+    } catch (e) {
+      console.error('refresh shopping after POST slot:', e?.message || e)
+    }
+  }
   res.status(201).json({ slot: row })
 })
 
@@ -298,6 +305,11 @@ router.post('/slots/:id/randomize', async (req, res) => {
   const out = await randomizePlannerSlotRecipe(req.user.id, req.params.id)
   if (out.error) {
     return res.status(400).json({ error: out.error })
+  }
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after slot randomize:', e?.message || e)
   }
   res.json({ ok: true, recipeId: out.recipeId, recipeName: out.recipeName })
 })
@@ -353,6 +365,13 @@ router.patch('/slots/:id', async (req, res) => {
     `,
     [req.params.id],
   )
+  if (recipeId !== undefined || customTitle !== undefined) {
+    try {
+      await refreshDefaultShoppingGeneratedForUser(req.user.id)
+    } catch (e) {
+      console.error('refresh shopping after PATCH slot:', e?.message || e)
+    }
+  }
   res.json({ slot: row })
 })
 
@@ -360,6 +379,11 @@ router.delete('/slots/:id', async (req, res) => {
   const s = await one(`SELECT id FROM menu_slots WHERE id = $1 AND owner_user_id = $2`, [req.params.id, req.user.id])
   if (!s) return res.status(404).json({ error: 'Slot não encontrado.' })
   await query(`DELETE FROM menu_slots WHERE id = $1`, [req.params.id])
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after DELETE slot:', e?.message || e)
+  }
   res.status(204).send()
 })
 
@@ -430,6 +454,11 @@ router.post('/bulk-repeat', async (req, res) => {
     }
   })
 
+  try {
+    await refreshDefaultShoppingGeneratedForUser(req.user.id)
+  } catch (e) {
+    console.error('refresh shopping after bulk-repeat:', e?.message || e)
+  }
   res.json({ success: true, applied: dates.length })
 })
 
