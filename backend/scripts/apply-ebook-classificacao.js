@@ -129,7 +129,6 @@ Hambúrguer com Tomate — protein_carb
 Hambúrguer Nutritivo — protein_carb
 Iogurte funcional anti-ansiedade — lanche
 Jardineira de Frango — protein_carb
-Lagarto Assado Especial — protein
 Lanche leve (base) — lanche
 Lasanha de Abobrinha a Milanesa — legumes
 Lasanha de Cenoura — legumes

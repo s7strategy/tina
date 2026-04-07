@@ -1121,66 +1121,6 @@
       ]
     },
     {
-      "nome": "Lagarto Assado Especial",
-      "categoria": "Proteína",
-      "ingredientes": [
-        {
-          "nome": "(2,5 kg) de lagarto",
-          "quantidade": 1,
-          "unidade": "un"
-        },
-        {
-          "nome": "Vinho tinto seco",
-          "quantidade": 0.5,
-          "unidade": "un"
-        },
-        {
-          "nome": "Alho socado",
-          "quantidade": 2,
-          "unidade": "colher_sopa"
-        },
-        {
-          "nome": "Cebola média picada",
-          "quantidade": 1,
-          "unidade": "un"
-        },
-        {
-          "nome": "Salsa picada",
-          "quantidade": 5,
-          "unidade": "colher_sopa"
-        },
-        {
-          "nome": "Sal e pimenta",
-          "quantidade": 0,
-          "unidade": "a_gosto"
-        },
-        {
-          "nome": "Creme de leite",
-          "quantidade": 1,
-          "unidade": "un"
-        },
-        {
-          "nome": "Óleo de soja",
-          "quantidade": 2,
-          "unidade": "colher_sopa"
-        }
-      ],
-      "modo_preparo": [
-        "Limpe bem a carne retirando toda gordura e a película que a envolve. Com a faca, faça furos na carne.",
-        "Misture todo o tempero e deixe a carne neste molho por cinco horas na geladeira, virando-a cada hora.",
-        "Frite a carne em uma frigideira grande, dourando a peça por inteiro.",
-        "Transfira o lagarto e o caldo para uma assadeira untada com óleo. Cubra com papel alumínio e leve ao forno a 255 graus por cerca de uma hora e meia.",
-        "Retire o papel alumínio e deixe corar. Fatie.",
-        "Leve o líquido que sobrou para uma frigideira, deixe ferver e encorpar. Acrescente o creme de leite e apague o fogo.",
-        "Despeje o molho sobre a carne fatiada."
-      ],
-      "rendimento_kg": 1,
-      "origem": "global",
-      "tags": [
-        "especial"
-      ]
-    },
-    {
       "nome": "Escondidinho de Carne Seca com Banana da Terra",
       "categoria": "Proteína",
       "ingredientes": [
