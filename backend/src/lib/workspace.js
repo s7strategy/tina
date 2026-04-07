@@ -1,35 +1,53 @@
-const { many } = require('./db')
+const { many, value } = require('./db')
+
+const APP_TZ = process.env.APP_TZ || 'America/Sao_Paulo'
+
+/** YYYY-MM-DD no fuso da app (Brasil por omissão). */
+function ymdInAppTz(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: APP_TZ })
+}
+
+/** Seg=0 … Dom=6 no fuso da app (semana começa na segunda). */
+function weekdayMon0InAppTz(d) {
+  const s = new Intl.DateTimeFormat('en-US', { timeZone: APP_TZ, weekday: 'short' }).format(d)
+  const map = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 }
+  return map[s] ?? 0
+}
+
+function todayYmdApp() {
+  return ymdInAppTz(new Date())
+}
 
 function generateCurrentWeek() {
   const now = new Date()
-  const dayOfWeek = now.getDay()
-  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - diffToMonday)
-  monday.setHours(0, 0, 0, 0)
+  const diffToMonday = weekdayMon0InAppTz(now)
+  const mondayInstant = new Date(now.getTime() - diffToMonday * 86400000)
 
   const keys = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom']
   const names = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
   const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
+  const todayYmd = ymdInAppTz(now)
   const week = []
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday)
-    d.setDate(monday.getDate() + i)
+    const d = new Date(mondayInstant.getTime() + i * 86400000)
+    const fullDate = ymdInAppTz(d)
+    const dayNum = Number(fullDate.split('-')[2])
     week.push({
       key: keys[i],
       name: names[i],
-      num: String(d.getDate()).padStart(2, '0'),
-      today: d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(),
-      fullDate: d.toISOString().split('T')[0]
+      num: String(dayNum).padStart(2, '0'),
+      today: fullDate === todayYmd,
+      fullDate,
     })
   }
 
   const firstDay = week[0]
   const lastDay = week[6]
-  const monthStart = months[new Date(monday).getMonth()]
-  const monthEnd = months[new Date(monday.setDate(monday.getDate() + 6)).getMonth()]
+  const m0 = Number(firstDay.fullDate.split('-')[1]) - 1
+  const m1 = Number(lastDay.fullDate.split('-')[1]) - 1
+  const monthStart = months[m0]
+  const monthEnd = months[m1]
   const weekRange = `${firstDay.num} ${monthStart !== monthEnd ? monthStart + ' ' : ''}— ${lastDay.num} ${monthEnd}`
 
   return { weekDays: week, weekRange }
@@ -40,6 +58,7 @@ function formatTimeLabel(dateString) {
   return new Date(dateString).toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: APP_TZ,
   })
 }
 
@@ -54,43 +73,69 @@ function getLiveSeconds(entry) {
 }
 
 function buildTracking(entries) {
-  const current = entries.find((entry) => entry.active)
-  const totalSeconds = entries.reduce((sum, entry) => sum + (entry.active ? getLiveSeconds(entry) : Number(entry.duration_seconds || 0)), 0)
+  const activeEntries = entries.filter((entry) => entry.active)
+  const totalSeconds = entries.reduce(
+    (sum, entry) => sum + (entry.active ? getLiveSeconds(entry) : Number(entry.duration_seconds || 0)),
+    0,
+  )
 
-  if (!current) {
+  const log = entries.map((entry) => {
+    const sec = entry.active ? getLiveSeconds(entry) : Number(entry.duration_seconds || 0)
+    return {
+      id: entry.id,
+      name: entry.label,
+      time: `${formatTimeLabel(entry.started_at)}–${entry.active ? 'agora' : formatTimeLabel(entry.ended_at)}`,
+      durationSeconds: sec,
+      durationMinutes: Math.floor(sec / 60),
+      active: Boolean(entry.active),
+      paused: Boolean(entry.paused),
+      startedAt: entry.started_at || null,
+      endedAt: entry.active ? null : entry.ended_at || null,
+      cat: entry.cat || '',
+      sub: entry.sub || '',
+      detail: entry.detail || '',
+      favoriteId: entry.favorite_id || null,
+    }
+  })
+
+  const activeSessions = activeEntries.map((entry) => ({
+    id: entry.id,
+    cat: entry.cat || '',
+    sub: entry.sub || '',
+    detail: entry.detail || '',
+    favoriteId: entry.favorite_id || null,
+    paused: Boolean(entry.paused),
+    seconds: getLiveSeconds(entry),
+  }))
+
+  const primary = activeEntries[0] || null
+
+  if (!primary) {
     return {
       active: false,
       paused: false,
       cat: '🏠 Casa',
       sub: '',
       detail: '',
+      favoriteId: null,
       seconds: 0,
+      activeSessions: [],
       totalMinutes: Math.floor(totalSeconds / 60),
-      log: entries.map((entry) => ({
-        id: entry.id,
-        name: entry.label,
-        time: `${formatTimeLabel(entry.started_at)}–${formatTimeLabel(entry.ended_at)}`,
-        durationMinutes: Math.floor(Number(entry.duration_seconds || 0) / 60),
-        active: false,
-      })),
+      log,
     }
   }
 
   return {
-    active: Boolean(current.active),
-    paused: Boolean(current.paused),
-    cat: current.cat || '🏠 Casa',
-    sub: current.sub || '',
-    detail: current.detail || '',
-    seconds: getLiveSeconds(current),
+    active: true,
+    paused: Boolean(primary.paused),
+    cat: primary.cat || '🏠 Casa',
+    sub: primary.sub || '',
+    detail: primary.detail || '',
+    favoriteId: primary.favorite_id || null,
+    seconds: getLiveSeconds(primary),
+    activeSessions,
     totalMinutes: Math.floor(totalSeconds / 60),
-    log: entries.map((entry) => ({
-      id: entry.id,
-      name: entry.label,
-      time: `${formatTimeLabel(entry.started_at)}–${entry.active ? 'agora' : formatTimeLabel(entry.ended_at)}`,
-      durationMinutes: Math.floor((entry.active ? getLiveSeconds(entry) : Number(entry.duration_seconds || 0)) / 60),
-      active: Boolean(entry.active),
-    })),
+    log,
   }
 }
 
@@ -122,8 +167,10 @@ function buildMemberShort(member, tasks) {
   return member.short || 'Sem tarefas'
 }
 
-async function getWorkspaceForUser(user) {
-  const [members, tasks, categories, events, favorites, meals, rewards, timeEntries, plansPreview] = await Promise.all([
+async function getWorkspaceForUser(user, todayOverride = null) {
+  const todayStr =
+    todayOverride && /^\d{4}-\d{2}-\d{2}$/.test(todayOverride) ? todayOverride : todayYmdApp()
+  const [members, tasks, categories, events, favorites, meals, rewards, timeEntries, plansPreview, shoppingListCountRaw] = await Promise.all([
     many(
       `
         SELECT *
@@ -135,16 +182,18 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence
+        SELECT id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, for_date AS "forDate", archived
         FROM tasks
         WHERE owner_user_id = $1
+          AND COALESCE(archived, false) = false
+          AND (for_date IS NULL OR for_date = $2)
         ORDER BY created_at ASC
       `,
-      [user.id],
+      [user.id, todayStr],
     ),
     many(
       `
-        SELECT id, profile_key, icon, name, visibility_scope
+        SELECT id, profile_key, icon, icon_image_url, name, visibility_scope
         FROM categories
         WHERE owner_user_id = $1
         ORDER BY created_at ASC
@@ -153,7 +202,7 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, day_key, event_date, title, time, cls, member_keys_json, recurrence_type, recurrence_days
+        SELECT id, day_key, event_date, title, event_time AS time, cls, member_keys_json, recurrence_type, recurrence_days
         FROM events
         WHERE owner_user_id = $1
         ORDER BY created_at ASC
@@ -162,10 +211,10 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, profile_key, icon, label, cat, sub, detail, participant_keys_json
+        SELECT id, profile_key, icon, icon_image_url, label, cat, sub, detail, participant_keys_json, sort_order
         FROM favorites
         WHERE owner_user_id = $1
-        ORDER BY created_at ASC
+        ORDER BY sort_order ASC, created_at ASC
       `,
       [user.id],
     ),
@@ -189,7 +238,7 @@ async function getWorkspaceForUser(user) {
     ),
     many(
       `
-        SELECT id, profile_key, label, cat, sub, detail, started_at, ended_at, duration_seconds, active, paused, last_resumed_at
+        SELECT id, profile_key, label, cat, sub, detail, started_at, ended_at, duration_seconds, active, paused, last_resumed_at, favorite_id
         FROM time_entries
         WHERE owner_user_id = $1
         ORDER BY created_at ASC, started_at ASC
@@ -205,6 +254,7 @@ async function getWorkspaceForUser(user) {
       `,
       [],
     ),
+    value(`SELECT COUNT(*)::int FROM shopping_lists WHERE owner_user_id = $1`, [user.id]),
   ])
 
   const profiles = {}
@@ -230,6 +280,7 @@ async function getWorkspaceForUser(user) {
         priority: task.priority,
         reward: task.reward,
         recurrence: task.recurrence,
+        forDate: task.forDate || null,
         participantKeys: JSON.parse(task.participant_keys_json || '[]'),
       }))
 
@@ -245,6 +296,7 @@ async function getWorkspaceForUser(user) {
       .map((category) => ({
         id: category.id,
         icon: category.icon,
+        iconImageUrl: Boolean(category.icon_image_url),
         name: category.name,
         visibility: category.visibility_scope,
       }))
@@ -254,6 +306,7 @@ async function getWorkspaceForUser(user) {
       .map((favorite) => ({
         id: favorite.id,
         icon: favorite.icon,
+        iconImageUrl: Boolean(favorite.icon_image_url),
         label: favorite.label,
         cat: favorite.cat,
         sub: favorite.sub || '',
@@ -357,7 +410,7 @@ async function getWorkspaceForUser(user) {
       shopping: meal.shopping || '',
       today: Boolean(meal.today),
     })),
-    shoppingListCount: meals.filter((meal) => meal.shopping).length,
+    shoppingListCount: Number(shoppingListCountRaw ?? 0),
     plansPreview: plansPreview.map((plan) => ({
       id: plan.id,
       name: plan.name,

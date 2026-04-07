@@ -328,8 +328,10 @@ export function formatClock(seconds) {
 }
 
 export function formatMinutes(minutes) {
-  const hrs = Math.floor(minutes / 60)
-  const mins = minutes % 60
+  const totalSec = Math.max(0, Math.round(Number(minutes) * 60))
+  const hrs = Math.floor(totalSec / 3600)
+  const mins = Math.floor((totalSec % 3600) / 60)
+  if (hrs === 0 && mins === 0 && totalSec > 0) return `${totalSec}s`
   return `${hrs}h${String(mins).padStart(2, '0')}`
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { LOGO_SRC } from '../lib/branding.js'
 
 function RegisterPage() {
   const navigate = useNavigate()
@@ -29,7 +30,9 @@ function RegisterPage() {
     <div className="auth-shell">
       <aside className="auth-side">
         <div>
-          <div className="sb-logo">🏠</div>
+          <div className="auth-brand-mark">
+            <img src={LOGO_SRC} alt="Tina" className="auth-brand-img" width={220} height={48} decoding="async" />
+          </div>
           <h1>Cadastre um novo workspace na TINA.</h1>
           <p>
             O fluxo de registro já cria uma conta com papel, persiste sessão e habilita acesso

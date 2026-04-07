@@ -129,7 +129,7 @@ export default function EmojiPicker({ value, onChange, label }) {
                   padding: '4px 8px',
                   borderRadius: 8,
                   border: 'none',
-                  background: activeTab === i ? 'var(--mae)' : 'var(--bg)',
+                  background: activeTab === i ? 'var(--brand)' : 'var(--bg)',
                   color: activeTab === i ? 'white' : 'var(--t2)',
                   fontSize: '0.62em',
                   fontWeight: 700,
@@ -155,7 +155,7 @@ export default function EmojiPicker({ value, onChange, label }) {
                 style={{
                   padding: 6,
                   borderRadius: 10,
-                  border: value === emoji ? '2px solid var(--mae)' : '2px solid transparent',
+                  border: value === emoji ? '2px solid var(--brand)' : '2px solid transparent',
                   background: value === emoji ? '#f0ecff' : 'var(--bg)',
                   cursor: 'pointer',
                   display: 'flex',

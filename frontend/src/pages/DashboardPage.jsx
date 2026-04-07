@@ -1,26 +1,32 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
+import { CloudSun, Pin, Plus } from 'lucide-react'
+import { useWeather } from '../hooks/useWeather.js'
+import WeatherModal from '../components/ui/WeatherModal.jsx'
+import WeatherLucideIcon from '../components/ui/WeatherLucideIcon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useAppData } from '../context/AppDataContext.jsx'
+import { useUiMode } from '../context/UiModeContext.jsx'
+import TabletShell from '../shell/TabletShell.jsx'
+import MobileShell from '../shell/MobileShell.jsx'
 import Modal from '../components/ui/Modal.jsx'
+import AvatarCropModal from '../components/ui/AvatarCropModal.jsx'
 import ErrorBoundary from '../components/ui/ErrorBoundary.jsx'
+import AppLoadingScreen from '../components/ui/AppLoadingScreen.jsx'
 import PeoplePicker from '../components/ui/PeoplePicker.jsx'
-import EmojiPicker, { TwemojiImg } from '../components/ui/EmojiPicker.jsx'
+import EmojiPicker from '../components/ui/EmojiPicker.jsx'
+import { FavOrCatIcon } from '../components/ui/FavOrCatIcon.jsx'
+import IconUploadRow from '../components/ui/IconUploadRow.jsx'
+import { LOGO_SRC } from '../lib/branding.js'
+import { formatWeekRange, generateWeekDays } from '../lib/calendarWeek.js'
+import { localCalendarYmd } from '../lib/localDate.js'
 import CalendarView from '../components/dashboard/CalendarView.jsx'
 import TasksView from '../components/dashboard/TasksView.jsx'
 import TimeTrackingView from '../components/dashboard/TimeTrackingView.jsx'
 import RewardsView from '../components/dashboard/RewardsView.jsx'
 import MealsView from '../components/dashboard/MealsView.jsx'
 import ChartsView from '../components/dashboard/ChartsView.jsx'
-
-const tabItems = [
-  { key: 'cal', icon: '📅', label: 'Agenda' },
-  { key: 'tasks', icon: '☑️', label: 'Tarefas' },
-  { key: 'time', icon: '⏱️', label: 'Tempo' },
-  { key: 'rewards', icon: '🌟', label: 'Prêmios' },
-  { key: 'meals', icon: '🍴', label: 'Refeições' },
-  { key: 'charts', icon: '📈', label: 'Gráficos' },
-]
 
 function generateTimeSlots() {
   const slots = []
@@ -47,11 +53,10 @@ const defaultEventDraft = {
   eventDate: '', dayKey: '', title: '', time: '09:00', members: [],
   recurrenceType: 'único', recurrenceDays: [],
 }
-const defaultCategoryDraft = { icon: '📂', name: '', visibilityKeys: [] }
+const defaultCategoryDraft = { icon: '📂', name: '', visibilityKeys: [], iconFile: null }
 const defaultRewardDraft = { tierId: 'tier-8', value: '' }
-const defaultMealDraft = { day: 'Seg', icon: '🍲', name: '', shopping: '', today: false }
 const defaultProfileDraft = { name: '', relation: 'Filho(a)', profileType: 'Criança', age: '', color: '#7c6aef' }
-const defaultFavoriteDraft = { icon: '⭐', label: '', cat: '', sub: '', detail: '', profileKey: '', participantKeys: [] }
+const defaultFavoriteDraft = { icon: '⭐', label: '', cat: '', sub: '', detail: '', profileKey: '', participantKeys: [], iconFile: null }
 
 function CategorySelect({ categories, value, onChange }) {
   const [custom, setCustom] = useState(false)
@@ -99,29 +104,35 @@ function CategorySelect({ categories, value, onChange }) {
 function DashboardPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { mode, preference, setPreference } = useUiMode()
   const {
     workspace, syncState, setCurrentTab, setCurrentProf, setCurrentView,
-    addTask, updateTask, deleteTask, addCategory, addCalendarEvent,
-    addReward, addMeal, addProfile, updateProfile, addFavorite, removeFavorite,
-    startFavorite, startCustomActivity, togglePause, stopTimer,
+    addTask, updateTask, deleteTask, addCategory, updateCategory, deleteCategory,
+    uploadCategoryIcon, deleteCategoryIcon,
+    refreshWorkspace,
+    addCalendarEvent,
+    addReward, addProfile, updateProfile, addFavorite, removeFavorite, reorderFavorites,
+    startFavorite, startCustomActivity, addManualTimeEntry, togglePause, stopTimer,
     updateTimeEntry, deleteTimeEntry,
     formatClock, formatMinutes,
   } = useAppData()
 
-  const [clock, setClock] = useState(() =>
-    new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
-  )
+  const weather = useWeather()
+
+  const [headerNow, setHeaderNow] = useState(() => new Date())
   const [modal, setModal] = useState('')
   const [taskDraft, setTaskDraft] = useState(defaultTaskDraft)
   const [editingTask, setEditingTask] = useState(null)
   const [eventDraft, setEventDraft] = useState(defaultEventDraft)
   const [categoryDraft, setCategoryDraft] = useState(defaultCategoryDraft)
   const [rewardDraft, setRewardDraft] = useState(defaultRewardDraft)
-  const [mealDraft, setMealDraft] = useState(defaultMealDraft)
   const [profileDraft, setProfileDraft] = useState(defaultProfileDraft)
   const [editingMember, setEditingMember] = useState(null)
   const [favoriteDraft, setFavoriteDraft] = useState(defaultFavoriteDraft)
   const [weekOffset, setWeekOffset] = useState(0)
+  const [avatarCropSrc, setAvatarCropSrc] = useState(null)
+  const [editingCategory, setEditingCategory] = useState(null)
+  const [eventModalError, setEventModalError] = useState('')
 
   const profiles = workspace.profiles
   const currentProfile = profiles[workspace.currentProf] ?? profiles.gestor
@@ -146,15 +157,68 @@ function DashboardPage() {
     return Object.values(profiles)
   }, [profiles, user?.role])
 
+  const weekRangeForNav = useMemo(() => formatWeekRange(generateWeekDays(weekOffset)), [weekOffset])
+
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setClock(new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }))
-    }, 60000)
+    const interval = window.setInterval(() => setHeaderNow(new Date()), 60000)
     return () => window.clearInterval(interval)
   }, [])
 
+  const headerDateLabel = headerNow.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })
+  const headerTimeLabel = headerNow.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+  function visibilityToKeys(visibility) {
+    if (!visibility) return ['todos']
+    let arr
+    if (Array.isArray(visibility)) {
+      arr = visibility
+    } else if (typeof visibility === 'string') {
+      try {
+        arr = JSON.parse(visibility)
+      } catch {
+        return ['todos']
+      }
+    } else {
+      return ['todos']
+    }
+    if (!Array.isArray(arr)) return ['todos']
+    if (arr.includes('Todos')) return ['todos']
+    const keys = []
+    for (const name of arr) {
+      const p = nonManagerProfiles.find((m) => m.name === name)
+      if (p) keys.push(p.key)
+    }
+    return keys.length ? keys : ['todos']
+  }
+
+  function openCategoryForEdit(cat) {
+    setEditingCategory(cat)
+    setCategoryDraft({
+      icon: cat.icon,
+      name: cat.name,
+      visibilityKeys: visibilityToKeys(cat.visibility),
+      iconFile: null,
+    })
+    setModal('category')
+  }
+
   function openModal(key, profileKey) {
     setModal(key)
+    if (key === 'event') {
+      setEventModalError('')
+      const today = workspace.weekDays?.find((d) => d.today)
+      const eventDate = today?.fullDate && /^\d{4}-\d{2}-\d{2}$/.test(today.fullDate) ? today.fullDate : localCalendarYmd()
+      setEventDraft({
+        ...defaultEventDraft,
+        eventDate,
+        dayKey: '',
+        members: workspace.currentProf === 'gestor' ? [] : [workspace.currentProf],
+      })
+    }
+    if (key === 'category') {
+      setEditingCategory(null)
+      setCategoryDraft(defaultCategoryDraft)
+    }
     if (key === 'task') {
       const defaultKey = profileKey || (workspace.currentProf === 'gestor' ? (nonManagerProfiles[0]?.key || '') : workspace.currentProf)
       setTaskDraft({ ...defaultTaskDraft, profileKey: defaultKey, participants: defaultKey ? [defaultKey] : [] })
@@ -170,13 +234,15 @@ function DashboardPage() {
     setModal('')
     setEditingTask(null)
     setEditingMember(null)
+    setEditingCategory(null)
     setTaskDraft(defaultTaskDraft)
     setEventDraft(defaultEventDraft)
     setCategoryDraft(defaultCategoryDraft)
     setRewardDraft(defaultRewardDraft)
-    setMealDraft(defaultMealDraft)
     setProfileDraft(defaultProfileDraft)
     setFavoriteDraft(defaultFavoriteDraft)
+    setAvatarCropSrc(null)
+    setEventModalError('')
   }
 
   function editTask(profileKey, task) {
@@ -233,9 +299,9 @@ function DashboardPage() {
 
   function dayBadgeLabel() {
     const count = todayEvents().length
-    if (count >= 4) return '📌 Dia cheio'
-    if (count >= 2) return '📌 Dia moderado'
-    return '📌 Dia tranquilo'
+    if (count >= 4) return 'Dia cheio'
+    if (count >= 2) return 'Dia moderado'
+    return 'Dia tranquilo'
   }
 
   function toggleRecurrenceDay(day) {
@@ -292,26 +358,69 @@ function DashboardPage() {
     } else {
       visibilityScope = keys.map((k) => nonManagerProfiles.find((p) => p.key === k)?.name ?? k)
     }
-    await addCategory({
-      profileKey: workspace.currentProf === 'gestor' ? (nonManagerProfiles[0]?.key || 'mae') : workspace.currentProf,
-      icon: categoryDraft.icon,
-      name: categoryDraft.name,
-      visibility: visibilityScope,
-    })
-    closeModal()
+    const pk = workspace.currentProf === 'gestor' ? (nonManagerProfiles[0]?.key || 'mae') : workspace.currentProf
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, {
+          icon: categoryDraft.icon,
+          name: categoryDraft.name,
+          visibility: visibilityScope,
+        })
+        if (categoryDraft.iconFile) {
+          await uploadCategoryIcon(editingCategory.id, categoryDraft.iconFile)
+        }
+      } else {
+        const created = await addCategory({
+          profileKey: pk,
+          icon: categoryDraft.icon,
+          name: categoryDraft.name,
+          visibility: visibilityScope,
+        })
+        if (categoryDraft.iconFile && created?.id) {
+          await uploadCategoryIcon(created.id, categoryDraft.iconFile)
+        } else {
+          await refreshWorkspace()
+        }
+      }
+      closeModal()
+    } catch (err) {
+      window.alert(err?.message || 'Não foi possível salvar a categoria.')
+    }
   }
 
   async function submitEvent(event) {
     event.preventDefault()
-    if (!eventDraft.title.trim()) return
-    if (!eventDraft.eventDate && !eventDraft.dayKey) return
-    const recurrenceDaysStr = eventDraft.recurrenceDays.join(',')
-    await addCalendarEvent({
-      ...eventDraft,
-      recurrenceDays: recurrenceDaysStr,
-      cls: 'ce-all',
-    })
-    closeModal()
+    const title = eventDraft.title.trim()
+    if (!title) {
+      setEventModalError('Informe o nome do evento.')
+      return
+    }
+    let eventDate = (eventDraft.eventDate || '').trim()
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+      eventDate = localCalendarYmd()
+    }
+    const dayKey = (eventDraft.dayKey || '').trim()
+    if (!dayKey && !eventDate) {
+      setEventModalError('Escolha uma data para o evento.')
+      return
+    }
+    const recurrenceDaysStr = (eventDraft.recurrenceDays || []).join(',')
+    setEventModalError('')
+    try {
+      await addCalendarEvent({
+        title,
+        time: eventDraft.time || '09:00',
+        eventDate,
+        dayKey,
+        members: Array.isArray(eventDraft.members) ? eventDraft.members : [],
+        cls: 'ce-all',
+        recurrenceType: eventDraft.recurrenceType || 'único',
+        recurrenceDays: recurrenceDaysStr,
+      })
+      closeModal()
+    } catch (err) {
+      setEventModalError(err.message || 'Não foi possível salvar o evento.')
+    }
   }
 
   async function submitReward(event) {
@@ -321,31 +430,13 @@ function DashboardPage() {
     closeModal()
   }
 
-  async function submitMeal(event) {
-    event.preventDefault()
-    if (!mealDraft.name.trim()) return
-    await addMeal(mealDraft)
-    closeModal()
-  }
-
-  async function handleAvatarChange(e) {
+  function handleAvatarChange(e) {
     const file = e.target.files?.[0]
+    if (e.target) e.target.value = ''
     if (!file) return
     const reader = new FileReader()
     reader.onload = (ev) => {
-      const base64 = ev.target.result
-      const canvas = document.createElement('canvas')
-      const img = new Image()
-      img.onload = () => {
-        const size = 120
-        canvas.width = size; canvas.height = size
-        const ctx = canvas.getContext('2d')
-        const ratio = Math.max(size / img.width, size / img.height)
-        const w = img.width * ratio; const h = img.height * ratio
-        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h)
-        setProfileDraft((c) => ({ ...c, avatarUrl: canvas.toDataURL('image/jpeg', 0.85) }))
-      }
-      img.src = base64
+      setAvatarCropSrc(ev.target.result)
     }
     reader.readAsDataURL(file)
   }
@@ -369,7 +460,7 @@ function DashboardPage() {
         avatar: profileDraft.name[0]?.toUpperCase() ?? 'P', type: 'member', statusColor: '#22c55e',
         relation: profileDraft.relation, profileType: profileDraft.profileType, age: profileDraft.age,
         tasks: [], categories: [], favorites: [], workSubs: [],
-        tracking: { active: false, paused: false, cat: '🏠 Casa', sub: '', detail: '', seconds: 0, totalMinutes: 0, log: [] },
+        tracking: { active: false, paused: false, cat: '🏠 Casa', sub: '', detail: '', seconds: 0, totalMinutes: 0, activeSessions: [], log: [] },
       })
     }
     closeModal()
@@ -380,11 +471,20 @@ function DashboardPage() {
     if (!favoriteDraft.label.trim()) return
     const participants = favoriteDraft.participantKeys.length > 0 ? favoriteDraft.participantKeys : [workspace.currentProf]
     const targetProfile = participants[0] || workspace.currentProf
-    await addFavorite(targetProfile, {
-      ...favoriteDraft,
-      participantKeys: participants,
-    })
-    closeModal()
+    const label = favoriteDraft.label.trim()
+    const subFromForm = favoriteDraft.sub.trim()
+    try {
+      await addFavorite(targetProfile, {
+        ...favoriteDraft,
+        label,
+        sub: subFromForm || label,
+        participantKeys: participants,
+        iconFile: favoriteDraft.iconFile,
+      })
+      closeModal()
+    } catch (err) {
+      window.alert(err?.message || 'Não foi possível salvar o favorito.')
+    }
   }
 
   function renderContent() {
@@ -424,48 +524,76 @@ function DashboardPage() {
         stopTimer={stopTimer}
         startFavorite={startFavorite}
         removeFavorite={removeFavorite}
+        reorderFavorites={reorderFavorites}
         startCustomActivity={startCustomActivity}
+        addManualTimeEntry={addManualTimeEntry}
         openModal={openModal}
+        openCategoryForEdit={openCategoryForEdit}
         updateTimeEntry={updateTimeEntry}
         deleteTimeEntry={deleteTimeEntry}
       />
     )
     if (tab === 'rewards') return <RewardsView workspace={workspace} openModal={openModal} setRewardDraft={setRewardDraft} />
-    if (tab === 'meals') return <MealsView workspace={workspace} openModal={openModal} />
+    if (tab === 'meals') return <MealsView workspace={workspace} />
     return <ChartsView />
   }
 
   const settingsProfile = workspace.currentProf === 'gestor' ? nonManagerProfiles[0] : currentProfile
 
-  return (
-    <>
-      <div className="app">
-        <div className="sb">
-          <div className="sb-logo">🏠</div>
-          {tabItems.map((item) => (
-            <button key={item.key} className={`si${workspace.currentTab === item.key ? ' on' : ''}`} onClick={() => setCurrentTab(item.key)} aria-label={item.label}>
-              <span className="ic">{item.icon}</span>
-              <span className="lb">{item.label}</span>
-            </button>
-          ))}
-          <div className="sb-sp" />
-          <button className="si" onClick={() => openModal('settings')} aria-label="Configurações">
-            <span className="ic">⚙️</span>
-            <span className="lb">Config</span>
-          </button>
-        </div>
+  /** Só no primeiro carregamento do workspace; recargas em background não cobrem o ecrã. */
+  const showWorkspaceSplash = user?.role !== 'super_admin' && syncState.initialSyncDone !== true
 
-        <div className="mn">
-          <div className="top-wrap">
+  const mainColumn = (
+    <>
+      <div className="top-wrap">
             <div className="top-row1">
-              <div className="wt">
-                <span className="wt-ic">🌤️</span>
-                <div>
-                  <div className="wt-t">28°C</div>
-                  <div className="wt-d">{clock}</div>
+              <div className="top-brand">
+                <img
+                  src={LOGO_SRC}
+                  alt="Tina"
+                  className="brand-logo-top"
+                  width={184}
+                  height={44}
+                  decoding="async"
+                />
+              </div>
+              <div className="top-row1-center">
+                <button
+                  type="button"
+                  className="wt wt--header weather-header-btn"
+                  onClick={() => setModal('weather')}
+                  aria-label={
+                    weather.snapshot?.current?.temperature_2m != null
+                      ? `Clima: ${Math.round(weather.snapshot.current.temperature_2m)} graus. Abrir previsão`
+                      : 'Abrir clima e escolher localização'
+                  }
+                >
+                  {weather.snapshot?.current ? (
+                    <WeatherLucideIcon code={weather.snapshot.current.weather_code} size={28} />
+                  ) : (
+                    <span className="wt-ic-svg" aria-hidden>
+                      <CloudSun size={28} strokeWidth={1.75} />
+                    </span>
+                  )}
+                  <div className="wt-t">
+                    {weather.loading && !weather.snapshot && weather.prefs
+                      ? '…'
+                      : weather.snapshot?.current?.temperature_2m != null
+                        ? `${Math.round(weather.snapshot.current.temperature_2m)}°C`
+                        : 'Clima'}
+                  </div>
+                </button>
+                <div className="top-row1-datetime" aria-label="Data e hora">
+                  <span className="top-row1-date">{headerDateLabel}</span>
+                  <span className="top-row1-time">{headerTimeLabel}</span>
                 </div>
               </div>
-              <div className={`day-badge ${dayBadgeClass()}`}>{dayBadgeLabel()}</div>
+              <div className="top-row1-tail">
+                <div className={`day-badge day-badge-with-icon ${dayBadgeClass()}`}>
+                  <Pin size={14} strokeWidth={2.5} className="day-badge-pin" aria-hidden />
+                  <span>{dayBadgeLabel()}</span>
+                </div>
+              </div>
             </div>
 
             <div className="top-row2">
@@ -495,33 +623,54 @@ function DashboardPage() {
                 )
               })}
               {user?.role !== 'user' && (
-                <button className="add-person" onClick={() => openModal('add-person')} aria-label="Adicionar pessoa">+</button>
+                <button type="button" className="add-person" onClick={() => openModal('add-person')} aria-label="Adicionar pessoa">
+                  <Plus size={22} strokeWidth={2.5} />
+                </button>
               )}
             </div>
 
-            <div className="top-row3">
-              <div className="date-nav">
-                <button className="ar" aria-label="Semana anterior" onClick={() => setWeekOffset((w) => w - 1)}>‹</button>
-                <span className="rng">{workspace.weekRange}</span>
-                <button className="ar" aria-label="Próxima semana" onClick={() => setWeekOffset((w) => w + 1)}>›</button>
+            {workspace.currentTab === 'cal' && (
+              <div className="top-row3">
+                <div className="date-nav">
+                  <button type="button" className="ar" aria-label="Semana anterior" onClick={() => setWeekOffset((w) => w - 1)}>‹</button>
+                  <span className="rng">{weekRangeForNav}</span>
+                  <button type="button" className="ar" aria-label="Próxima semana" onClick={() => setWeekOffset((w) => w + 1)}>›</button>
+                </div>
+                <div className="date-vt">
+                  {['Semanal', 'Mensal'].map((view) => (
+                    <button key={view} type="button" className={workspace.currentView === view ? 'on' : ''} onClick={() => setCurrentView(view)}>{view}</button>
+                  ))}
+                </div>
               </div>
-              <div className="date-vt">
-                {['Semanal', 'Mensal'].map((view) => (
-                  <button key={view} className={workspace.currentView === view ? 'on' : ''} onClick={() => setCurrentView(view)}>{view}</button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
-          <div className="ct" id="content-area">
-            {syncState.error && <div className="feedback error">{syncState.error}</div>}
-            <ErrorBoundary>{renderContent()}</ErrorBoundary>
-          </div>
-        </div>
+      <div className="ct" id="content-area">
+        {syncState.error && <div className="feedback error">{syncState.error}</div>}
+        <ErrorBoundary>{renderContent()}</ErrorBoundary>
       </div>
+    </>
+  )
+
+  const shellProps = {
+    currentTab: workspace.currentTab,
+    setCurrentTab,
+    onOpenSettings: () => openModal('settings'),
+  }
+
+  return (
+    <>
+      {showWorkspaceSplash ? <AppLoadingScreen subtitle="Sincronizando dados…" /> : null}
+      {mode === 'tablet' ? (
+        <TabletShell {...shellProps}>{mainColumn}</TabletShell>
+      ) : (
+        <MobileShell {...shellProps}>{mainColumn}</MobileShell>
+      )}
+
+      <WeatherModal isOpen={modal === 'weather'} onClose={closeModal} weather={weather} />
 
       {/* Modal: Nova / Editar Tarefa */}
-      <Modal isOpen={modal === 'task'} id="modal-task" onClose={closeModal} title={editingTask ? '✏️ Editar Tarefa' : '➕ Nova Tarefa'}>
+      <Modal isOpen={modal === 'task'} id="modal-task" onClose={closeModal} title={editingTask ? 'Editar tarefa' : 'Nova tarefa'}>
         <form onSubmit={submitTask}>
           <div className="form-label">👥 Participantes</div>
           <PeoplePicker
@@ -620,11 +769,14 @@ function DashboardPage() {
       </Modal>
 
       {/* Modal: Novo Evento */}
-      <Modal isOpen={modal === 'event'} id="modal-event" onClose={closeModal} title="📅 Novo Evento">
+      <Modal isOpen={modal === 'event'} id="modal-event" onClose={closeModal} title="Novo evento">
         <form onSubmit={submitEvent}>
+          {eventModalError ? <div className="feedback error" style={{ marginBottom: 10 }}>{eventModalError}</div> : null}
           <input
             placeholder="Nome do evento *"
             value={eventDraft.title}
+            autoComplete="off"
+            enterKeyHint="done"
             onChange={(e) => setEventDraft((c) => ({ ...c, title: e.target.value }))}
           />
 
@@ -670,12 +822,28 @@ function DashboardPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'category'} id="modal-new-cat" onClose={closeModal} title="📂 Nova Categoria">
+      <Modal isOpen={modal === 'category'} id="modal-new-cat" onClose={closeModal} title={editingCategory ? 'Editar categoria' : 'Nova categoria'}>
         <form onSubmit={submitCategory}>
           <EmojiPicker
             value={categoryDraft.icon}
             onChange={(emoji) => setCategoryDraft((c) => ({ ...c, icon: emoji }))}
             label="Ícone da categoria"
+          />
+          <IconUploadRow
+            kind="category"
+            file={categoryDraft.iconFile}
+            onFileChange={(f) => setCategoryDraft((c) => ({ ...c, iconFile: f }))}
+            entityId={editingCategory?.id}
+            serverHasImage={Boolean(editingCategory?.iconImageUrl)}
+            twemoji={categoryDraft.icon}
+            onRemoveServerImage={
+              editingCategory?.id
+                ? async () => {
+                    await deleteCategoryIcon(editingCategory.id)
+                    setEditingCategory((prev) => (prev ? { ...prev, iconImageUrl: false } : prev))
+                  }
+                : undefined
+            }
           />
           <input placeholder="Nome da categoria *" value={categoryDraft.name} onChange={(e) => setCategoryDraft((c) => ({ ...c, name: e.target.value }))} />
           <PeoplePicker
@@ -686,11 +854,25 @@ function DashboardPage() {
             label="👁️ Visível para (selecione múltiplos):"
             includeAll
           />
-          <button className="save-btn" type="submit">Criar Categoria</button>
+          <button className="save-btn" type="submit">{editingCategory ? 'Salvar alterações' : 'Criar categoria'}</button>
+          {editingCategory ? (
+            <button
+              type="button"
+              className="save-btn"
+              style={{ marginTop: 10, background: 'var(--bg)', color: '#dc2626', border: '1px solid var(--bd)' }}
+              onClick={async () => {
+                if (!window.confirm(`Excluir a categoria "${editingCategory.name}"?`)) return
+                await deleteCategory(editingCategory.id)
+                closeModal()
+              }}
+            >
+              Excluir categoria
+            </button>
+          ) : null}
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'reward'} id="modal-reward" onClose={closeModal} title="🎁 Nova Recompensa">
+      <Modal isOpen={modal === 'reward'} id="modal-reward" onClose={closeModal} title="Nova recompensa">
         <form onSubmit={submitReward}>
           <select className="sel" value={rewardDraft.tierId} onChange={(e) => setRewardDraft((c) => ({ ...c, tierId: e.target.value }))}>
             {workspace.rewards.map((tier) => <option value={tier.id} key={tier.id}>{tier.label}</option>)}
@@ -700,18 +882,8 @@ function DashboardPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'meal'} id="modal-meal" onClose={closeModal} title="🍽️ Nova Refeição">
-        <form onSubmit={submitMeal}>
-          <input placeholder="Dia" value={mealDraft.day} onChange={(e) => setMealDraft((c) => ({ ...c, day: e.target.value }))} />
-          <input placeholder="Emoji" value={mealDraft.icon} onChange={(e) => setMealDraft((c) => ({ ...c, icon: e.target.value }))} />
-          <input placeholder="Nome da refeição" value={mealDraft.name} onChange={(e) => setMealDraft((c) => ({ ...c, name: e.target.value }))} />
-          <input placeholder="Lista de compras (opcional)" value={mealDraft.shopping} onChange={(e) => setMealDraft((c) => ({ ...c, shopping: e.target.value }))} />
-          <button className="save-btn" type="submit">Salvar refeição</button>
-        </form>
-      </Modal>
-
       {/* Modal: Adicionar / Editar Pessoa */}
-      <Modal isOpen={modal === 'add-person'} id="modal-add-person" onClose={closeModal} title={editingMember ? '✏️ Editar Membro' : '👤 Adicionar Pessoa'}>
+      <Modal isOpen={modal === 'add-person'} id="modal-add-person" onClose={closeModal} title={editingMember ? 'Editar membro' : 'Adicionar pessoa'}>
         <form onSubmit={submitProfile}>
           {/* Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
@@ -763,7 +935,7 @@ function DashboardPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'add-fav'} id="modal-add-fav" onClose={closeModal} title="⭐ Novo Favorito">
+      <Modal isOpen={modal === 'add-fav'} id="modal-add-fav" onClose={closeModal} title="Novo favorito">
         <form onSubmit={submitFavorite}>
           <PeoplePicker
             profiles={nonManagerProfiles}
@@ -777,7 +949,15 @@ function DashboardPage() {
             onChange={(emoji) => setFavoriteDraft((c) => ({ ...c, icon: emoji }))}
             label="Ícone"
           />
-          <input placeholder="Nome curto *" value={favoriteDraft.label} onChange={(e) => setFavoriteDraft((c) => ({ ...c, label: e.target.value }))} />
+          <IconUploadRow
+            kind="favorite"
+            file={favoriteDraft.iconFile}
+            onFileChange={(f) => setFavoriteDraft((c) => ({ ...c, iconFile: f }))}
+            entityId={undefined}
+            serverHasImage={false}
+            twemoji={favoriteDraft.icon}
+          />
+          <input placeholder="Nome da tarefa *" value={favoriteDraft.label} onChange={(e) => setFavoriteDraft((c) => ({ ...c, label: e.target.value }))} />
           <CategorySelect
             categories={allCategories}
             value={favoriteDraft.cat}
@@ -789,14 +969,20 @@ function DashboardPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={modal === 'manage-fav'} id="modal-manage-fav" onClose={closeModal} title="⭐ Gerenciar Favoritos">
+      <Modal isOpen={modal === 'manage-fav'} id="modal-manage-fav" onClose={closeModal} title="Gerenciar favoritos">
         <div style={{ fontSize: '0.78em', color: 'var(--t3)', marginBottom: 10 }}>
           Remova ou revise os atalhos rápidos do perfil atual.
         </div>
         {(settingsProfile?.favorites ?? []).length > 0 ? (
           settingsProfile.favorites.map((fav) => (
             <div key={fav.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--bd)', fontSize: '0.85em' }}>
-              <TwemojiImg emoji={fav.icon} size={24} />
+              <FavOrCatIcon
+                type="favorite"
+                id={fav.id}
+                emoji={fav.icon}
+                hasCustomImage={Boolean(fav.iconImageUrl)}
+                size={24}
+              />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700 }}>{fav.label}</div>
                 <div style={{ fontSize: '0.78em', color: 'var(--t3)' }}>{fav.cat}{fav.sub ? ` → ${fav.sub}` : ''}</div>
@@ -814,10 +1000,56 @@ function DashboardPage() {
         )}
       </Modal>
 
-      <Modal isOpen={modal === 'settings'} id="modal-settings" onClose={closeModal} title="⚙️ Configurações">
+      <Modal isOpen={modal === 'settings'} id="modal-settings" onClose={closeModal} title="Configurações">
         <div style={{ fontSize: '0.82em' }}>
+          <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--bd)' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9em', marginBottom: 8, color: 'var(--t2)' }}>Interface</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="ib"
+                style={
+                  preference === 'auto'
+                    ? { borderColor: 'var(--brand)', color: 'var(--brand-dark)', background: 'rgba(255,130,0,0.12)', borderStyle: 'solid' }
+                    : {}
+                }
+                onClick={() => setPreference('auto')}
+              >
+                Automático
+              </button>
+              <button
+                type="button"
+                className="ib"
+                style={
+                  preference === 'tablet'
+                    ? { borderColor: 'var(--brand)', color: 'var(--brand-dark)', background: 'rgba(255,130,0,0.12)', borderStyle: 'solid' }
+                    : {}
+                }
+                onClick={() => setPreference('tablet')}
+              >
+                Tablet
+              </button>
+              <button
+                type="button"
+                className="ib"
+                style={
+                  preference === 'mobile'
+                    ? { borderColor: 'var(--brand)', color: 'var(--brand-dark)', background: 'rgba(255,130,0,0.12)', borderStyle: 'solid' }
+                    : {}
+                }
+                onClick={() => setPreference('mobile')}
+              >
+                Celular
+              </button>
+            </div>
+            <div style={{ fontSize: '0.72em', color: 'var(--t3)', marginTop: 8, lineHeight: 1.35 }}>
+              {preference === 'auto'
+                ? `Automático: usa barra inferior em telas até 900px de largura; acima disso, layout tablet. Agora: ${mode === 'mobile' ? 'celular' : 'tablet'}.`
+                : 'Layout fixo conforme opção acima. Salvo neste aparelho.'}
+            </div>
+          </div>
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.9em', marginBottom: 6, color: 'var(--t2)' }}>👥 Membros da família</div>
+            <div style={{ fontWeight: 700, fontSize: '0.9em', marginBottom: 6, color: 'var(--t2)' }}>Membros da família</div>
             {nonManagerProfiles.map((p) => (
               <div key={p.key} className="ti" style={{ gap: 8, padding: '6px 0' }}>
                 <div className="av" style={p.avatarUrl ? { backgroundImage: `url('${p.avatarUrl}')`, backgroundSize: 'cover', width: 28, height: 28, fontSize: '0.7em' } : { background: p.color, width: 28, height: 28, fontSize: '0.7em' }}>
@@ -825,22 +1057,35 @@ function DashboardPage() {
                 </div>
                 <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
                 <span style={{ color: 'var(--t3)', fontSize: '0.85em' }}>{p.relation || p.profileType}</span>
-                <button className="ib" onClick={() => { closeModal(); openEditMember(p) }}>✏️ Editar</button>
+                <button type="button" className="ib" onClick={() => { closeModal(); openEditMember(p) }}>Editar</button>
               </div>
             ))}
-            <button className="ib" style={{ marginTop: 6 }} onClick={() => openModal('add-person')}>➕ Adicionar membro</button>
+            <button type="button" className="ib" style={{ marginTop: 6 }} onClick={() => openModal('add-person')}>Adicionar membro</button>
           </div>
-          <div className="ti"><span className="tl">📂 Categorias</span><button className="ib" onClick={() => openModal('category')}>Editar</button></div>
-          <div className="ti"><span className="tl">🔌 Sincronização</span><span className="tt">{syncState.loading ? 'Sincronizando' : 'Ativo'}</span></div>
-          <div className="ti"><span className="tl">🔐 Papel atual</span><span className="tt">{user?.role}</span></div>
+          <div className="ti"><span className="tl">Categorias</span><button type="button" className="ib" onClick={() => openModal('category')}>Editar</button></div>
+          <div className="ti"><span className="tl">Sincronização</span><span className="tt">{syncState.loading ? 'Sincronizando' : 'Ativo'}</span></div>
+          <div className="ti"><span className="tl">Papel atual</span><span className="tt">{user?.role}</span></div>
           {user?.role === 'super_admin' && (
-            <div className="ti"><span className="tl">🏢 Painel super admin</span><button className="ib" onClick={() => navigate('/super-admin')}>Abrir</button></div>
+            <div className="ti"><span className="tl">Painel super admin</span><button type="button" className="ib" onClick={() => navigate('/super-admin')}>Abrir</button></div>
           )}
           <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
             <button className="ib" onClick={() => logout()}>Sair</button>
           </div>
         </div>
       </Modal>
+
+      {avatarCropSrc &&
+        createPortal(
+          <AvatarCropModal
+            imageSrc={avatarCropSrc}
+            onClose={() => setAvatarCropSrc(null)}
+            onConfirm={(dataUrl) => {
+              setProfileDraft((c) => ({ ...c, avatarUrl: dataUrl }))
+              setAvatarCropSrc(null)
+            }}
+          />,
+          document.body,
+        )}
     </>
   )
 }

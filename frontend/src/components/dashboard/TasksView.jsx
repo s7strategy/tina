@@ -74,7 +74,7 @@ export default function TasksView({ workspace, profiles, currentProfile, nonMana
                       {task.reward && <div className="tp" title="Recompensa" style={{ color: 'var(--gn)' }}>🎁</div>}
                       {task.points > 0 && <div className="tp">+{task.points}⭐</div>}
                       {tl && <div className="tt">{tl}</div>}
-                      {rec && <div className="tt" style={{ color: 'var(--mae)' }}>{rec}</div>}
+                      {rec && <div className="tt" style={{ color: 'var(--brand)' }}>{rec}</div>}
                       {isManager && participants.length > 1 && (
                         <div style={{ display: 'flex', gap: 1, flexShrink: 0 }}>
                           {participants.slice(0, 3).map((k) => {

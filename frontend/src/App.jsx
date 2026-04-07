@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import { ProtectedRoute, RoleRoute } from './components/ProtectedRoute.jsx'
+import InstallAppPrompt from './components/ui/InstallAppPrompt.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
@@ -22,7 +23,9 @@ function HomeRedirect() {
 
 function App() {
   return (
-    <Routes>
+    <>
+      <InstallAppPrompt />
+      <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -43,7 +46,8 @@ function App() {
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

@@ -7,6 +7,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const { migrate, query, seed } = require('./lib/db')
+const { ensureEventsTableReady } = require('./lib/eventsSchema')
 const authRoutes = require('./routes/auth')
 const dashboardRoutes = require('./routes/dashboard')
 const userRoutes = require('./routes/users')
@@ -19,6 +20,9 @@ const favoriteRoutes = require('./routes/favorites')
 const mealRoutes = require('./routes/meals')
 const rewardRoutes = require('./routes/rewards')
 const timeEntryRoutes = require('./routes/timeEntries')
+const adminPlatformRoutes = require('./routes/adminPlatform')
+const uploadsRoutes = require('./routes/uploads')
+const { requireAuth } = require('./middleware/auth')
 
 const app = express()
 const PORT = Number(process.env.PORT || 4000)
@@ -86,9 +90,11 @@ app.use('/api/plans', planRoutes)
 app.use('/api/members', memberRoutes)
 app.use('/api/events', eventRoutes)
 app.use('/api/favorites', favoriteRoutes)
+app.use('/api/uploads', requireAuth, uploadsRoutes)
 app.use('/api/meals', mealRoutes)
 app.use('/api/rewards', rewardRoutes)
 app.use('/api/time-entries', timeEntryRoutes)
+app.use('/api/admin', adminPlatformRoutes)
 
 if (hasFrontendBuild) {
   app.use(express.static(frontendDistPath))
@@ -113,6 +119,11 @@ app.use((error, _req, res, _next) => {
 
 async function start() {
   await migrate()
+  try {
+    await ensureEventsTableReady()
+  } catch (e) {
+    console.error('ensureEventsTableReady:', e)
+  }
   await seed()
 
   app.listen(PORT, () => {

@@ -1,14 +1,21 @@
 #!/bin/bash
 # Deploy: build frontend + rsync + PM2 no VPS.
-# Senha: crie deploy.credentials.env (veja deploy.credentials.example.env)
+# Senha SSH: ficheiro LOCAL deploy.credentials.env (não commitado — ver .gitignore)
+#   cp deploy.credentials.example.env deploy.credentials.env
+# Não partilhes a senha no chat; guarda só nesse ficheiro na tua máquina.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if [ -f "$SCRIPT_DIR/deploy.credentials.env" ]; then
+CRED_FILE="$SCRIPT_DIR/deploy.credentials.env"
+if [ -f "$CRED_FILE" ]; then
   set -a
   # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/deploy.credentials.env"
+  source "$CRED_FILE"
   set +a
+elif [ -z "${SSHPASS:-}" ]; then
+  echo "Aviso: deploy.credentials.env não encontrado e SSHPASS vazio."
+  echo "Se usas senha SSH: cp deploy.credentials.example.env deploy.credentials.env e preenche SSHPASS."
+  echo "Se usas só chave SSH (agent), podes ignorar este aviso."
 fi
 
 VPS_HOST="${TINA_VPS_HOST:-root@187.77.59.83}"
@@ -38,6 +45,7 @@ fi
 
 $RSYNC_CMD -avz --delete \
   --exclude='.git' \
+  --exclude='deploy.credentials.env' \
   --exclude='frontend/node_modules' \
   --exclude='backend/node_modules' \
   --exclude='frontend/src' \
@@ -56,7 +64,13 @@ $SSH_CMD "$VPS_HOST" bash << 'REMOTE'
 
   mkdir -p /var/log/tina
 
-  cd backend && npm install --production --silent && cd ..
+  cd backend && npm install --production --silent && npm run migrate && cd ..
+  # One-off: limpar forks/receitas desse utilizador e publicar strogonoff na Tina (só na 1.ª vez neste VPS)
+  if [ ! -f /var/log/tina/s7-purge-recipes.done ]; then
+    if ( cd backend && node scripts/once-purge-user-recipes-promote-strogonoff.js s7strategy@gmail.com ); then
+      touch /var/log/tina/s7-purge-recipes.done
+    fi
+  fi
 
   if pm2 list | grep -q "tina-backend"; then
     pm2 reload ecosystem.config.cjs --update-env

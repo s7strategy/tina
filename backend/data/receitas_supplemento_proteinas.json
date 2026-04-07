@@ -1,0 +1,1839 @@
+{
+  "receitas": [
+    {
+      "nome": "Ragu de Acém com Purê de Abóbora",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Acém em cubos",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Óleo",
+          "quantidade": 50,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Alho espremidos",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebolas picadas em pedaços pequenos",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cenouras picadas em pedaços pequenos",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Vinho tinto",
+          "quantidade": 200,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Molho de tomate",
+          "quantidade": 350,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Caldo de carne dissolvido em uma xícara de água",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Louro",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeitonas verdes picadas",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Salsa picada",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Manjericão rasgado",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Sal e pimenta",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Abóbora",
+          "quantidade": 0.5,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 10,
+          "unidade": "g"
+        },
+        {
+          "nome": "Alho picado",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola picada",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Leite",
+          "quantidade": 100,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Noz moscada ralada",
+          "quantidade": 1,
+          "unidade": "pitada"
+        },
+        {
+          "nome": "Queijo parmesão ralado",
+          "quantidade": 100,
+          "unidade": "g"
+        },
+        {
+          "nome": "Cheiro verde picado",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        }
+      ],
+      "modo_preparo": [
+        "Corte a carne em cubos de aproximadamente 5 cm x 5 cm. Tempere duas horas antes com sal e pimenta.",
+        "Em uma panela grossa, coloque o óleo, aqueça e doure a carne, aos poucos.",
+        "Junte o alho, a cebola e a cenoura. Refogue por cinco minutos.",
+        "Incorpore o vinho. Ferva. Ao reduzir, acrescente o molho de tomate, o caldo de carne e as folhas de louro.",
+        "Abaixe o fogo. Cozinhe com a panela tampada por 45 minutos ou até que a carne fique macia.",
+        "Deixe esfriar e desfie grosseiramente a carne com auxílio de dois garfos.",
+        "Junte a salsa, o manjericão e a azeitona picada. Deixe ferver em fogo baixo até engrossar.",
+        "Para o purê: Corte a abóbora em cubos, sem casca, e cozinhe em água até que fique macia. Passe pelo espremedor.",
+        "Em uma panela de fundo grosso, doure na manteiga o alho e a cebola. Acrescente a abóbora.",
+        "Acrescente o leite e incorpore. Acrescente o queijo ralado e tempere com noz moscada, sal e pimenta.",
+        "Sirva o ragu com o purê de abóbora."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Acém na Cerveja Preta",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Azeite",
+          "quantidade": 100,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Acém",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Cerveja preta",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Molho de tomate",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sopa de cebola dissolvido",
+          "quantidade": 1,
+          "unidade": "un"
+        }
+      ],
+      "modo_preparo": [
+        "Limpe a carne, retirando os excessos de gordura.",
+        "Numa panela de pressão em fogo médio, coloque o azeite e doure a carne.",
+        "Misture a cerveja preta, o molho de tomate e a sopa de cebola e adicione na panela.",
+        "Tampe e deixe cozinhar por cerca de 40 minutos até que a carne esteja macia.",
+        "Fatie e sirva regada no molho."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Guisado à Moda Cuiabana",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Músculo",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Azeite de oliva",
+          "quantidade": 4,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Alho amassado",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebolas",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Tomates picados",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Banana da terra verde",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Mandioca",
+          "quantidade": 300,
+          "unidade": "g"
+        },
+        {
+          "nome": "Milho",
+          "quantidade": 3,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Pimenta de cheiro",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Cebolinha picada",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        }
+      ],
+      "modo_preparo": [
+        "Pique o músculo em cubos de tamanho médio e tempere com alho e sal, e reserve.",
+        "Pique a cebola em pedacinhos. Em uma panela média, coloque o azeite, a cebola picadinha e deixe fritar até dourar.",
+        "Junte o músculo e refogue, pingando água para não deixar queimar.",
+        "Enquanto o músculo cozinha, pique a banana verde, a mandioca e o milho em pedaços de 3 cm.",
+        "Depois do músculo cozido, junte as verduras e água suficiente para cozinhar por 20 minutos.",
+        "Junte a cebola em rodela, a cebolinha picada e a pimenta de cheiro, e salpique no guisado.",
+        "Sirva com arroz branco e salada de folhas verdes."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Músculo à Brasileira com Purê de Mandioca",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Músculos picados em cubos",
+          "quantidade": 2,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Vinho tinto seco",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cenoura picada em cubos",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola picada em cubos",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho poró em rodelas",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Tomilho",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Louro",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Bacon em cubos",
+          "quantidade": 400,
+          "unidade": "g"
+        },
+        {
+          "nome": "Codorna",
+          "quantidade": 20,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeitonas chilenas",
+          "quantidade": 10,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho com casca",
+          "quantidade": 6,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Mandioca cozida",
+          "quantidade": 300,
+          "unidade": "g"
+        },
+        {
+          "nome": "Água",
+          "quantidade": 500,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Creme de leite",
+          "quantidade": 200,
+          "unidade": "g"
+        }
+      ],
+      "modo_preparo": [
+        "Em uma vasilha, junte todos os legumes e a carne, cubra com vinho e deixe marinar por 12 horas.",
+        "Depois de marinada a carne, reserve os legumes e sele o músculo em azeite por todos os lados.",
+        "Junte os legumes com o caldo e deixe cozinhar em fogo baixo por 4 horas.",
+        "Depois de cozido, separe os legumes, frite o bacon, junte os ovos de codorna e as azeitonas.",
+        "Para o purê: Cozinhe a mandioca com água e sal. Após o cozimento, passe a mandioca em um processador.",
+        "Junte a manteiga, o creme de leite e o sal a gosto e sirva como base para a carne."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Capa de Contrafilé Grelhado com Creme de Pequi",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Capa de contrafilé cortado em bifes médios",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Alho amassado",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Óleo",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Requeijão",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Pequi",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Leite",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Creme de cebola",
+          "quantidade": 1,
+          "unidade": "un"
+        }
+      ],
+      "modo_preparo": [
+        "Corte o contrafilé em bifes na largura de um dedo. Tempere com alho e sal, reserve por 10 minutos.",
+        "Em uma grelha, unte com óleo e doure os bifes.",
+        "Cozinhe o pequi em água com sal. Depois descarne o pequi com uma faca.",
+        "Bata todos os ingredientes do creme no liquidificador. Reserve.",
+        "Em uma travessa, coloque os bifes grelhados e os regue com o creme de pequi. Sirva em seguida."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Contra-filé ao Molho de Iogurte",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Margarina",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Farinha de trigo",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Mostarda",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Iogurte fresco",
+          "quantidade": 4,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Caldo de carne",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Grossos de contra filé",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Noz moscada",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Tempere os bifes com sal a gosto e uma colher de mostarda e deixe descansar por 20 minutos.",
+        "Leve à panela a margarina, junte a farinha e mexa até derreter.",
+        "Coloque o caldo de carne aos poucos mexendo até virar um molho homogêneo.",
+        "Despeje o iogurte e a mostarda, misture bem e deixe cozinhar por 5 minutos.",
+        "Frite os bifes em fogo baixo, depois sirva com o molho por cima."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Milanesa de Costela com Molho de Jabuticaba e Creme de Mandioquinha",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Costela bovina",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Cebola",
+          "quantidade": 20,
+          "unidade": "g"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 5,
+          "unidade": "g"
+        },
+        {
+          "nome": "Água fria",
+          "quantidade": 3,
+          "unidade": "l"
+        },
+        {
+          "nome": "Alecrim, tomilho e louro",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Sal e pimenta do reino",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Farinha de rosca",
+          "quantidade": 150,
+          "unidade": "g"
+        },
+        {
+          "nome": "Salsa",
+          "quantidade": 50,
+          "unidade": "g"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 20,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Ovo",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Polpa de jabuticaba",
+          "quantidade": 100,
+          "unidade": "g"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 15,
+          "unidade": "g"
+        },
+        {
+          "nome": "Açúcar",
+          "quantidade": 10,
+          "unidade": "g"
+        },
+        {
+          "nome": "Caldo de carne",
+          "quantidade": 250,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Mandioquinha",
+          "quantidade": 100,
+          "unidade": "g"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 30,
+          "unidade": "g"
+        },
+        {
+          "nome": "Sal e noz moscada",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Tempere a costela com sal e pimenta, marque com óleo e acrescente a água fria e as ervas.",
+        "Cozinhe na pressão por 20 minutos. Resfrie a carne e coe o caldo. Reserve.",
+        "Desosse e desfie a carne, temperando com alho e cebola no azeite e reserve.",
+        "Para a crosta: Aqueça o azeite, junte a farinha de rosca e a salsa bem picadinha. Tempere com sal e pimenta e acrescente a gema.",
+        "Para o molho: Acrescente a polpa de jabuticaba e o açúcar ao caldo de carne coado. Reduza até obter textura cremosa. Finalize com manteiga.",
+        "Para o creme: Cozinhe a mandioquinha com água e sal. Amasse para obter um purê. Acrescente a manteiga e a noz moscada.",
+        "Molde a carne desfiada em um aro redondo e faça o mesmo com a crosta. Disponha o purê ao lado e o molho."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Costela Recheada com Purê de Mandioca",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Costela",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Sopa de azeite",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal grosso",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sopa de limão",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Papel alumínio",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Mandioca cozida e amassada",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Bacon frito",
+          "quantidade": 300,
+          "unidade": "g"
+        },
+        {
+          "nome": "Creme de leite",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Leite de coco",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Cebola pequena",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        }
+      ],
+      "modo_preparo": [
+        "Abra a costela e recheie com o purê de mandioca.",
+        "Cubra tudo com papel alumínio e coloque para assar durante 2h.",
+        "Depois de assado, a costela terá um caldo que deve ser aproveitado, sirva ainda com o papel alumínio à mesa.",
+        "Para o purê: Amasse a mandioca com um garfo, frite o bacon e despeje na mandioca, misture com creme de leite."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Cupim com Rapadura e Queijo Coalho",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Alho",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Mostarda",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Rapadura",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Água",
+          "quantidade": 200,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Cupim",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Orégano",
+          "quantidade": 30,
+          "unidade": "g"
+        },
+        {
+          "nome": "Hortelã",
+          "quantidade": 50,
+          "unidade": "g"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 100,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Pimenta branca",
+          "quantidade": 1,
+          "unidade": "pitada"
+        },
+        {
+          "nome": "Alho socados",
+          "quantidade": 10,
+          "unidade": "un"
+        }
+      ],
+      "modo_preparo": [
+        "Para o molho: Derreta em água a rapadura, deixando ficar um melado.",
+        "Frite o alho, junte a mostarda e o melado de rapadura e deixe cozinhar por 15 minutos.",
+        "Para a carne: Tempere o cupim com alho, hortelã, orégano, sal e pimenta.",
+        "Enrole em papel celofane e leve ao forno a 180° por 3 horas.",
+        "Depois de assado, corte em fatias e regue com o molho de mostarda e a rapadura.",
+        "Sirva com queijo coalho grelhado."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Bife a Rolê ao Molho de Creme de Cumbaru",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Coxão mole em bifes",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Sal e pimenta do reino",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Óleo",
+          "quantidade": 50,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 20,
+          "unidade": "g"
+        },
+        {
+          "nome": "Ricota",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Castanha de cumbaru (baru)",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Salsa",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Cebolinha verde",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola média picada",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Caldo de carne",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Creme de leite fresco",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Farinha de trigo",
+          "quantidade": 10,
+          "unidade": "g"
+        }
+      ],
+      "modo_preparo": [
+        "Tempere os bifes com sal e alho. Recheie com ricota e com metade do cumbaru grosseiramente triturado, temperados com sal, salsa e cebolinha verde.",
+        "Enrole e feche com palitos. Frite rapidamente em óleo quente. Reserve.",
+        "Na panela da fritura, doure alho e cebola triturados. Acrescente os bifes e refogue, colocando água aos poucos até que fiquem macios.",
+        "Para o molho: Leve ao fogo a manteiga e, quando derreter, acrescente o cumbaru restante finamente triturado e a farinha de trigo.",
+        "Acrescente o caldo da carne dissolvido em meia xícara de água, o fundo de fritura dos bifes, pouco a pouco, mexendo bem até encorpar.",
+        "Adicione o creme de leite aos poucos, até obter um caldo cremoso.",
+        "Sirva com legumes gratinados."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Saltimboca na Pressão",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Coxão mole pequenos",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Suco de limão",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal e pimenta-do-reino",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Sálvia",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Presunto cozido",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Manteiga derretida",
+          "quantidade": 50,
+          "unidade": "g"
+        },
+        {
+          "nome": "Molho shoyu",
+          "quantidade": 60,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Vinho branco seco",
+          "quantidade": 120,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Água",
+          "quantidade": 120,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Creme de leite fresco",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "(sobremesa) de amido de milho",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        }
+      ],
+      "modo_preparo": [
+        "Estenda os bifes e tempere com suco de limão, sal e pimenta-do-reino.",
+        "Coloque duas folhas de sálvia em cada bife, uma fatia de presunto, enrole e prenda com palitos.",
+        "Numa panela de pressão, coloque a manteiga derretida e os rolinhos de carne, o molho shoyu, o vinho branco e a água.",
+        "Tampe e deixe cozinhar por 6 a 10 minutos após começar a chiar.",
+        "Retire a pressão e adicione o creme de leite e o amido de milho dissolvido em água.",
+        "Acerte o sal e cozinhe por mais cinco minutos com a panela aberta.",
+        "Sirva com vagem ao molho de tomate."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Carne de Onça",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Coxão duro",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Broa italiana",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola branca",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Ajinomoto",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Azeite extra virgem",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Salsinha e cebolinha",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Limpar o coxão duro e passar duas vezes no moedor.",
+        "Em uma travessa, misturar com a cebola branca picada, temperando com o Ajinomoto, o azeite e sal a gosto.",
+        "Colocar a carne por cima da broa cortada em cubos.",
+        "Salpicar cebolinha e salsa a gosto e servir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Carne de Panela da Vovó",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Coxão duro",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Batatas grandes",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cenouras grandes",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola média",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Pimentão",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cheiro verde",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Colorau",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Óleo vegetal",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Chá de tempero baiano",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        }
+      ],
+      "modo_preparo": [
+        "Corte o coxão duro em cubos e refogue no óleo, alho e sal a gosto até selar.",
+        "Adicione a cebola, o pimentão, o tempero baiano, o colorau e frite.",
+        "Coloque 1/2 litro de água na panela de pressão e cozinhe por volta de 30 minutos.",
+        "Adicione as batatas e a cenoura e coloque de novo para cozinhar por mais 10 minutos.",
+        "Uma vez cozido, adicione o cheiro verde."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Filé Mignon da Xá Ica",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Filé mignon",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho grandes socados",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebolas grandes raladas",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Vinagre vermelho",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Mostarda amarela",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sopa de azeite",
+          "quantidade": 5,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Tempere a peça de filé mignon com o alho socado, vinagre e sal. Deixe na geladeira por duas horas.",
+        "Aqueça uma panela grande, coloque o azeite e as oito cebolas raladas e deixe dourar.",
+        "Coloque a mostarda deixando fritar por mais um minuto.",
+        "Coloque o filé mignon e vá virando-o até que fique dourado.",
+        "Sirva com caponata de legumes e arroz branco."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Filé Mignon ao Molho Mostarda",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Filé mignon",
+          "quantidade": 600,
+          "unidade": "g"
+        },
+        {
+          "nome": "Creme de leite",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Mostarda dijon",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Mostarda em grão",
+          "quantidade": 20,
+          "unidade": "g"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 4,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Vinho branco",
+          "quantidade": 50,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Molho inglês",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Pimenta do reino",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Corte os filés em medalhão, tempere com sal, pimenta do reino e o molho inglês, e deixe descansar por 30 minutos.",
+        "Grelhe os medalhões de filé e reserve.",
+        "Aqueça o azeite com o alho, acrescente o vinho e deixe reduzir pela metade.",
+        "Coloque o creme de leite e a mostarda.",
+        "Coloque os pedaços de filé no forno a 180° para aquecer.",
+        "Monte o prato com os filés e o molho por cima. Para finalizar, junte os grãos de mostarda."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Lagarto Assado Especial",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "(2,5 kg) de lagarto",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Vinho tinto seco",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho socado",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Cebola média picada",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Salsa picada",
+          "quantidade": 5,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal e pimenta",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Creme de leite",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Óleo de soja",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        }
+      ],
+      "modo_preparo": [
+        "Limpe bem a carne retirando toda gordura e a película que a envolve. Com a faca, faça furos na carne.",
+        "Misture todo o tempero e deixe a carne neste molho por cinco horas na geladeira, virando-a cada hora.",
+        "Frite a carne em uma frigideira grande, dourando a peça por inteiro.",
+        "Transfira o lagarto e o caldo para uma assadeira untada com óleo. Cubra com papel alumínio e leve ao forno a 255 graus por cerca de uma hora e meia.",
+        "Retire o papel alumínio e deixe corar. Fatie.",
+        "Leve o líquido que sobrou para uma frigideira, deixe ferver e encorpar. Acrescente o creme de leite e apague o fogo.",
+        "Despeje o molho sobre a carne fatiada."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Escondidinho de Carne Seca com Banana da Terra",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Carne seca cozida e desfiada",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Banana da terra madura e cozida",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Salsinha picada",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebolinha picada",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola grande picada",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Xícara de óleo de soja",
+          "quantidade": 0.75,
+          "unidade": "un"
+        },
+        {
+          "nome": "Queijo coalho ralado",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Requeijão",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 4,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Farinha de trigo",
+          "quantidade": 4,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Leite",
+          "quantidade": 4,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Rasa de noz-moscada",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Para o molho bechamel: Derreta a manteiga em fogo baixo, acrescente a farinha de trigo mexendo até dourar.",
+        "Adicione o leite aos poucos, sempre mexendo para não embolotar. Cozinhe até engrossar. Junte sal e noz-moscada.",
+        "Para a carne: Coloque o óleo, a salsinha, a cebolinha e a cebola. Deixe refogar.",
+        "Acrescente a carne seca desfiada e mexa até o cheiro verde envolver toda a carne. Reserve.",
+        "Bata a banana da terra cozida com o molho bechamel. Volte ao fogo e acrescente o requeijão. Mexa até encorpar.",
+        "Em um refratário, faça uma camada de carne seca refogada. Coloque outra camada do molho com banana.",
+        "Espalhe o queijo coalho ralado por cima e gratine em forno a 255° até derreter o queijo.",
+        "Sirva com torradas."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Patinho na Cerveja com Brócolis",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Patinho",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Brócolis",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Cebola em meia escama",
+          "quantidade": 100,
+          "unidade": "g"
+        },
+        {
+          "nome": "Cerveja preta",
+          "quantidade": 600,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Alho picado",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Corte o patinho em pequenos filés, doure em manteiga e alho.",
+        "Acrescente a cerveja e deixe cozinhar por 30 minutos até sair toda a espuma.",
+        "Depois de cozido, acrescente a cebola e o brócolis.",
+        "Sirva com arroz branco."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Picanha Recheada",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Picanha de 1 a 2 kg",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal temperado",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Queijo prato ou parmesão em tiras",
+          "quantidade": 300,
+          "unidade": "g"
+        },
+        {
+          "nome": "Linguiça Guanabara",
+          "quantidade": 300,
+          "unidade": "g"
+        },
+        {
+          "nome": "Cebola roxa cortada em rodelas",
+          "quantidade": 150,
+          "unidade": "g"
+        },
+        {
+          "nome": "Alho em lâminas",
+          "quantidade": 3,
+          "unidade": "un"
+        },
+        {
+          "nome": "Bacon em fatias",
+          "quantidade": 100,
+          "unidade": "g"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 50,
+          "unidade": "ml"
+        }
+      ],
+      "modo_preparo": [
+        "Faça um corte no centro da picanha até a outra ponta, deixando 2 cm de cada lado.",
+        "Tempere com sal temperado por dentro e por fora.",
+        "Recheie a picanha com os ingredientes e lambuze com azeite.",
+        "Costure a picanha com barbante, fechando bem para que o recheio não vaze.",
+        "Coloque em uma assadeira com a gordura para cima e lambuze com o azeite restante.",
+        "Cubra com papel alumínio e leve ao forno por 40 minutos a 200°."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Maminha ao Avesso Recheada com Farofa de Banana da Terra",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Maminha",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Alho amassado",
+          "quantidade": 5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 5,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Bananas-da-terra maduras",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Farinha de mandioca",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Cebola picada",
+          "quantidade": 0.5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Óleo",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "(chá) de manteiga",
+          "quantidade": 3,
+          "unidade": "colher_sopa"
+        }
+      ],
+      "modo_preparo": [
+        "Com uma faca grande, faça um corte na maminha e vire a ponta para dentro, empurrando a carne ao contrário.",
+        "Tempere com alho e sal, e reserve.",
+        "Para a farofa: Frite a banana em rodelas no óleo até corar bem. Escorra e reserve.",
+        "Em outra panela, coloque a manteiga e frite a cebola, acrescente a farinha, a banana e o sal.",
+        "Recheie a maminha com a farofa e costure a abertura.",
+        "Unte com azeite e asse na churrasqueira com fogo médio por 15 minutos de cada lado.",
+        "Sirva com mandioca cozida, molho vinagrete e arroz branco."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Maminha Fria ao Molho de Tomate",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Maminha de 2 kg",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho socados",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Vinho branco seco",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Louro",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Pimenta branca",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 0.333,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Alho socados",
+          "quantidade": 5,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebolas médias picadinhas",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Molho inglês",
+          "quantidade": 3,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Catchup",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Molho de tomate",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Vinho branco seco",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Louro",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeitonas picadinhas",
+          "quantidade": 0.5,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Sal, orégano, molho de pimenta",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Salsinha bem picadinha",
+          "quantidade": 1,
+          "unidade": "un"
+        }
+      ],
+      "modo_preparo": [
+        "Tempere a maminha com alho, sal, vinho, louro, pimenta e azeite. Deixe repousar por duas horas.",
+        "Coloque a carne numa assadeira, regue com azeite e leve ao forno a 200° coberta com papel alumínio por 30 minutos.",
+        "Retire o papel e deixe assar por mais 1h30 até ficar macia. Deixe esfriar e leve à geladeira até o dia seguinte.",
+        "Para o molho: Doure a cebola e o alho no azeite. Junte os demais ingredientes e deixe em fogo baixo por 20 minutos.",
+        "Corte a maminha em fatias finíssimas.",
+        "Monte o prato intercalando camadas de maminha fatiada e molho de tomate. Cubra e leve à geladeira até o dia seguinte."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Paleta na Pressão",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Paleta limpa",
+          "quantidade": 1.5,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Molho de tomate",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Creme de cebola",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Cebolas médias picadas",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alho",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cerveja preta",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Champignons para decorar",
+          "quantidade": 1,
+          "unidade": "un"
+        }
+      ],
+      "modo_preparo": [
+        "Em uma panela de pressão, colocar o azeite, o alho picado e a cebola para dourar.",
+        "Colocar a carne partida ao meio.",
+        "Dissolver o creme de cebola na cerveja preta e colocar na panela junto com o molho de tomate e o sal.",
+        "Fechar a panela de pressão, deixando em fogo médio por 1h.",
+        "Desligar, tirar a carne, picar em fatias e jogar o molho por cima.",
+        "Fatiar champignons e salpicar por cima da carne."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Ossobuco com Polenta Mole",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "4 unidades de ossobuco",
+          "quantidade": 1,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Bacon picado",
+          "quantidade": 150,
+          "unidade": "g"
+        },
+        {
+          "nome": "Cebola picada grosseiramente",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Alho inteiros com casca",
+          "quantidade": 8,
+          "unidade": "un"
+        },
+        {
+          "nome": "Salsão picados",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Manteiga",
+          "quantidade": 90,
+          "unidade": "g"
+        },
+        {
+          "nome": "Farinha de trigo para empanar",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Polpa de tomate",
+          "quantidade": 200,
+          "unidade": "g"
+        },
+        {
+          "nome": "Vinho tinto seco",
+          "quantidade": 400,
+          "unidade": "ml"
+        },
+        {
+          "nome": "Caldo de carne",
+          "quantidade": 1,
+          "unidade": "l"
+        },
+        {
+          "nome": "Salsinha e cebolinha",
+          "quantidade": 1,
+          "unidade": "xicara"
+        },
+        {
+          "nome": "Sal e pimenta branca",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Fubá de milho",
+          "quantidade": 400,
+          "unidade": "g"
+        },
+        {
+          "nome": "Água",
+          "quantidade": 1.5,
+          "unidade": "l"
+        },
+        {
+          "nome": "Sopa cheia de manteiga",
+          "quantidade": 1,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Parmesão",
+          "quantidade": 50,
+          "unidade": "g"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        }
+      ],
+      "modo_preparo": [
+        "Temperar o ossobuco com sal e pimenta branca. Empanar na farinha de trigo.",
+        "Acrescentar manteiga derretida na panela e frite a carne até dourar.",
+        "Adicione vinho tinto e água até dois dedos acima da carne e deixe no fogo baixo de 2h30 a 3h.",
+        "Para a polenta: Coloque água com manteiga no fogo e espere ferver.",
+        "Coloque em fogo médio e vá mexendo enquanto coloca pequenas quantidades de fubá até ficar consistente.",
+        "Adicione sal e pimenta branca. Mexa por mais 10 minutos.",
+        "Coloque a polenta no prato e o ossobuco em cima. Jogue o molho coado por cima da carne."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    },
+    {
+      "nome": "Rabada com Polenta",
+      "categoria": "Proteína",
+      "ingredientes": [
+        {
+          "nome": "Rabo de boi",
+          "quantidade": 2,
+          "unidade": "kg"
+        },
+        {
+          "nome": "Salsão picados",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cenouras raladas",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cebola picadinha",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Alecrim",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Sal",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Pimenta calabresa",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Orégano",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Cravos da índia",
+          "quantidade": 4,
+          "unidade": "un"
+        },
+        {
+          "nome": "Cheiro verde",
+          "quantidade": 0,
+          "unidade": "a_gosto"
+        },
+        {
+          "nome": "Manjericão",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Vinho branco seco",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Molho de tomate",
+          "quantidade": 2,
+          "unidade": "un"
+        },
+        {
+          "nome": "Agrião",
+          "quantidade": 1,
+          "unidade": "un"
+        },
+        {
+          "nome": "Caldo de carne",
+          "quantidade": 3,
+          "unidade": "l"
+        },
+        {
+          "nome": "Sêmola de milho",
+          "quantidade": 500,
+          "unidade": "g"
+        },
+        {
+          "nome": "Azeite",
+          "quantidade": 2,
+          "unidade": "colher_sopa"
+        },
+        {
+          "nome": "Queijo ralado",
+          "quantidade": 2,
+          "unidade": "xicara"
+        }
+      ],
+      "modo_preparo": [
+        "Numa panela de pressão, cozinhe o rabo de boi com o salsão, as cenouras e a cebola. A água deve cobrir tudo.",
+        "Quando o rabo começar a soltar do osso, escorra e reserve o caldo.",
+        "Para o molho: Refogue cenoura, salsão e cebola picadinhos. Junte o rabo já cozido e acrescente o molho de tomates.",
+        "Coloque alecrim, cravo, manjericão, pimenta calabresa, orégano, vinho branco e sal. Tampe e cozinhe por 30 minutos.",
+        "No final, junte o agrião, abafe e cubra com a polenta.",
+        "Para a polenta: Dissolva a sêmola na água e deixe cozinhar mexendo sempre. Acrescente sal e azeite.",
+        "Quando pronta, acrescente o cheiro verde e polvilhe o queijo ralado."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": [
+        "especial"
+      ]
+    }
+  ]
+}

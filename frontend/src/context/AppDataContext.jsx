@@ -1,14 +1,21 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from './AuthContext.jsx'
 import { api } from '../lib/api.js'
 import { createDefaultWorkspace, formatClock, formatMinutes } from '../lib/seed.js'
+import { localCalendarYmd } from '../lib/localDate.js'
 import { loadWorkspace, saveWorkspace } from '../lib/storage.js'
 
 const AppDataContext = createContext(null)
 
 function mergeWorkspace(current, incoming) {
   const nextProfiles = incoming?.profiles ?? {}
-  const nextCurrentProf = nextProfiles[current.currentProf] ? current.currentProf : incoming.currentProf
+  const hasProf = (k) => k != null && Object.prototype.hasOwnProperty.call(nextProfiles, k)
+  /** Prefer o perfil já selecionado se ainda existir (evita voltar ao gestor após cada sync). */
+  const nextCurrentProf = hasProf(current.currentProf)
+    ? current.currentProf
+    : hasProf(incoming?.currentProf)
+      ? incoming.currentProf
+      : Object.keys(nextProfiles).find((k) => k !== 'gestor') || incoming?.currentProf || 'gestor'
 
   return {
     ...incoming,
@@ -21,41 +28,68 @@ function mergeWorkspace(current, incoming) {
 export function AppDataProvider({ children }) {
   const { user, token } = useAuth()
   const [workspace, setWorkspace] = useState(createDefaultWorkspace())
-  const [syncState, setSyncState] = useState({ loading: false, error: '' })
+  const [syncState, setSyncState] = useState({ loading: false, error: '', initialSyncDone: false })
 
   const loadRemoteWorkspace = useCallback(async () => {
     if (!user) {
       setWorkspace(createDefaultWorkspace())
+      setSyncState({ loading: false, error: '', initialSyncDone: false })
       return
     }
 
     if (!token || user.role === 'super_admin') {
       const cachedWorkspace = loadWorkspace(user.id)
       setWorkspace(cachedWorkspace)
+      setSyncState({ loading: false, error: '', initialSyncDone: true })
       return
     }
 
-    setSyncState({ loading: true, error: '' })
+    setSyncState((prev) => ({ ...prev, loading: true, error: '' }))
 
     try {
-      const payload = await api.dashboard(token)
+      try {
+        await api.rolloverTasks(token, { asOfDate: localCalendarYmd() })
+      } catch {
+        /* endpoint antigo / offline */
+      }
+      const payload = await api.dashboard(token, { today: localCalendarYmd() })
       setWorkspace((current) => mergeWorkspace(current, payload.workspace))
       saveWorkspace(user.id, payload.workspace)
-      setSyncState({ loading: false, error: '' })
+      setSyncState({ loading: false, error: '', initialSyncDone: true })
     } catch (error) {
       const cachedWorkspace = loadWorkspace(user.id)
       setWorkspace(cachedWorkspace)
-      setSyncState({ loading: false, error: error.message })
+      setSyncState({ loading: false, error: error.message, initialSyncDone: true })
     }
   }, [token, user])
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadRemoteWorkspace()
-    }, 0)
-
-    return () => window.clearTimeout(timer)
+  useLayoutEffect(() => {
+    void loadRemoteWorkspace()
   }, [loadRemoteWorkspace])
+
+  const dayRef = useRef(localCalendarYmd())
+  useEffect(() => {
+    if (!user || user.role === 'super_admin' || !token) return undefined
+    const tick = () => {
+      const now = localCalendarYmd()
+      if (now !== dayRef.current) {
+        dayRef.current = now
+        void loadRemoteWorkspace()
+      }
+    }
+    const id = window.setInterval(tick, 60_000)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') tick()
+    }
+    const onFocus = () => tick()
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [user, token, loadRemoteWorkspace])
 
   useEffect(() => {
     if (!user || user.role === 'super_admin') return
@@ -72,27 +106,51 @@ export function AppDataProvider({ children }) {
 
         Object.keys(nextProfiles).forEach((key) => {
           const profile = nextProfiles[key]
-          if (!profile?.tracking?.active || profile.tracking.paused) return
+          const log = profile?.tracking?.log
+          if (!log?.length) return
+
+          let profileChanged = false
+          const nextLog = log.map((entry) => {
+            if (!entry.active || entry.paused) return entry
+            profileChanged = true
+            const nextSeconds = (Number(entry.durationSeconds) || 0) + 1
+            return {
+              ...entry,
+              durationSeconds: nextSeconds,
+              durationMinutes: Math.floor(nextSeconds / 60),
+              time: `${entry.time.split('–')[0]}–agora`,
+            }
+          })
+          if (!profileChanged) return
 
           changed = true
-          const nextSeconds = profile.tracking.seconds + 1
-          const nextLog = (profile.tracking.log ?? []).map((entry) =>
-            entry.active
-              ? {
-                  ...entry,
-                  durationMinutes: Math.max(1, Math.floor(nextSeconds / 60)),
-                  time: `${entry.time.split('–')[0]}–agora`,
-                }
-              : entry,
-          )
-
+          const activeSessions = (nextLog.filter((e) => e.active)
+            .map((e) => ({
+              id: e.id,
+              cat: e.cat,
+              sub: e.sub,
+              detail: e.detail,
+              favoriteId: e.favoriteId,
+              paused: e.paused,
+              seconds: e.durationSeconds,
+            })))
+          const primary = activeSessions[0]
           nextProfiles[key] = {
             ...profile,
             tracking: {
               ...profile.tracking,
-              seconds: nextSeconds,
+              active: activeSessions.length > 0,
+              paused: primary ? Boolean(primary.paused) : false,
+              seconds: primary ? primary.seconds : 0,
+              cat: primary?.cat ?? profile.tracking.cat,
+              sub: primary?.sub ?? '',
+              detail: primary?.detail ?? '',
+              favoriteId: primary?.favoriteId ?? null,
+              activeSessions,
               log: nextLog,
-              totalMinutes: Math.max(profile.tracking.totalMinutes, Math.floor(nextSeconds / 60)),
+              totalMinutes: Math.floor(
+                nextLog.reduce((s, e) => s + (Number(e.durationSeconds) || 0), 0) / 60,
+              ),
             },
           }
         })
@@ -138,6 +196,7 @@ export function AppDataProvider({ children }) {
             reward: reward || '',
             points: Number(points) || 0,
             done: false,
+            forDate: localCalendarYmd(),
           }),
         )
       },
@@ -148,28 +207,51 @@ export function AppDataProvider({ children }) {
         await reloadAfterMutation(() => api.deleteTask(token, taskId))
       },
       async addCategory({ profileKey, icon, name, visibility }) {
+        const res = await api.createCategory(token, {
+          profileKey,
+          icon,
+          name,
+          visibilityScope: Array.isArray(visibility) ? visibility : [visibility || 'Todos'],
+        })
+        return res.category
+      },
+      async uploadCategoryIcon(categoryId, file) {
+        await api.uploadCategoryIcon(token, categoryId, file)
+        await loadRemoteWorkspace()
+      },
+      async deleteCategoryIcon(categoryId) {
+        await api.deleteCategoryIcon(token, categoryId)
+        await loadRemoteWorkspace()
+      },
+      async updateCategory(categoryId, { icon, name, visibility }) {
+        const scope = Array.isArray(visibility) ? visibility : [visibility || 'Todos']
         await reloadAfterMutation(() =>
-          api.createCategory(token, {
-            profileKey,
+          api.updateCategory(token, categoryId, {
             icon,
             name,
-            visibilityScope: Array.isArray(visibility) ? visibility : [visibility || 'Todos'],
+            visibilityScope: scope,
           }),
         )
       },
+      async deleteCategory(categoryId) {
+        await reloadAfterMutation(() => api.deleteCategory(token, categoryId))
+      },
       async addCalendarEvent({ eventDate, dayKey, title, time, members, cls, recurrenceType, recurrenceDays }) {
-        await reloadAfterMutation(() =>
-          api.createEvent(token, {
-            eventDate: eventDate || '',
-            dayKey: dayKey || '',
-            title,
-            time,
-            members,
-            cls: cls || 'ce-all',
-            recurrenceType: recurrenceType || 'único',
-            recurrenceDays: recurrenceDays || '',
-          }),
-        )
+        await api.createEvent(token, {
+          eventDate: eventDate || '',
+          dayKey: dayKey || '',
+          title,
+          time,
+          members,
+          cls: cls || 'ce-all',
+          recurrenceType: recurrenceType || 'único',
+          recurrenceDays: recurrenceDays || '',
+        })
+        try {
+          await loadRemoteWorkspace()
+        } catch {
+          /* evento já gravado; falha só no refresh do dashboard */
+        }
       },
       async updateCalendarEvent(eventId, updates) {
         await reloadAfterMutation(() => api.updateEvent(token, eventId, updates))
@@ -179,9 +261,6 @@ export function AppDataProvider({ children }) {
       },
       async addReward({ tierId, value }) {
         await reloadAfterMutation(() => api.createReward(token, { tierId, value }))
-      },
-      async addMeal(meal) {
-        await reloadAfterMutation(() => api.createMeal(token, meal))
       },
       async addProfile(profile) {
         await reloadAfterMutation(() =>
@@ -204,48 +283,72 @@ export function AppDataProvider({ children }) {
         return api.getTaskHistory(token, params)
       },
       async addFavorite(profileKey, favorite) {
-        await reloadAfterMutation(() =>
-          api.createFavorite(token, {
-            profileKey,
-            icon: favorite.icon,
-            label: favorite.label,
-            cat: favorite.cat,
-            sub: favorite.sub,
-            detail: favorite.detail,
-            participantKeys: favorite.participantKeys || [profileKey],
-          }),
-        )
+        const res = await api.createFavorite(token, {
+          profileKey,
+          icon: favorite.icon,
+          label: favorite.label,
+          cat: favorite.cat,
+          sub: favorite.sub,
+          detail: favorite.detail,
+          participantKeys: favorite.participantKeys || [profileKey],
+        })
+        if (favorite.iconFile && res?.favorite?.id) {
+          await api.uploadFavoriteIcon(token, res.favorite.id, favorite.iconFile)
+        }
+        await loadRemoteWorkspace()
       },
       async removeFavorite(_profileKey, favoriteId) {
         await reloadAfterMutation(() => api.deleteFavorite(token, favoriteId))
       },
+      async reorderFavorites(profileKey, favoriteIds) {
+        await reloadAfterMutation(() => api.reorderFavorites(token, { profileKey, favoriteIds }))
+      },
       async startCustomActivity(profileKey, payload) {
-        await reloadAfterMutation(() =>
-          api.startTimeEntry(token, {
-            profileKey,
-            cat: payload.cat,
-            sub: payload.sub ?? '',
-            detail: payload.detail ?? '',
-          }),
-        )
+        try {
+          await reloadAfterMutation(() =>
+            api.startTimeEntry(token, {
+              profileKey,
+              cat: payload.cat,
+              sub: payload.sub ?? '',
+              detail: payload.detail ?? '',
+            }),
+          )
+        } catch (e) {
+          window.alert(e?.message || 'Não foi possível iniciar a atividade.')
+        }
+      },
+      async addManualTimeEntry(payload) {
+        try {
+          await reloadAfterMutation(() => api.createManualTimeEntry(token, payload))
+          return true
+        } catch (e) {
+          window.alert(e?.message || 'Não foi possível adicionar o registo.')
+          return false
+        }
       },
       async startFavorite(profileKey, favoriteId) {
         const favorite = workspace.profiles[profileKey]?.favorites?.find((item) => item.id === favoriteId)
         if (!favorite) return
-        await reloadAfterMutation(() =>
-          api.startTimeEntry(token, {
-            profileKey,
-            cat: favorite.cat,
-            sub: favorite.sub ?? '',
-            detail: favorite.detail ?? '',
-          }),
-        )
+        const sub = (favorite.sub || '').trim() || (favorite.label || '').trim()
+        try {
+          await reloadAfterMutation(() =>
+            api.startTimeEntry(token, {
+              profileKey,
+              cat: favorite.cat,
+              sub,
+              detail: favorite.detail ?? '',
+              favoriteId: favorite.id,
+            }),
+          )
+        } catch (e) {
+          window.alert(e?.message || 'Não foi possível iniciar o favorito.')
+        }
       },
-      async togglePause(profileKey) {
-        await reloadAfterMutation(() => api.togglePauseTimeEntry(token, { profileKey }))
+      async togglePause(profileKey, entryId) {
+        await reloadAfterMutation(() => api.togglePauseTimeEntry(token, { profileKey, entryId }))
       },
-      async stopTimer(profileKey) {
-        await reloadAfterMutation(() => api.stopTimeEntry(token, { profileKey }))
+      async stopTimer(profileKey, entryId) {
+        await reloadAfterMutation(() => api.stopTimeEntry(token, { profileKey, entryId }))
       },
       async updateTimeEntry(entryId, updates) {
         await reloadAfterMutation(() => api.updateTimeEntry(token, entryId, updates))

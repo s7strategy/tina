@@ -19,6 +19,9 @@ frontend/.env
 backend/data.sqlite
 backend/data.sqlite-*
 
+# Uploads (ícones favoritos/categorias)
+backend/uploads/
+
 # Logs
 *.log
 npm-debug.log*

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { demoAccounts } from '../lib/seed.js'
+import { LOGO_SRC } from '../lib/branding.js'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -29,7 +30,9 @@ function LoginPage() {
     <div className="auth-shell">
       <aside className="auth-side">
         <div>
-          <div className="sb-logo">🏠</div>
+          <div className="auth-brand-mark">
+            <img src={LOGO_SRC} alt="Tina" className="auth-brand-img" width={220} height={48} decoding="async" />
+          </div>
           <h1>TINA agora em modo SaaS.</h1>
           <p>
             Mesmo dashboard, mesma identidade visual, agora com autenticação, persistência,

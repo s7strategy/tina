@@ -1,0 +1,565 @@
+{
+  "receitas": [
+    {
+      "nome": "Abóbora Cremosa com Carne Seca",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Abóbora japonesa picada", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Óleo", "quantidade": 0.5, "unidade": "colher_sopa" },
+        { "nome": "Sal", "quantidade": 0.5, "unidade": "colher_cha" },
+        { "nome": "Carne-seca cozida e desfiada", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Creme de leite", "quantidade": 1, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Em uma panela, refogue a abóbora no óleo e adicione o sal.",
+        "Refogue até que fique cozida, porém firme.",
+        "Junte a carne-seca e o creme de leite e misture bem.",
+        "Coloque em um recipiente refratário médio (20x30cm).",
+        "Leve ao forno médio-alto (200°C), preaquecido, por 15 minutos para gratinar.",
+        "Sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Bife de Marinheiro",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Coxão mole em bifes pequenos", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Batata grande", "quantidade": 4, "unidade": "un" },
+        { "nome": "Cebola em rodelas", "quantidade": 2, "unidade": "un" },
+        { "nome": "Tomate em rodelas", "quantidade": 4, "unidade": "un" },
+        { "nome": "Caldo de carne em tablete", "quantidade": 4, "unidade": "un" },
+        { "nome": "Vinho branco seco", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Azeite", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Coloque um pouco de azeite em uma panela de fundo largo.",
+        "Distribua uma camada de bifes, uma de tomate, uma de cebola e uma de batata.",
+        "Dissolva os tabletes de caldo em meia xícara (chá) de água fervente.",
+        "Acrescente o vinho e misture bem.",
+        "Espalhe a metade deste líquido sobre a camada da panela e regue com um pouco de azeite.",
+        "Repita mais uma vez a camada, junte o resto do líquido e torne a regar com o azeite.",
+        "Tampe a panela e leve ao fogo baixo por aproximadamente 40 minutos."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Bifes Recheados Especiais",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Brócolis aferventado e picado", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Cebola picada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mussarela ralada", "quantidade": 100, "unidade": "g" },
+        { "nome": "Sal", "quantidade": 0.5, "unidade": "colher_cha" },
+        { "nome": "Caldo em pó de carne", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alcatra em bifes", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Óleo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Vinho tinto seco", "quantidade": 4, "unidade": "colher_sopa" },
+        { "nome": "Maisena", "quantidade": 1, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Misture o brócolis, a cebola, a mussarela e o sal e reserve.",
+        "Polvilhe metade do caldo em pó sobre os bifes e recheie cada um deles com a mistura reservada.",
+        "Enrole-os, fechando as laterais, e prenda com o auxílio de linha para uso culinário.",
+        "Em uma panela de pressão, aqueça o óleo e doure os bifes.",
+        "Junte o vinho, o restante do caldo em pó e duas xícaras (chá) de água fervente.",
+        "Tampe e leve ao fogo médio até que a carne esteja macia (cerca de 40 minutos).",
+        "Espere sair a pressão, abra a panela com cuidado e retire os bifes.",
+        "Junte a maisena dissolvida em duas colheres (sopa) de água fria ao caldo formado.",
+        "Deixe ferver, mexendo até engrossar.",
+        "Despeje sobre os bifes e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Filés com Molho de Ameixas",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Filé mignon em medalhões", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Cebola ralada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Caldo em pó de carne", "quantidade": 2, "unidade": "un" },
+        { "nome": "Azeite", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinho tinto seco", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Ameixas pretas sem caroço", "quantidade": 0.5, "unidade": "xicara" }
+      ],
+      "modo_preparo": [
+        "Tempere os bifes com a cebola e espalhe um stick de caldo em pó.",
+        "Reserve.",
+        "Em uma frigideira, aqueça o azeite aos poucos e doure os bifes.",
+        "Reserve e mantenha aquecido.",
+        "Na mesma frigideira, despeje o vinho tinto, o outro stick de caldo em pó dissolvido em meia xícara (chá) de água quente e as ameixas.",
+        "Cozinhe por cerca de 5 minutos ou até as ameixas ficarem macias.",
+        "Despeje o molho sobre os bifes e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Salada de Carne",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Cebola picada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Tempero para grelhar", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Salsa picada", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Azeite", "quantidade": 4, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 3, "unidade": "colher_sopa" },
+        { "nome": "Músculo cozido e desfiado", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Pimentão verde em tiras", "quantidade": 1, "unidade": "un" },
+        { "nome": "Tomate sem pele e sem sementes picado", "quantidade": 2, "unidade": "un" },
+        { "nome": "Azeitona verde", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Folhas de alface lisa", "quantidade": 6, "unidade": "un" },
+        { "nome": "Pão sírio torrado", "quantidade": 4, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Faça um molho misturando bem a cebola, o tempero para grelhar, a salsa, o azeite e o suco de limão.",
+        "Junte a carne desfiada, o pimentão, o tomate e a azeitona e misture cuidadosamente.",
+        "Em uma travessa, faça um berço com as folhas de alface e disponha a salada de carne no centro.",
+        "Sirva a seguir, com as torradas de pão sírio."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Cozido Brasileiro",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Óleo", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Cebola picada", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Alho amassado", "quantidade": 2, "unidade": "un" },
+        { "nome": "Braço ou acém em cubos", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Farinha de trigo", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Caldo de costela em tablete", "quantidade": 2, "unidade": "un" },
+        { "nome": "Batata média", "quantidade": 4, "unidade": "un" },
+        { "nome": "Cenoura média", "quantidade": 2, "unidade": "un" },
+        { "nome": "Vagem picada", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Salsa picada", "quantidade": 2, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Em uma panela de pressão, aqueça o óleo e refogue a cebola e o alho.",
+        "Junte os cubos de carne passados pela farinha de trigo e deixe dourar.",
+        "Junte os tabletes de caldo, meio litro de água fervente, a batata e a cenoura.",
+        "Feche a panela e deixe cozinhar em fogo baixo por cerca de 10 minutos após fervura.",
+        "Retire a panela do fogo, espere sair a pressão e acrescente a vagem picada.",
+        "Deixe cozinhar por cerca de 30 minutos ou até apurar o caldo.",
+        "Retire do fogo e adicione a salsa.",
+        "Sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Rocambole de Carne Moída",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Batata média", "quantidade": 4, "unidade": "un" },
+        { "nome": "Carne moída", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Ovo", "quantidade": 1, "unidade": "un" },
+        { "nome": "Creme de cebola em pó", "quantidade": 1, "unidade": "un" },
+        { "nome": "Presunto fatiado", "quantidade": 100, "unidade": "g" },
+        { "nome": "Azeitonas pretas picadas", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Manteiga", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Cozinhe as batatas até ficarem macias.",
+        "Em uma tigela, misture a carne, o ovo e o creme de cebola até obter uma massa firme e reserve.",
+        "Retire as batatas do fogo, descasque-as e passe-as ainda quentes por um espremedor e reserve.",
+        "Abra a massa de carne moída em cima de um filme plástico, em forma de um retângulo.",
+        "Disponha as fatias de presunto por cima.",
+        "Espalhe o purê de batatas e as azeitonas.",
+        "Enrole como rocambole e coloque-o em uma assadeira grande (26x38cm) untada.",
+        "Espalhe pedaços de manteiga por cima.",
+        "Leve ao forno médio (180°C), preaquecido, por cerca de 40 minutos ou até que o rocambole esteja dourado."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Lombo Dourado com Abacaxi",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Lombo de porco", "quantidade": 2, "unidade": "kg" },
+        { "nome": "Tempero para grelhar", "quantidade": 3, "unidade": "colher_sopa" },
+        { "nome": "Vinho branco seco", "quantidade": 2, "unidade": "xicara" },
+        { "nome": "Suco de limão", "quantidade": 2, "unidade": "un" },
+        { "nome": "Açúcar", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Abacaxi em rodelas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mini-cebola", "quantidade": 250, "unidade": "g" }
+      ],
+      "modo_preparo": [
+        "Com a ponta de uma faca, faça pequenos furos na superfície da carne.",
+        "Tempere o lombo com o tempero para grelhar, coloque-o em uma assadeira grande e junte o vinho branco e o limão.",
+        "Cubra com papel de alumínio e leve à geladeira por cerca de 2 horas, regando com o caldo a cada 30 minutos.",
+        "Leve o lombo para assar coberto com papel de alumínio, em forno médio-alto (200°C), preaquecido, por cerca de 1 hora, regando com o caldo de vez em quando.",
+        "Retire o papel e volte ao forno por cerca de 1 hora ou até que esteja dourado, regando na metade do tempo.",
+        "Em uma frigideira grande, aqueça o açúcar até caramelizar.",
+        "Junte o abacaxi e a cebola e cozinhe por 5 minutos ou até ficar dourado.",
+        "Sirva com o lombo."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Hambúrguer com Tomate",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Carne moída", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Caldo de picanha em tablete", "quantidade": 1, "unidade": "un" },
+        { "nome": "Azeite", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Cebola picada", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Tomate picado em cubos", "quantidade": 4, "unidade": "un" },
+        { "nome": "Açúcar", "quantidade": 1, "unidade": "pitada" },
+        { "nome": "Tempero em pó", "quantidade": 0.5, "unidade": "colher_sopa" },
+        { "nome": "Manjericão fresco picado", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Óleo", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela, misture a carne moída e o caldo dissolvido em três colheres (sopa) de água quente, até ficar uniforme.",
+        "Modele os hambúrgueres, unte uma frigideira com óleo e doure-os aos poucos.",
+        "Reserve em local aquecido.",
+        "Em uma panela, aqueça o azeite e doure a cebola.",
+        "Junte o tomate, o açúcar e o tempero em pó, misture e cozinhe em fogo baixo por cerca de 10 minutos ou até os pedaços de tomate ficarem macios.",
+        "Misture o manjericão e sirva sobre os hambúrgueres."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Strogonoff de Carne",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Manteiga", "quantidade": 4, "unidade": "colher_sopa" },
+        { "nome": "Carne em tiras finas (filé mignon, contra-filé ou alcatra)", "quantidade": 1, "unidade": "kg" },
+        { "nome": "Cebola picada", "quantidade": 2, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0.5, "unidade": "colher_sopa" },
+        { "nome": "Pimenta-do-reino moída", "quantidade": 1, "unidade": "pitada" },
+        { "nome": "Conhaque", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Champignon em conserva fatiado", "quantidade": 200, "unidade": "g" },
+        { "nome": "Purê de tomate", "quantidade": 3, "unidade": "colher_sopa" },
+        { "nome": "Mostarda", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Catchup", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Creme de leite", "quantidade": 1, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Derreta três colheres (sopa) de manteiga em uma frigideira grande e vá fritando a carne, aos poucos, em fogo alto.",
+        "Retire a carne da frigideira e coloque a manteiga restante.",
+        "Doure a cebola, junte a carne, tempere com o sal e a pimenta e despeje o conhaque.",
+        "Espere aquecer e incline levemente a frigideira para que o conhaque incendeie. Aguarde acabar a chama.",
+        "Junte os champignons, tampe a frigideira e deixe por alguns minutos.",
+        "Acrescente o purê de tomate, a mostarda e o catchup, misture bem.",
+        "Abaixe o fogo, tampe a panela e deixe por mais cerca de 5 minutos.",
+        "Incorpore delicadamente o creme de leite e retire do fogo antes de ferver.",
+        "Sirva a seguir com arroz branco."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Espetinhos de Filé e Legumes",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Filé mignon em pedaços", "quantidade": 300, "unidade": "g" },
+        { "nome": "Cebola cortada em quatro", "quantidade": 1, "unidade": "un" },
+        { "nome": "Tomate sem sementes em cubos", "quantidade": 2, "unidade": "un" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Tempero para grelhar", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Manteiga", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Salsa picada", "quantidade": 2, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Em um espeto de metal ou madeira para churrasco, intercale pedaços de carne com pedaços de cebola e de tomate.",
+        "Regue com o suco de limão, tempere com o tempero para grelhar e reserve.",
+        "Em uma frigideira grande, aqueça a manteiga e doure os espetinhos.",
+        "Reserve, mantendo-os aquecidos.",
+        "Na mesma frigideira, junte cerca de meia xícara (chá) de água e deixe levantar fervura até ficar levemente encorpado.",
+        "Junte a salsa, retire do fogo e sirva quente sobre os espetinhos."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Rocambole de Frango Recheado",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Manteiga (farofa)", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Tempero em pó (farofa)", "quantidade": 1, "unidade": "un" },
+        { "nome": "Abóbora aferventada em cubos pequenos", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Biscoito de água triturado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Salsa picada", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Filé de peito de frango", "quantidade": 600, "unidade": "g" },
+        { "nome": "Tempero em pó (rocambole)", "quantidade": 2, "unidade": "un" },
+        { "nome": "Cebola pequena ralada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Manteiga (rocambole)", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Bacon defumado", "quantidade": 4, "unidade": "un" },
+        { "nome": "Farinha de trigo", "quantidade": 1, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Farofa: Aqueça a manteiga, acrescente o tempero, a abóbora, o biscoito triturado e a salsa.",
+        "Desligue o fogo e reserve a farofa.",
+        "Rocambole: Abra os filés de frango, deixando-os com espessura fina, e tempere com o tempero e a cebola.",
+        "Corte um retângulo de papel de alumínio (cerca de 40x30cm) e espalhe metade da manteiga.",
+        "Arrume os filés lado a lado, sem deixar espaço, formando um retângulo, e coloque as fatias de bacon.",
+        "Espalhe a farofa, tomando cuidado para não espalhar até muito próximo das bordas.",
+        "Enrole com o auxílio do papel de alumínio e feche bem as extremidades.",
+        "Coloque em uma assadeira e leve para assar em forno médio (180°C), preaquecido, por cerca de 30 minutos.",
+        "Retire o papel e retorne ao forno para dourar.",
+        "Quando estiver dourado, corte em fatias e reserve aquecido.",
+        "Leve a assadeira à chama do fogão, acrescente o restante da manteiga e a farinha e misture bem.",
+        "Junte uma xícara (chá) de água e deixe ferver até formar um molho espesso.",
+        "Sirva sobre o rocambole fatiado."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Jardineira de Frango",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Azeite", "quantidade": 3, "unidade": "colher_sopa" },
+        { "nome": "Peito de frango em tiras", "quantidade": 1, "unidade": "kg" },
+        { "nome": "Tempero em pó", "quantidade": 2, "unidade": "un" },
+        { "nome": "Cenoura em tiras", "quantidade": 250, "unidade": "g" },
+        { "nome": "Ervilha torta", "quantidade": 250, "unidade": "g" },
+        { "nome": "Salsão em tiras", "quantidade": 5, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Aqueça uma panela com o azeite, acrescente o frango e o tempero e deixe dourar.",
+        "Junte meia xícara (chá) de água e a cenoura para cozinhá-la ligeiramente.",
+        "Junte a ervilha e o salsão e refogue mais um pouco, mexendo até que os legumes fiquem cozidos e crocantes.",
+        "Pingue água se necessário.",
+        "Sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango no Vinho e Alecrim",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Sobrecoxas de frango desossadas", "quantidade": 1, "unidade": "kg" },
+        { "nome": "Tempero em pó", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinho branco seco", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Azeite", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Alecrim", "quantidade": 1, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Na véspera, misture as sobrecoxas de frango, o tempero, o vinho, o azeite e o alecrim.",
+        "Cubra e deixe marinando na geladeira, virando os pedaços de vez em quando para temperar por igual.",
+        "No dia, coloque os pedaços de frango na grelha e asse até dourarem.",
+        "Para saber se o frango já está assado, espete os pedaços — o suco que sai deve ser transparente."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango à Passarinho",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Frango cortado em pequenos pedaços", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Tempero em pó", "quantidade": 0.5, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 0.5, "unidade": "colher_sopa" },
+        { "nome": "Óleo para fritar", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Com pelo menos 1 hora de antecedência, tempere os pedaços de frango com o tempero e o suco de limão e deixe tomar gosto.",
+        "Aqueça bem o óleo e doure os pedaços de frango até ficarem crocantes.",
+        "Escorra em papel absorvente e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Farofa de Miúdos",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Azeite", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Coração de galinha picado", "quantidade": 150, "unidade": "g" },
+        { "nome": "Moela picada", "quantidade": 150, "unidade": "g" },
+        { "nome": "Fígado de galinha em tiras", "quantidade": 100, "unidade": "g" },
+        { "nome": "Caldo em pó de galinha", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cebola picada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Vinho branco seco", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Azeitonas verdes picadas", "quantidade": 4, "unidade": "colher_sopa" },
+        { "nome": "Farinha de mandioca torrada", "quantidade": 2, "unidade": "xicara" },
+        { "nome": "Cheiro-verde picado", "quantidade": 2, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Aqueça o azeite e doure os miúdos, acrescentando água aos poucos até que estejam macios.",
+        "Junte o caldo em pó, o alho, a cebola e o vinho e deixe reduzir.",
+        "Acrescente as azeitonas e a farinha e mexa até obter uma farofa úmida.",
+        "Acrescente o cheiro-verde e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango Indiano",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Azeite", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Peito de frango em cubos", "quantidade": 2, "unidade": "un" },
+        { "nome": "Cebola em cubos", "quantidade": 2, "unidade": "un" },
+        { "nome": "Pimentão vermelho em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Caldo de legumes em tablete", "quantidade": 2, "unidade": "un" },
+        { "nome": "Curry", "quantidade": 0.5, "unidade": "colher_cha" },
+        { "nome": "Gengibre ralado", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Farinha de trigo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Iogurte natural", "quantidade": 1, "unidade": "un" },
+        { "nome": "Creme de leite", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Cebolinha-verde picada", "quantidade": 1, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Em uma panela, aqueça o azeite e refogue ligeiramente o frango.",
+        "Acrescente as cebolas, o pimentão e o caldo de legumes dissolvido em uma xícara (chá) de água fervente.",
+        "Junte o curry, o gengibre e a farinha.",
+        "Misture bem e deixe ferver.",
+        "Retire do fogo, acrescente o iogurte e o creme de leite.",
+        "Misture para incorporar os ingredientes e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango Escondidinho",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Mandioca cozida", "quantidade": 1, "unidade": "kg" },
+        { "nome": "Peito de frango", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Caldo de galinha em tablete", "quantidade": 2, "unidade": "un" },
+        { "nome": "Cebola média ralada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Salsa picada", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Tempero em pó", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Creme de leite", "quantidade": 1, "unidade": "un" },
+        { "nome": "Requeijão cremoso", "quantidade": 2, "unidade": "un" },
+        { "nome": "Queijo parmesão ralado", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Manteiga para untar", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Descasque a mandioca, lave bem e cozinhe coberta com água até ficar macia.",
+        "Cozinhe o peito de frango em uma xícara (chá) de água fervente com os tabletes de caldo de galinha, pingando mais água fervente se necessário.",
+        "Assim que estiver cozido, desfie o peito de frango, misture o caldo que sobrou do cozimento, a cebola e a salsa e reserve.",
+        "Assim que a mandioca estiver cozida, escorra a água e passe-a ainda quente pelo espremedor.",
+        "Tempere com o tempero em pó, acrescente o creme de leite e misture bem até obter um purê.",
+        "Despeje o purê de mandioca em um recipiente refratário (20x30cm) untado e espalhe o recheio de frango.",
+        "Cubra com o requeijão, polvilhe o queijo ralado e leve ao forno médio-alto (200°C) para gratinar por cerca de 20 minutos.",
+        "Sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango à Pizzaiolo",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Filé de frango", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Óleo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Caldo de galinha em tablete", "quantidade": 1, "unidade": "un" },
+        { "nome": "Tomate sem pele e sem sementes em cubos", "quantidade": 3, "unidade": "un" },
+        { "nome": "Orégano", "quantidade": 2, "unidade": "colher_cha" },
+        { "nome": "Mussarela de búfala em rodelas", "quantidade": 3, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Regue o frango com suco de limão.",
+        "Em uma frigideira, aqueça o óleo, adicione o caldo de galinha esfarelado e doure o frango.",
+        "Reserve-o, mantendo aquecido.",
+        "Na mesma frigideira, refogue ligeiramente o tomate com o orégano.",
+        "Misture o queijo, despeje sobre o frango e leve ao forno médio (180°C) para derreter.",
+        "Decore com manjericão fresco e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango Zás-Trás",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Biscoito de água", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Creme de cebola em pó", "quantidade": 1, "unidade": "un" },
+        { "nome": "Creme de leite", "quantidade": 1, "unidade": "un" },
+        { "nome": "Peito de frango desossado", "quantidade": 0.5, "unidade": "kg" }
+      ],
+      "modo_preparo": [
+        "Bata os biscoitos no liquidificador, transformando-os em farinha, e reserve.",
+        "Misture o creme de cebola com o creme de leite e passe os filés ou cubos de frango, envolvendo-os bem.",
+        "Passe cada pedaço na farinha de biscoito e arrume-os em uma assadeira forrada com papel de alumínio.",
+        "Leve ao forno médio-alto (200°C), preaquecido, por cerca de 45 minutos ou até dourar."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango Ensopado",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Frango em pedaços (coxa ou sobrecoxa)", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Suco de limão", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Óleo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Cenoura em rodelas finas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Caldo de galinha em tablete", "quantidade": 1, "unidade": "un" },
+        { "nome": "Farinha de trigo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Vagem picada", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Cebola pequena em rodelas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho-poró em rodelas finas", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Salsa picada", "quantidade": 1, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Retire a pele, lave os pedaços de frango e regue com o suco de limão.",
+        "Doure-os no óleo quente, junte a cenoura, o tablete de caldo e meia xícara (chá) de água e mexa bem para dissolver.",
+        "Polvilhe a farinha de trigo, aos poucos, e acrescente uma xícara (chá) de água, sempre mexendo até dissolver a farinha.",
+        "Tampe a panela e cozinhe até que o frango esteja macio.",
+        "Adicione a vagem, a cebola e o alho-poró e deixe cozinhar por cerca de 10 minutos.",
+        "Quando os legumes estiverem macios, retire do fogo, misture a salsa e sirva a seguir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    },
+    {
+      "nome": "Frango com Laranja",
+      "categoria": "Proteína",
+      "ingredientes": [
+        { "nome": "Caldo de galinha em tablete", "quantidade": 1, "unidade": "un" },
+        { "nome": "Manteiga em temperatura ambiente", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Peito de frango", "quantidade": 0.5, "unidade": "kg" },
+        { "nome": "Suco de laranja", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Salsa picada", "quantidade": 1, "unidade": "colher_sopa" }
+      ],
+      "modo_preparo": [
+        "Misture bem com um garfo o caldo de galinha com a manteiga, até obter uma pasta.",
+        "Besunte o frango com esta pasta.",
+        "Asse em forno médio-alto (200°C), preaquecido, por aproximadamente 40 minutos ou até dourar ligeiramente.",
+        "Regue com o suco de laranja e leve novamente ao forno até dourar bem (cerca de 20 minutos).",
+        "Retire do forno, passe o frango para uma travessa e conserve em local aquecido.",
+        "Leve a assadeira ao fogo alto e deixe o molho ferver bem, raspando com uma colher o fundo da assadeira até que fique encorpado.",
+        "Salpique a salsa sobre o frango e sirva com o molho à parte."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["especiais"]
+    }
+  ]
+}

@@ -1,0 +1,446 @@
+{
+  "receitas": [
+    {
+      "nome": "Salada Califórnia com Pepino, Manga, Kani Kama e Molho Tare",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Pepino japonês em tiras finas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Manga madura em cubos pequenos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Kani kama desfiado", "quantidade": 200, "unidade": "g" },
+        { "nome": "Cenoura pequena ralada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cebola roxa fatiada", "quantidade": 0.25, "unidade": "un" },
+        { "nome": "Gergelim torrado", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Folhas de alface ou mix de folhas verdes", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Shoyu (molho de soja)", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Açúcar mascavo", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Mirin (vinho de arroz doce)", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Sake", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" }
+      ],
+      "modo_preparo": [
+        "Prepare o molho tarê: misture o shoyu, açúcar mascavo, mirin, sake e alho em uma panela pequena.",
+        "Leve ao fogo baixo até o açúcar dissolver e o molho engrossar levemente. Reserve e deixe esfriar.",
+        "Em um prato ou tigela, disponha as folhas verdes como base.",
+        "Distribua o pepino, a manga, o kani kama e a cenoura sobre as folhas.",
+        "Regue com o molho tarê e polvilhe gergelim torrado.",
+        "Sirva imediatamente."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "leve", "oriental", "rápida"]
+    },
+    {
+      "nome": "Salada Caesar Light com Frango Grelhado",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Alface americana ou romana", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Croutons", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Queijo parmesão ralado grosso", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Filé de frango grelhado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho amassado ou ralado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Filé de anchova picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Molho inglês", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Queijo parmesão ralado fino", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Iogurte natural não adoçado", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Azeite de oliva", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Para o molho Caesar, misture em uma tigela o alho, filé de anchova, mostarda e molho inglês.",
+        "Adicione o queijo ralado fino, iogurte e limão, batendo enquanto despeja azeite em fio até formar um creme homogêneo.",
+        "Tempere com sal e pimenta e leve à geladeira.",
+        "Prepare croutons a gosto, comprados ou feitos em casa.",
+        "Grelhe o frango temperado com sal, pimenta, cominho e limão e corte em tiras.",
+        "Rasgue a alface, misture com metade do molho e coloque em um prato.",
+        "Cubra com croutons, frango e parmesão ralado.",
+        "Finalize com o restante do molho."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "leve", "proteica", "clássica"]
+    },
+    {
+      "nome": "Salada Mediterrânea de Grão-de-Bico",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Grão-de-bico escorrido e enxaguado", "quantidade": 240, "unidade": "g" },
+        { "nome": "Pepino médio em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Pimentão vermelho em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cebola roxa fatiada", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Azeitonas pretas", "quantidade": 100, "unidade": "g" },
+        { "nome": "Queijo feta esfarelado", "quantidade": 100, "unidade": "g" },
+        { "nome": "Salsinha picada", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, combine o grão-de-bico, pepino, pimentão, cebola roxa e azeitonas.",
+        "Em um pote pequeno, misture o azeite, suco de limão, alho, sal e pimenta para o molho.",
+        "Despeje o molho sobre a salada e misture bem.",
+        "Finalize com a salsinha picada e o queijo feta.",
+        "Sirva imediatamente ou leve à geladeira antes de servir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "vegana", "mediterrânea", "proteica"]
+    },
+    {
+      "nome": "Salada de Espinafre com Frango Grelhado",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Peito de frango grelhado e fatiado", "quantidade": 2, "unidade": "un" },
+        { "nome": "Espinafre fresco", "quantidade": 4, "unidade": "xicara" },
+        { "nome": "Maçã verde fatiada", "quantidade": 1, "unidade": "un" },
+        { "nome": "Nozes picadas", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Queijo de cabra esfarelado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinagre balsâmico", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, coloque o espinafre, maçã, nozes e queijo de cabra.",
+        "Grelhe os peitos de frango, deixe esfriar um pouco e fatie.",
+        "Em um pote pequeno, misture o azeite, vinagre balsâmico, mel, sal e pimenta para o molho.",
+        "Adicione o frango fatiado à salada e regue com o molho.",
+        "Sirva imediatamente."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "proteica", "leve", "fitness"]
+    },
+    {
+      "nome": "Salada de Quinoa com Legumes Assados",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Quinoa", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Abobrinha em rodelas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cenoura em rodelas", "quantidade": 1, "unidade": "un" },
+        { "nome": "Pimentão vermelho em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Azeite de oliva (para assar)", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Queijo parmesão ralado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva (para o molho)", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Cozinhe a quinoa conforme as instruções da embalagem e reserve.",
+        "Pré-aqueça o forno a 200°C.",
+        "Coloque os legumes em uma assadeira, regue com azeite e tempere com sal e pimenta.",
+        "Asse por 20-25 minutos, mexendo na metade do tempo.",
+        "Em uma tigela, combine a quinoa cozida e os legumes assados.",
+        "Em um pote pequeno, misture o azeite, suco de limão, mostarda, sal e pimenta para o molho.",
+        "Regue a salada com o molho e finalize com o queijo parmesão."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "fitness", "vegana", "nutritiva"]
+    },
+    {
+      "nome": "Salada de Abacate com Camarões",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Camarões limpos e descascados", "quantidade": 200, "unidade": "g" },
+        { "nome": "Abacate maduro em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Tomate em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cebola roxa picada", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Coentro fresco picado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Cozinhe os camarões em uma frigideira com um pouco de azeite até que fiquem rosados e cozidos.",
+        "Tempere com sal e pimenta.",
+        "Em uma tigela grande, misture o abacate, tomate, cebola roxa e coentro.",
+        "Em um pote pequeno, misture o azeite, suco de limão, alho, sal e pimenta para o molho.",
+        "Adicione os camarões à salada, regue com o molho e misture delicadamente.",
+        "Sirva imediatamente."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "sofisticada", "proteica", "leve"]
+    },
+    {
+      "nome": "Salada de Grãos com Tofu",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Lentilhas cozidas", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Milho", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Tomate-cereja cortado ao meio", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Tofu firme em cubos grelhado", "quantidade": 100, "unidade": "g" },
+        { "nome": "Cebolinha picada", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinagre de maçã", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Cominho em pó", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, combine as lentilhas, milho, tomate-cereja e tofu grelhado.",
+        "Em um pote pequeno, misture o azeite, vinagre de maçã, mel, cominho, sal e pimenta para o molho.",
+        "Regue a salada com o molho e misture bem.",
+        "Finalize com a cebolinha picada.",
+        "Sirva fria ou à temperatura ambiente."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "vegana", "proteica", "nutritiva"]
+    },
+    {
+      "nome": "Salada de Atum com Feijão Verde",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Atum em água escorrido", "quantidade": 1, "unidade": "un" },
+        { "nome": "Feijão verde cozido al dente", "quantidade": 200, "unidade": "g" },
+        { "nome": "Cebola roxa fatiada", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Pimentão vermelho em cubos", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Azeitonas verdes fatiadas", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Salsinha picada", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, misture o atum, feijão verde, cebola roxa, pimentão e azeitonas.",
+        "Em um pote pequeno, misture o azeite, suco de limão, mostarda, alho, sal e pimenta até emulsionar.",
+        "Despeje o molho sobre a salada e misture bem.",
+        "Finalize com a salsinha picada.",
+        "Sirva imediatamente ou leve à geladeira antes de servir."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "proteica", "rápida", "leve"]
+    },
+    {
+      "nome": "Salada de Abacate com Tomate e Cebola",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Abacate maduro em cubos", "quantidade": 2, "unidade": "un" },
+        { "nome": "Tomate grande em cubos", "quantidade": 1, "unidade": "un" },
+        { "nome": "Cebola roxa fatiada finamente", "quantidade": 0.5, "unidade": "un" },
+        { "nome": "Coentro fresco picado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, misture o abacate, tomate, cebola roxa e coentro.",
+        "Em um pote pequeno, misture o azeite, suco de limão, mel, sal e pimenta até emulsionar.",
+        "Regue a salada com o molho e misture delicadamente.",
+        "Sirva imediatamente para evitar que o abacate escureça."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "vegana", "rápida", "leve"]
+    },
+    {
+      "nome": "Salada com Salmão Defumado e Shoyo",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Mix de folhas verdes", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Folhas de radicchio", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Tomate-cereja cortado ao meio", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Alcaparras", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Carpaccio de salmão defumado", "quantidade": 150, "unidade": "g" },
+        { "nome": "Torradinhas", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Molho shoyo", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Azeite de oliva", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Ervas finas desidratadas", "quantidade": 1, "unidade": "pitada" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Misture os ingredientes do molho (shoyo, azeite, limão e ervas finas) e leve à geladeira por 15 minutos.",
+        "Monte a salada com as folhas, tomates, alcaparras e salmão rasgado.",
+        "Se não servir imediatamente, refrigere por até 3 horas.",
+        "Na hora de servir, regue com o molho e tempere com sal e pimenta a gosto.",
+        "Acompanhe com torradinhas."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "sofisticada", "proteica", "oriental"]
+    },
+    {
+      "nome": "Salada de Couve com Maçã e Nozes",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Couve picada", "quantidade": 4, "unidade": "xicara" },
+        { "nome": "Maçã verde fatiada fina", "quantidade": 1, "unidade": "un" },
+        { "nome": "Nozes picadas", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Queijo feta esfarelado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinagre de maçã", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, combine a couve, maçã, nozes e queijo feta.",
+        "Em um pote pequeno, misture o azeite, vinagre de maçã, mel, mostarda, sal e pimenta até emulsionar.",
+        "Regue a salada com o molho e misture bem.",
+        "Sirva imediatamente para que a couve permaneça crocante."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "fitness", "nutritiva", "rápida"]
+    },
+    {
+      "nome": "Salada de Frango com Abacaxi",
+      "categoria": "Salada",
+      "ingredientes": [
+        { "nome": "Peito de frango grelhado e fatiado", "quantidade": 2, "unidade": "un" },
+        { "nome": "Abacaxi fresco em cubos", "quantidade": 1, "unidade": "xicara" },
+        { "nome": "Alface americana picada", "quantidade": 4, "unidade": "xicara" },
+        { "nome": "Amêndoas fatiadas", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Coentro fresco picado", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela grande, combine o alface, abacaxi, frango, amêndoas e coentro.",
+        "Em um pote pequeno, misture o azeite, suco de limão, mel, alho, sal e pimenta até emulsionar.",
+        "Regue a salada com o molho e misture bem.",
+        "Sirva imediatamente para garantir a frescura dos ingredientes."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "proteica", "tropical", "leve"]
+    },
+    {
+      "nome": "Molho de Tahine e Limão",
+      "categoria": "Molhos",
+      "ingredientes": [
+        { "nome": "Tahine (pasta de gergelim)", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Água", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela, misture o tahine, suco de limão, alho e mel.",
+        "Adicione a água aos poucos até alcançar a consistência desejada.",
+        "Tempere com sal e pimenta a gosto.",
+        "Mexa bem até obter um molho homogêneo.",
+        "Sirva sobre sua salada favorita."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "vegana", "mediterrânea", "rápida"]
+    },
+    {
+      "nome": "Molho de Iogurte com Ervas",
+      "categoria": "Molhos",
+      "ingredientes": [
+        { "nome": "Iogurte grego natural", "quantidade": 0.5, "unidade": "xicara" },
+        { "nome": "Suco de limão", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Azeite de oliva", "quantidade": 1, "unidade": "colher_sopa" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Ervas frescas picadas (salsinha, cebolinha, dill ou manjericão)", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela, misture o iogurte, suco de limão, azeite, alho e mostarda.",
+        "Adicione as ervas frescas picadas e tempere com sal e pimenta.",
+        "Mexa bem até todos os ingredientes estarem bem incorporados.",
+        "Sirva com saladas de folhas verdes ou legumes."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "leve", "cremosa", "rápida"]
+    },
+    {
+      "nome": "Molho de Mostarda e Mel",
+      "categoria": "Molhos",
+      "ingredientes": [
+        { "nome": "Mostarda Dijon", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Mel", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Vinagre de maçã", "quantidade": 2, "unidade": "colher_sopa" },
+        { "nome": "Azeite de oliva", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela pequena, misture a mostarda, mel e vinagre.",
+        "Adicione o azeite em um fio contínuo enquanto mexe para emulsionar o molho.",
+        "Tempere com sal e pimenta a gosto.",
+        "Misture bem até ficar homogêneo.",
+        "Sirva sobre saladas de frango ou grãos."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "agridoce", "versátil", "rápida"]
+    },
+    {
+      "nome": "Molho de Abacate e Limão",
+      "categoria": "Molhos",
+      "ingredientes": [
+        { "nome": "Abacate maduro", "quantidade": 1, "unidade": "un" },
+        { "nome": "Suco de limão", "quantidade": 1, "unidade": "un" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Iogurte grego ou água", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em um processador de alimentos ou liquidificador, combine o abacate, suco de limão e alho.",
+        "Adicione o iogurte ou água para ajustar a consistência do molho.",
+        "Tempere com sal e pimenta a gosto e processe até obter uma mistura homogênea.",
+        "Sirva com saladas de folhas verdes, vegetais ou como molho para wraps."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "vegana", "cremosa", "rápida"]
+    },
+    {
+      "nome": "Molho Vinaigrette Balsâmico",
+      "categoria": "Molhos",
+      "ingredientes": [
+        { "nome": "Vinagre balsâmico", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Azeite de oliva", "quantidade": 0.25, "unidade": "xicara" },
+        { "nome": "Mostarda Dijon", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Mel", "quantidade": 1, "unidade": "colher_cha" },
+        { "nome": "Alho picado", "quantidade": 1, "unidade": "un" },
+        { "nome": "Sal", "quantidade": 0, "unidade": "a_gosto" },
+        { "nome": "Pimenta-do-reino", "quantidade": 0, "unidade": "a_gosto" }
+      ],
+      "modo_preparo": [
+        "Em uma tigela pequena, misture o vinagre balsâmico, mostarda e mel.",
+        "Adicione o azeite em um fio contínuo enquanto mistura para emulsionar o molho.",
+        "Adicione o alho, sal e pimenta a gosto.",
+        "Misture bem até que todos os ingredientes estejam incorporados.",
+        "Sirva sobre saladas de folhas, saladas de grãos ou como tempero para vegetais assados."
+      ],
+      "rendimento_kg": 1,
+      "origem": "global",
+      "tags": ["saudável", "clássica", "versátil", "rápida"]
+    }
+  ]
+}

@@ -1,4 +1,7 @@
+import { useMemo } from 'react'
+import { Plus } from 'lucide-react'
 import MonthlyCalendarView from './MonthlyCalendarView.jsx'
+import { generateWeekDays, eventsForDay } from '../../lib/calendarWeek.js'
 
 export default function CalendarView({ workspace, profiles, currentProf, nonManagerProfiles, openModal, weekOffset = 0 }) {
   const isManager = currentProf === 'gestor'
@@ -30,19 +33,26 @@ export default function CalendarView({ workspace, profiles, currentProf, nonMana
 
 function WeeklyCalendarView({ workspace, profiles, currentProf, nonManagerProfiles, openModal, isManager, weekOffset }) {
   const profile = profiles[currentProf]
-  const todayKey = workspace.weekDays?.find((d) => d.today)?.key ?? 'qua'
+  const displayWeekDays = useMemo(() => generateWeekDays(weekOffset), [weekOffset])
+  const rawEvents = workspace.rawEvents ?? []
 
   function memberNames(memberKeys) {
     return memberKeys.map((key) => profiles[key]?.name ?? key).join(' · ')
   }
 
-  function getEvents(dayKey) {
-    const events = workspace.calendar[dayKey] ?? []
-    if (isManager) return events
-    return events.filter((item) => item.members.includes(currentProf))
+  function getEventsForDay(day) {
+    let list = []
+    if (rawEvents.length > 0) {
+      list = eventsForDay(rawEvents, day)
+    } else {
+      list = workspace.calendar?.[day.key] ?? []
+    }
+    if (isManager) return list
+    return list.filter((item) => item.members.includes(currentProf))
   }
 
-  const todaysEvents = getEvents(todayKey)
+  const todayDay = displayWeekDays.find((d) => d.today)
+  const todaysEvents = todayDay ? getEventsForDay(todayDay) : []
 
   function dayBadgeLabel() {
     const count = todaysEvents.length
@@ -60,6 +70,14 @@ function WeeklyCalendarView({ workspace, profiles, currentProf, nonManagerProfil
 
   return (
     <>
+      <div className="cal-new-event-row">
+        <span className="cal-new-event-title">Agenda</span>
+        <button type="button" className="cal-new-event-btn" onClick={() => openModal('event')} aria-label="Novo evento">
+          <Plus size={18} strokeWidth={2.25} aria-hidden />
+          Novo evento
+        </button>
+      </div>
+
       {isManager ? (
         <div className="mbars">
           {Object.values(profiles).filter((p) => p.key !== 'gestor').map((p) => (
@@ -111,8 +129,8 @@ function WeeklyCalendarView({ workspace, profiles, currentProf, nonManagerProfil
       )}
 
       <div className="cg">
-        {workspace.weekDays.filter((day) => !day.today).map((day) => {
-          const events = getEvents(day.key)
+        {displayWeekDays.filter((day) => !day.today).map((day) => {
+          const events = getEventsForDay(day)
           return (
             <div className="cd" key={day.key}>
               <div className="cd-h">
@@ -155,12 +173,6 @@ function WeeklyCalendarView({ workspace, profiles, currentProf, nonManagerProfil
             })}
           </div>
         )}
-      </div>
-
-      <div style={{ marginTop: 10 }}>
-        <button className="ib" style={{ width: '100%', textAlign: 'center', padding: 10, fontSize: '0.82em', borderRadius: 10 }} onClick={() => openModal('event')} aria-label="Adicionar novo evento">
-          ➕ Novo evento
-        </button>
       </div>
     </>
   )

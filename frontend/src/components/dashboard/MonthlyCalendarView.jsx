@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { Plus } from 'lucide-react'
 import { useAppData } from '../../context/AppDataContext.jsx'
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -95,12 +96,18 @@ export default function MonthlyCalendarView({ workspace, profiles, currentProf, 
   return (
     <div>
       <div className="card" style={{ marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <button className="ar" onClick={prevMonth} aria-label="Mês anterior">‹</button>
-          <span style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, fontSize: '0.95em' }}>
-            {MONTH_NAMES[month]} {year}
-          </span>
-          <button className="ar" onClick={nextMonth} aria-label="Próximo mês">›</button>
+        <div className="cal-month-header">
+          <div className="cal-month-nav">
+            <button type="button" className="ar" onClick={prevMonth} aria-label="Mês anterior">‹</button>
+            <span style={{ fontFamily: "'Plus Jakarta Sans'", fontWeight: 800, fontSize: '0.95em' }}>
+              {MONTH_NAMES[month]} {year}
+            </span>
+            <button type="button" className="ar" onClick={nextMonth} aria-label="Próximo mês">›</button>
+          </div>
+          <button type="button" className="cal-new-event-btn" onClick={() => openModal('event')} aria-label="Novo evento">
+            <Plus size={18} strokeWidth={2.25} aria-hidden />
+            Novo evento
+          </button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 4 }}>
@@ -145,7 +152,7 @@ export default function MonthlyCalendarView({ workspace, profiles, currentProf, 
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {dayEvents.slice(0, 2).map((ev) => {
-                      const color = isManager && ev.members?.[0] ? (profiles[ev.members[0]]?.color ?? 'var(--mae)') : (profiles[currentProf]?.color ?? 'var(--mae)')
+                      const color = isManager && ev.members?.[0] ? (profiles[ev.members[0]]?.color ?? 'var(--brand)') : (profiles[currentProf]?.color ?? 'var(--brand)')
                       return (
                         <div key={ev.id} style={{ fontSize: '0.5em', background: color + '22', borderLeft: `2px solid ${color}`, borderRadius: 2, padding: '1px 2px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', fontWeight: 600 }}>
                           {ev.title}
@@ -167,15 +174,12 @@ export default function MonthlyCalendarView({ workspace, profiles, currentProf, 
         <div className="card">
           <div className="card-t">
             📅 {selectedDay.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
-            <button className="ib" style={{ marginLeft: 'auto' }} onClick={() => openModal('event')}>
-              ➕ Novo evento
-            </button>
           </div>
           {selectedEvents.length === 0 ? (
             <div className="empty-state">Nenhum evento neste dia.</div>
           ) : (
             selectedEvents.map((ev) => {
-              const color = isManager && ev.members?.[0] ? (profiles[ev.members[0]]?.color ?? 'var(--mae)') : (profiles[currentProf]?.color ?? 'var(--mae)')
+              const color = isManager && ev.members?.[0] ? (profiles[ev.members[0]]?.color ?? 'var(--brand)') : (profiles[currentProf]?.color ?? 'var(--brand)')
               return (
                 <div key={ev.id} className="ti" style={{ gap: 8 }}>
                   <div style={{ width: 4, height: 4, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 1 }} />
@@ -191,13 +195,6 @@ export default function MonthlyCalendarView({ workspace, profiles, currentProf, 
         </div>
       )}
 
-      {!selectedDay && (
-        <div style={{ marginTop: 8 }}>
-          <button className="ib" style={{ width: '100%', textAlign: 'center', padding: 10, fontSize: '0.82em', borderRadius: 10 }} onClick={() => openModal('event')}>
-            ➕ Novo evento
-          </button>
-        </div>
-      )}
     </div>
   )
 }

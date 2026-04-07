@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { Pool } = require('pg')
 const { newDb } = require('pg-mem')
+const { seedEbookGlobalRecipesFromFile } = require('./seedEbookGlobalRecipes')
 
 function createPool() {
   if (process.env.DATABASE_URL) {
@@ -60,6 +61,200 @@ async function transaction(callback) {
 
 function uid(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
+}
+
+const APP_TZ_MIG = process.env.APP_TZ || 'America/Sao_Paulo'
+
+function ymdAppTz(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: APP_TZ_MIG })
+}
+
+function weekdayMon0AppTz(d) {
+  const s = new Intl.DateTimeFormat('en-US', { timeZone: APP_TZ_MIG, weekday: 'short' }).format(d)
+  const map = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 }
+  return map[s] ?? 0
+}
+
+function mondayOfWeekContainingNow() {
+  const now = new Date()
+  const diff = weekdayMon0AppTz(now)
+  return new Date(now.getTime() - diff * 86400000)
+}
+
+function labelToDayOffset(dayLabel) {
+  const s = String(dayLabel).toLowerCase()
+  if (s.includes('dom')) return 6
+  if (s.includes('sáb') || s.includes('sab')) return 5
+  if (s.includes('sex')) return 4
+  if (s.includes('qui')) return 3
+  if (s.includes('qua')) return 2
+  if (s.includes('ter')) return 1
+  if (s.includes('seg')) return 0
+  return 0
+}
+
+function planDateYmdForLegacyLabel(dayLabel) {
+  const monday = mondayOfWeekContainingNow()
+  const off = labelToDayOffset(dayLabel)
+  return ymdAppTz(new Date(monday.getTime() + off * 86400000))
+}
+
+/** One-time: copy flat `meals` → menus + menu_slots (semana actual por dia da semana). */
+async function migrateLegacyMealsToPlanner() {
+  const userRows = await many(`SELECT DISTINCT owner_user_id FROM meals WHERE owner_user_id IS NOT NULL`)
+  for (const row of userRows) {
+    const ownerUserId = row.owner_user_id
+    const cnt = await value(`SELECT COUNT(*)::int FROM menu_slots WHERE owner_user_id = $1`, [ownerUserId])
+    if (Number(cnt) > 0) continue
+
+    const oldMeals = await many(
+      `SELECT icon, name, day_label, sort_order FROM meals WHERE owner_user_id = $1 ORDER BY sort_order ASC, created_at ASC`,
+      [ownerUserId],
+    )
+    if (oldMeals.length === 0) continue
+
+    const now = new Date().toISOString()
+    const mid = uid('menu')
+    await query(
+      `
+        INSERT INTO menus (id, owner_user_id, name, sort_order, created_at)
+        VALUES ($1, $2, $3, 0, $4)
+      `,
+      [mid, ownerUserId, 'Meu cardápio', now],
+    )
+
+    let sortOrder = 0
+    for (const m of oldMeals) {
+      const planDate = planDateYmdForLegacyLabel(m.day_label)
+      const sid = uid('mns')
+      const title = `${m.icon || ''} ${m.name || ''}`.trim() || 'Refeição'
+      await query(
+        `
+          INSERT INTO menu_slots (id, owner_user_id, menu_id, plan_date, slot_type, recipe_id, custom_title, sort_order)
+          VALUES ($1, $2, $3, $4::date, 'lunch', NULL, $5, $6)
+        `,
+        [sid, ownerUserId, mid, planDate, title, sortOrder++],
+      )
+    }
+  }
+}
+
+/** One-time: meal_day_groups + meal_slots → menus + menu_slots (antes de remover tabelas antigas). */
+async function migratePlannerGroupsToMenus() {
+  try {
+    await query(`SELECT 1 FROM meal_slots LIMIT 1`)
+  } catch {
+    return
+  }
+
+  const cnt = await value(`SELECT COUNT(*)::int FROM menu_slots`)
+  if (Number(cnt) > 0) return
+
+  const slotRows = await many(
+    `
+      SELECT ms.id AS "oldId", mdg.owner_user_id AS "ownerUserId", mdg.plan_date AS "planDate",
+             ms.slot_type AS "slotType", ms.recipe_id AS "recipeId", ms.custom_title AS "customTitle",
+             ms.sort_order AS "sortOrder"
+      FROM meal_slots ms
+      INNER JOIN meal_day_groups mdg ON mdg.id = ms.meal_day_group_id
+    `,
+  )
+  if (slotRows.length === 0) return
+
+  const userIds = [...new Set(slotRows.map((r) => r.ownerUserId))]
+  const now = new Date().toISOString()
+  const menuByUser = new Map()
+  for (const ownerUserId of userIds) {
+    const mid = uid('menu')
+    await query(
+      `
+        INSERT INTO menus (id, owner_user_id, name, sort_order, created_at)
+        VALUES ($1, $2, $3, 0, $4)
+      `,
+      [mid, ownerUserId, 'Meu cardápio', now],
+    )
+    menuByUser.set(ownerUserId, mid)
+  }
+
+  for (const r of slotRows) {
+    const menuId = menuByUser.get(r.ownerUserId)
+    const newId = uid('mns')
+    await query(
+      `
+        INSERT INTO menu_slots (id, owner_user_id, menu_id, plan_date, slot_type, recipe_id, custom_title, sort_order)
+        VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8)
+      `,
+      [
+        newId,
+        r.ownerUserId,
+        menuId,
+        r.planDate,
+        r.slotType,
+        r.recipeId,
+        r.customTitle,
+        r.sortOrder,
+      ],
+    )
+  }
+}
+
+/** Remove tabelas legadas após dados estarem em menus/menu_slots. */
+async function dropLegacyMealPlannerTables() {
+  try {
+    await query(`DROP TABLE IF EXISTS meal_slots CASCADE`)
+    await query(`DROP TABLE IF EXISTS meal_day_groups CASCADE`)
+  } catch (e) {
+    console.error('dropLegacyMealPlannerTables:', e)
+  }
+}
+
+/**
+ * Após existirem colunas meal_kind / is_system_default: remove cardápios extra (ex. "Meu cardápio"),
+ * move slots para o cardápio base certo e mantém só os 4 fixos por utilizador.
+ */
+async function purgeExtraMenusAndReassignSlots() {
+  const { ensureDefaultMenusForUser, plannerSlotTypeToMealKind } = require('./defaultMenus')
+  const users = await many(`SELECT id FROM users`)
+  for (const u of users) {
+    await ensureDefaultMenusForUser(u.id)
+  }
+  const extras = await many(
+    `SELECT id, owner_user_id FROM menus WHERE COALESCE(is_system_default, FALSE) = FALSE`,
+  )
+  for (const menu of extras) {
+    const kinds = await many(
+      `
+        SELECT id, meal_kind FROM menus
+        WHERE owner_user_id = $1 AND COALESCE(is_system_default, FALSE) = TRUE AND meal_kind IS NOT NULL
+      `,
+      [menu.owner_user_id],
+    )
+    const byKind = {}
+    for (const k of kinds) {
+      if (k.meal_kind) byKind[k.meal_kind] = k.id
+    }
+    const fallbackTarget = byKind.almoco || kinds[0]?.id || null
+    const slots = await many(`SELECT id, slot_type FROM menu_slots WHERE menu_id = $1`, [menu.id])
+    for (const s of slots) {
+      const mk = plannerSlotTypeToMealKind(s.slot_type)
+      const target = byKind[mk] || fallbackTarget
+      if (target) {
+        await query(`UPDATE menu_slots SET menu_id = $1 WHERE id = $2`, [target, s.id])
+      }
+    }
+  }
+  await query(`DELETE FROM menus WHERE COALESCE(is_system_default, FALSE) = FALSE`)
+  await query(`
+    UPDATE menus SET sort_order = CASE meal_kind
+      WHEN 'cafe_manha' THEN 0
+      WHEN 'almoco' THEN 1
+      WHEN 'jantar' THEN 2
+      WHEN 'lanche' THEN 3
+      ELSE sort_order
+    END
+    WHERE COALESCE(is_system_default, FALSE) = TRUE
+      AND meal_kind IN ('cafe_manha', 'almoco', 'jantar', 'lanche')
+  `)
 }
 
 async function migrate() {
@@ -174,7 +369,7 @@ async function migrate() {
         day_key TEXT NOT NULL,
         event_date TEXT,
         title TEXT NOT NULL,
-        time TEXT NOT NULL,
+        event_time TEXT NOT NULL,
         cls TEXT NOT NULL,
         member_keys_json TEXT DEFAULT '[]',
         recurrence_type TEXT DEFAULT 'único',
@@ -207,6 +402,7 @@ async function migrate() {
         sub TEXT,
         detail TEXT,
         participant_keys_json TEXT DEFAULT '[]',
+        sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL
       )
     `,
@@ -221,6 +417,83 @@ async function migrate() {
         today BOOLEAN NOT NULL DEFAULT FALSE,
         sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS recipes (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        mode TEXT NOT NULL DEFAULT 'simple',
+        image_url TEXT,
+        placeholder_key TEXT,
+        base_servings NUMERIC NOT NULL DEFAULT 4,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS recipe_ingredients (
+        id TEXT PRIMARY KEY,
+        recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        name TEXT NOT NULL,
+        quantity TEXT NOT NULL DEFAULT '',
+        unit TEXT
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS recipe_member_servings (
+        id TEXT PRIMARY KEY,
+        recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+        member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+        servings NUMERIC NOT NULL DEFAULT 1,
+        UNIQUE(recipe_id, member_id)
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS menus (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS menu_slots (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        menu_id TEXT NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
+        plan_date DATE NOT NULL,
+        slot_type TEXT NOT NULL,
+        recipe_id TEXT REFERENCES recipes(id) ON DELETE SET NULL,
+        custom_title TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS shopping_lists (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT,
+        kind TEXT NOT NULL DEFAULT 'manual',
+        horizon_days INTEGER,
+        period_start DATE,
+        period_end DATE,
+        created_at TIMESTAMPTZ NOT NULL
+      )
+    `,
+    `
+      CREATE TABLE IF NOT EXISTS shopping_items (
+        id TEXT PRIMARY KEY,
+        list_id TEXT NOT NULL REFERENCES shopping_lists(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        quantity_text TEXT NOT NULL DEFAULT '',
+        unit TEXT,
+        checked BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        source TEXT NOT NULL DEFAULT 'manual'
       )
     `,
     `
@@ -251,7 +524,8 @@ async function migrate() {
         active BOOLEAN NOT NULL DEFAULT FALSE,
         paused BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL,
-        last_resumed_at TIMESTAMPTZ
+        last_resumed_at TIMESTAMPTZ,
+        favorite_id TEXT
       )
     `,
     `CREATE INDEX IF NOT EXISTS idx_tasks_owner_profile ON tasks(owner_user_id, profile_key)`,
@@ -260,6 +534,14 @@ async function migrate() {
     `CREATE INDEX IF NOT EXISTS idx_events_owner_day ON events(owner_user_id, day_key)`,
     `CREATE INDEX IF NOT EXISTS idx_favorites_owner_profile ON favorites(owner_user_id, profile_key)`,
     `CREATE INDEX IF NOT EXISTS idx_meals_owner_sort ON meals(owner_user_id, sort_order, created_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_recipes_owner ON recipes(owner_user_id, created_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_recipe_ingredients_recipe ON recipe_ingredients(recipe_id, sort_order)`,
+    `CREATE INDEX IF NOT EXISTS idx_recipe_member_servings_recipe ON recipe_member_servings(recipe_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_menus_owner ON menus(owner_user_id, sort_order, created_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_menu_slots_menu_date ON menu_slots(menu_id, plan_date)`,
+    `CREATE INDEX IF NOT EXISTS idx_menu_slots_owner ON menu_slots(owner_user_id, plan_date)`,
+    `CREATE INDEX IF NOT EXISTS idx_shopping_lists_owner ON shopping_lists(owner_user_id, created_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_shopping_items_list ON shopping_items(list_id, sort_order)`,
     `CREATE INDEX IF NOT EXISTS idx_rewards_owner_cost ON rewards(owner_user_id, cost, created_at)`,
     `CREATE INDEX IF NOT EXISTS idx_time_entries_owner_profile ON time_entries(owner_user_id, profile_key, created_at)`,
   ]
@@ -271,6 +553,383 @@ async function migrate() {
   try {
     await query(`ALTER TABLE favorites ADD COLUMN participant_keys_json TEXT DEFAULT '[]'`)
   } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE favorites ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE favorites ADD COLUMN icon_image_url TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE categories ADD COLUMN icon_image_url TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE time_entries ADD COLUMN favorite_id TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE tasks ADD COLUMN for_date TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE tasks ADD COLUMN archived BOOLEAN NOT NULL DEFAULT FALSE`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`UPDATE tasks SET for_date = to_char(created_at::date, 'YYYY-MM-DD') WHERE for_date IS NULL`)
+  } catch (_) { /* best-effort backfill */ }
+  try {
+    await query(`ALTER TABLE task_history ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE events RENAME COLUMN "time" TO event_time`)
+  } catch (_) { /* já é event_time ou coluna time inexistente */ }
+  try {
+    await query(`ALTER TABLE events ADD COLUMN event_time TEXT NOT NULL DEFAULT '09:00'`)
+  } catch (_) { /* já existe */ }
+  try {
+    await query(`UPDATE events SET event_time = "time"::text WHERE "time" IS NOT NULL`)
+  } catch (_) { /* só existe event_time */ }
+  try {
+    await query(`ALTER TABLE events DROP COLUMN IF EXISTS "time"`)
+  } catch (_) { /* */ }
+  try {
+    await query(`ALTER TABLE events ADD COLUMN event_date TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE events ADD COLUMN recurrence_type TEXT DEFAULT 'único'`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`ALTER TABLE events ADD COLUMN recurrence_days TEXT`)
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(
+      `ALTER TABLE events ADD COLUMN created_at TEXT NOT NULL DEFAULT '1970-01-01T00:00:00.000Z'`,
+    )
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(
+      `ALTER TABLE events ADD COLUMN updated_at TEXT NOT NULL DEFAULT '1970-01-01T00:00:00.000Z'`,
+    )
+  } catch (_) { /* column already exists */ }
+  try {
+    await query(`
+      UPDATE favorites f SET sort_order = s.rn FROM (
+        SELECT id, (ROW_NUMBER() OVER (PARTITION BY owner_user_id, profile_key ORDER BY created_at ASC) - 1) AS rn
+        FROM favorites
+      ) s
+      WHERE f.id = s.id
+      AND EXISTS (
+        SELECT 1 FROM favorites f2
+        WHERE f2.owner_user_id = f.owner_user_id AND f2.profile_key = f.profile_key
+        GROUP BY f2.owner_user_id, f2.profile_key
+        HAVING COUNT(*) > 1 AND COUNT(DISTINCT f2.sort_order) = 1
+      )
+    `)
+  } catch (_) { /* best-effort backfill for legacy rows sharing the same sort_order */ }
+
+  try {
+    await migratePlannerGroupsToMenus()
+  } catch (e) {
+    console.error('migratePlannerGroupsToMenus:', e)
+  }
+
+  try {
+    await migrateLegacyMealsToPlanner()
+  } catch (e) {
+    console.error('migrateLegacyMealsToPlanner:', e)
+  }
+
+  try {
+    await dropLegacyMealPlannerTables()
+  } catch (e) {
+    console.error('dropLegacyMealPlannerTables:', e)
+  }
+
+  try {
+    await query(`ALTER TABLE shopping_items ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`)
+  } catch (_) {
+    /* coluna já existe */
+  }
+  try {
+    await query(`UPDATE shopping_items SET source = 'manual' WHERE source IS NULL OR trim(source) = ''`)
+  } catch (_) {
+    /* best-effort */
+  }
+  try {
+    await query(
+      `UPDATE shopping_items SET source = 'manual' WHERE source NOT IN ('manual', 'generated')`,
+    )
+  } catch (_) {
+    /* best-effort */
+  }
+
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN grams_per_portion NUMERIC`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN ml_per_portion NUMERIC`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN spoon_soup_per_portion NUMERIC`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN spoon_tea_per_portion NUMERIC`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipe_member_servings ADD COLUMN amount_unit TEXT NOT NULL DEFAULT 'portion'`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN recipe_category TEXT`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS meal_combinations (
+        id TEXT PRIMARY KEY,
+        owner_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS meal_combination_items (
+        id TEXT PRIMARY KEY,
+        combination_id TEXT NOT NULL REFERENCES meal_combinations(id) ON DELETE CASCADE,
+        meal_category TEXT NOT NULL,
+        recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(combination_id, meal_category)
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_meal_combinations_owner ON meal_combinations(owner_user_id, created_at)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_meal_combination_items_combo ON meal_combination_items(combination_id, sort_order)`,
+    )
+  } catch (_) {
+    /* */
+  }
+
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS family_meal_settings (
+        owner_user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        auto_active BOOLEAN NOT NULL DEFAULT FALSE,
+        member_spoons JSONB NOT NULL DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMPTZ NOT NULL
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN servings_source TEXT NOT NULL DEFAULT 'manual'`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN recipe_origin TEXT NOT NULL DEFAULT 'user'`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN global_source_id TEXT`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN tags JSONB NOT NULL DEFAULT '[]'::jsonb`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes USING GIN (tags)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS recipe_steps (
+        id TEXT PRIMARY KEY,
+        recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        body TEXT NOT NULL DEFAULT ''
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_recipe_steps_recipe ON recipe_steps(recipe_id, sort_order)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS global_recipes (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        recipe_category TEXT,
+        ingredients JSONB NOT NULL DEFAULT '[]'::jsonb,
+        steps JSONB NOT NULL DEFAULT '[]'::jsonb,
+        tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_global_recipes_cat ON global_recipes(recipe_category)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_global_recipes_name ON global_recipes(name)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`CREATE INDEX IF NOT EXISTS idx_global_recipes_tags ON global_recipes USING GIN (tags)`)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`ALTER TABLE global_recipes ADD COLUMN meal_roles JSONB NOT NULL DEFAULT '[]'::jsonb`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await seedEbookGlobalRecipesFromFile(query)
+    const demoRow = await one(`SELECT id FROM global_recipes WHERE id = $1`, ['glob-demo-strogonoff'])
+    if (!demoRow) {
+      const now = new Date().toISOString()
+      await query(
+        `
+          INSERT INTO global_recipes (id, name, recipe_category, ingredients, steps, tags, created_at)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7)
+        `,
+        [
+          'glob-demo-strogonoff',
+          'Strogonoff de Frango (exemplo)',
+          'protein',
+          JSON.stringify([
+            { nome: 'Peito de frango', quantidade: 0.5, unidade: 'kg' },
+            { nome: 'Creme de leite', quantidade: 200, unidade: 'ml' },
+            { nome: 'Molho de tomate', quantidade: 200, unidade: 'ml' },
+          ]),
+          JSON.stringify([
+            'Corte o frango em cubos e tempere com sal.',
+            'Refogue e finalize com creme de leite.',
+          ]),
+          JSON.stringify(['rapida', 'popular']),
+          now,
+        ],
+      )
+    }
+  } catch (e) {
+    console.error('seed global_recipes:', e)
+  }
+
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN meal_roles JSONB NOT NULL DEFAULT '[]'::jsonb`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE recipes ADD COLUMN meal_combo_rules JSONB NOT NULL DEFAULT '{}'::jsonb`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS platform_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL
+      )
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await query(`ALTER TABLE meal_combinations ADD COLUMN meal_kind TEXT`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE menus ADD COLUMN meal_kind TEXT`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE menus ADD COLUMN is_system_default BOOLEAN NOT NULL DEFAULT FALSE`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE menus ADD COLUMN auto_mode_enabled BOOLEAN NOT NULL DEFAULT FALSE`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE menus ADD COLUMN required_slots_json JSONB NOT NULL DEFAULT '[]'::jsonb`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`
+      ALTER TABLE menus ADD COLUMN default_combination_id TEXT
+      REFERENCES meal_combinations(id) ON DELETE SET NULL
+    `)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`ALTER TABLE menus ADD COLUMN auto_variations_json JSONB`)
+  } catch (_) {
+    /* já existe */
+  }
+  try {
+    await query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_menus_owner_meal_kind_unique
+      ON menus (owner_user_id, meal_kind)
+      WHERE meal_kind IS NOT NULL
+        AND meal_kind IN ('cafe_manha', 'almoco', 'jantar', 'lanche')
+    `)
+  } catch (_) {
+    /* */
+  }
+  try {
+    await purgeExtraMenusAndReassignSlots()
+  } catch (e) {
+    console.error('purgeExtraMenusAndReassignSlots:', e)
+  }
+  try {
+    const { ensureDefaultGlobalRecipeTemplates } = require('./defaultMenus')
+    await ensureDefaultGlobalRecipeTemplates(db)
+  } catch (e) {
+    console.error('ensureDefaultGlobalRecipeTemplates:', e)
+  }
 }
 
 async function initializeCustomerAccountForUser(userId, customerData = {}, executor = db) {
@@ -386,6 +1045,13 @@ async function initializeWorkspaceForUser(userId, name, customerData = {}, execu
     [uid('reward'), userId, now],
     executor,
   )
+
+  try {
+    const { ensureDefaultMenusForUser } = require('./defaultMenus')
+    await ensureDefaultMenusForUser(userId, executor)
+  } catch (e) {
+    console.error('ensureDefaultMenusForUser:', e)
+  }
 }
 
 async function seed() {
@@ -759,7 +1425,7 @@ async function seed() {
       for (const [ownerUserId, dayKey, title, time, cls, memberKeys] of eventSeeds) {
         await query(
           `
-            INSERT INTO events (id, owner_user_id, day_key, title, time, cls, member_keys_json, created_at, updated_at)
+            INSERT INTO events (id, owner_user_id, day_key, title, event_time, cls, member_keys_json, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           `,
           [uid('evt'), ownerUserId, dayKey, title, time, cls, JSON.stringify(memberKeys), now, now],

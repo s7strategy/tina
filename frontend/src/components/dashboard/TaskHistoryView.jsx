@@ -47,14 +47,38 @@ function formatTime(isoString) {
   }
 }
 
+/** Agrupa pelo dia do calendário local (igual ao “fechar o dia” à meia-noite no dispositivo). */
+function dayKeyLocal(iso) {
+  if (!iso) return 'unknown'
+  try {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return 'unknown'
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  } catch {
+    return 'unknown'
+  }
+}
+
 function groupByDate(history) {
   const groups = {}
   history.forEach((item) => {
-    const dateKey = item.completedAt ? item.completedAt.slice(0, 10) : 'unknown'
+    const dateKey = item.completedAt ? dayKeyLocal(item.completedAt) : 'unknown'
     if (!groups[dateKey]) groups[dateKey] = []
     groups[dateKey].push(item)
   })
-  return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))
+  const entries = Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))
+  for (const [, items] of entries) {
+    items.sort((a, b) => {
+      const am = a.status === 'missed' ? 1 : 0
+      const bm = b.status === 'missed' ? 1 : 0
+      if (am !== bm) return am - bm
+      return (b.completedAt || '').localeCompare(a.completedAt || '')
+    })
+  }
+  return entries
 }
 
 export default function TaskHistoryView({ profiles, currentProf }) {
@@ -110,21 +134,52 @@ export default function TaskHistoryView({ profiles, currentProf }) {
 
         {!loading && history.length === 0 && (
           <div className="empty-state">
-            Nenhuma tarefa concluída no período selecionado.
+            Nenhum registro de tarefa no período (concluídas ou não concluídas).
           </div>
         )}
 
-        {!loading && grouped.map(([dateKey, items]) => (
+        {!loading && grouped.map(([dateKey, items]) => {
+          const doneCount = items.filter((i) => i.status !== 'missed').length
+          const missedCount = items.filter((i) => i.status === 'missed').length
+          return (
           <div key={dateKey} style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--mae)', textTransform: 'capitalize', marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid var(--bd)' }}>
-              📅 {formatDate(dateKey + 'T12:00:00')}
+            <div style={{ fontSize: '0.72em', fontWeight: 700, color: 'var(--brand)', textTransform: 'capitalize', marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid var(--bd)' }}>
+              <span>📅 {formatDate(dateKey + 'T12:00:00')}</span>
+              <span style={{ display: 'block', fontSize: '0.88em', fontWeight: 600, color: 'var(--t2)', marginTop: 4, textTransform: 'none' }}>
+                Dia encerrado: <span style={{ color: '#15803d' }}>{doneCount} concluída{doneCount !== 1 ? 's' : ''}</span>
+                {' · '}
+                <span style={{ color: missedCount > 0 ? '#b91c1c' : 'var(--t3)' }}>{missedCount} não feita{missedCount !== 1 ? 's' : ''}</span>
+              </span>
             </div>
             {items.map((item) => {
               const profile = profiles[item.profileKey]
+              const missed = item.status === 'missed'
               return (
-                <div key={item.id} className="ti" style={{ gap: 8 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gn)', flexShrink: 0, marginTop: 1 }} />
-                  <div className="tl" style={{ textDecoration: 'none', fontWeight: 600 }}>{item.title}</div>
+                <div key={item.id} className={`ti${missed ? ' task-hist-row-missed' : ''}`} style={{ gap: 8 }}>
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: missed ? '#dc2626' : 'var(--gn)',
+                      flexShrink: 0,
+                      marginTop: 1,
+                    }}
+                    title={missed ? 'Não concluída neste dia' : 'Concluída'}
+                  />
+                  <div
+                    className="tl"
+                    style={{
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      color: missed ? '#b91c1c' : undefined,
+                    }}
+                  >
+                    {item.title}
+                  </div>
+                  {missed && (
+                    <span style={{ fontSize: '0.62em', fontWeight: 800, color: '#b91c1c', flexShrink: 0 }}>Não feita</span>
+                  )}
                   {item.reward && (
                     <div className="tp" title="Recompensa">🎁 {item.reward}</div>
                   )}
@@ -144,7 +199,8 @@ export default function TaskHistoryView({ profiles, currentProf }) {
               )
             })}
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

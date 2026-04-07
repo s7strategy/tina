@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { api } from '../lib/api.js'
+import { LOGO_SRC } from '../lib/branding.js'
 import ErrorBoundary from '../components/ui/ErrorBoundary.jsx'
 
 const currentMonth = new Date().toISOString().slice(0, 7)
@@ -194,6 +195,11 @@ function SuperAdminPage() {
   const [feedback, setFeedback] = useState(null)
   const [isEditingUser, setIsEditingUser] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [platformIntegration, setPlatformIntegration] = useState(null)
+  /** Uma chave por linha (ou separadas por vírgula). OpenAI sk-… ou Groq gsk_… */
+  const [llmKeysDraft, setLlmKeysDraft] = useState('')
+  const [openAiModelDraft, setOpenAiModelDraft] = useState('gpt-4o-mini')
+  const [platformSaving, setPlatformSaving] = useState(false)
 
   const selectedUser = useMemo(() => users.find((row) => row.id === selectedUserId) ?? null, [selectedUserId, users])
   const selectedPlan = useMemo(() => plans.find((plan) => plan.id === editingPlanId) ?? null, [editingPlanId, plans])
@@ -202,16 +208,27 @@ function SuperAdminPage() {
     async (nextFilters = filters, nextMonth = selectedMonth) => {
       setLoading(true)
       try {
-        const [usersPayload, plansPayload, analyticsPayload] = await Promise.all([
+        const [usersPayload, plansPayload, analyticsPayload, platformPayload] = await Promise.all([
           api.listUsers(token, nextFilters),
           api.listPlans(token),
           api.adminAnalytics(token, { month: nextMonth }),
+          api.getAdminPlatform(token).catch(() => null),
         ])
 
         setUsers(usersPayload.users)
         setMetrics(usersPayload.metrics || defaultMetrics)
         setPlans(plansPayload.plans)
         setAnalytics(analyticsPayload.analytics || defaultAnalytics)
+        if (platformPayload) {
+          setPlatformIntegration(platformPayload)
+          const defModel =
+            platformPayload.llmProviderGuess === 'groq'
+              ? 'llama-3.1-8b-instant'
+              : 'gpt-4o-mini'
+          setOpenAiModelDraft(platformPayload.openAiModel || defModel)
+        } else {
+          setPlatformIntegration(null)
+        }
         setSelectedUserId((current) => {
           if (current && usersPayload.users.some((row) => row.id === current)) return current
           return usersPayload.users[0]?.id ?? null
@@ -342,6 +359,54 @@ function SuperAdminPage() {
     await loadData(filters, nextMonth)
   }
 
+  async function handleSaveOpenAiKey(event) {
+    event.preventDefault()
+    if (!token) return
+    setFeedback(null)
+    setPlatformSaving(true)
+    try {
+      const body = {}
+      if (llmKeysDraft.trim() && !platformIntegration?.llmKeysFromEnv) {
+        body.llmApiKeysText = llmKeysDraft.trim()
+      }
+      if (!platformIntegration?.openAiModelFromEnv && openAiModelDraft.trim()) {
+        body.openAiModel = openAiModelDraft.trim()
+      }
+      if (Object.keys(body).length === 0) {
+        setFeedback({ type: 'error', message: 'Coloca chaves novas ou altera o modelo.' })
+        setPlatformSaving(false)
+        return
+      }
+      const next = await api.patchAdminPlatform(token, body)
+      setPlatformIntegration(next)
+      setLlmKeysDraft('')
+      const defM = next.llmProviderGuess === 'groq' ? 'llama-3.1-8b-instant' : 'gpt-4o-mini'
+      setOpenAiModelDraft(next.openAiModel || defM)
+      setFeedback({ type: 'success', message: 'Integração LLM atualizada.' })
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+    } finally {
+      setPlatformSaving(false)
+    }
+  }
+
+  async function handleClearOpenAiKey() {
+    if (!token) return
+ 
+    if (!window.confirm('Remover todas as chaves LLM guardadas na base de dados?')) return
+    setFeedback(null)
+    setPlatformSaving(true)
+    try {
+      const next = await api.patchAdminPlatform(token, { clearLlmApiKeys: true })
+      setPlatformIntegration(next)
+      setFeedback({ type: 'success', message: 'Chave removida da base (variáveis de ambiente do servidor mantêm-se).' })
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+    } finally {
+      setPlatformSaving(false)
+    }
+  }
+
   const metricCards = [
     { label: 'Clientes totais', value: metrics.totalCustomers, accent: 'violet' },
     { label: 'Clientes ativos', value: metrics.activeCustomers, accent: 'emerald' },
@@ -362,7 +427,7 @@ function SuperAdminPage() {
       <div className="admin-hero">
         <div>
           <div className="admin-brand">
-            <div className="admin-brand-logo">T</div>
+            <img src={LOGO_SRC} alt="Tina" className="admin-brand-logo-img" width={200} height={48} decoding="async" />
             <div>
               <div className="admin-brand-name">TINA</div>
               <div className="admin-brand-tag">Central de operação e crescimento</div>
@@ -386,6 +451,110 @@ function SuperAdminPage() {
       </div>
 
       {feedback ? <div className={`feedback ${feedback.type === 'success' ? 'success' : 'error'}`}>{feedback.message}</div> : null}
+
+      {platformIntegration ? (
+        <div className="admin-card" style={{ marginBottom: 20 }}>
+          <div className="admin-card-head">
+            <div>
+              <div className="admin-section-label">Integrações</div>
+              <strong>LLM — pratos automáticos (OpenAI ou Groq)</strong>
+            </div>
+          </div>
+          <p className="admin-subtitle" style={{ marginTop: 8, marginBottom: 12 }}>
+            Chaves <code style={{ fontSize: '0.9em' }}>sk-…</code> (OpenAI) ou <code style={{ fontSize: '0.9em' }}>gsk_…</code>{' '}
+            (Groq). Podes colocar <strong>várias</strong> (uma por linha): se uma falhar por limite ou revogação, o
+            servidor tenta a seguinte. Variáveis no servidor: <code>LLM_API_KEYS</code>, <code>GROQ_API_KEYS</code>,{' '}
+            <code>OPENAI_API_KEY</code>, <code>LLM_MODEL</code> / <code>OPENAI_MODEL</code> têm prioridade sobre a base.
+            Cada &quot;Gerar 30 pratos&quot; pode refininar combinações com o modelo escolhido.
+          </p>
+          {platformIntegration.llmKeysFromEnv ? (
+            <p className="feedback success" style={{ marginBottom: 12 }}>
+              Chaves/modelo definidos no <strong>servidor</strong> (env). Os campos abaixo não substituem isso para API;
+              ainda podes guardar modelo na base se o env não fixar modelo.
+            </p>
+          ) : null}
+          {platformIntegration.llmConfigured ? (
+            <p style={{ fontSize: '0.85em', color: 'var(--t2)', marginBottom: 8 }}>
+              Estado: <strong>activo</strong> — {platformIntegration.llmKeyCount ?? 0} chave(s) em uso (env + base).
+              {platformIntegration.llmProviderGuess ? (
+                <>
+                  {' '}
+                  Provedor inferido: <strong>{platformIntegration.llmProviderGuess}</strong>
+                </>
+              ) : null}
+              {Array.isArray(platformIntegration.llmKeyHintsDb) && platformIntegration.llmKeyHintsDb.length ? (
+                <>
+                  {' '}
+                  — na base:{' '}
+                  {platformIntegration.llmKeyHintsDb.map((h) => (
+                    <code key={h} style={{ marginRight: 6 }}>
+                      {h}
+                    </code>
+                  ))}
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p style={{ fontSize: '0.85em', color: 'var(--t3)', marginBottom: 8 }}>
+              Nenhuma chave configurada (env ou base). Com Groq, modelo sugerido:{' '}
+              <code>llama-3.1-8b-instant</code>; OpenAI: <code>gpt-4o-mini</code>.
+            </p>
+          )}
+          <form onSubmit={handleSaveOpenAiKey} className="admin-form-grid" style={{ gap: 12, maxWidth: 560 }}>
+            <div>
+              <label className="admin-section-label" htmlFor="llm-keys">
+                Chaves API (uma por linha)
+              </label>
+              <textarea
+                id="llm-keys"
+                autoComplete="off"
+                className="admin-input"
+                rows={4}
+                value={llmKeysDraft}
+                onChange={(e) => setLlmKeysDraft(e.target.value)}
+                placeholder={
+                  platformIntegration.llmKeysFromEnv
+                    ? 'Opcional — chaves já vêm do servidor'
+                    : 'gsk_… ou sk-…\n(gsk_… segunda chave…)'
+                }
+                disabled={platformSaving || platformIntegration.llmKeysFromEnv}
+                style={{ width: '100%', marginTop: 6, fontFamily: 'monospace', fontSize: '0.85em' }}
+              />
+            </div>
+            <div>
+              <label className="admin-section-label" htmlFor="openai-model">
+                Modelo
+              </label>
+              <input
+                id="openai-model"
+                className="admin-input"
+                value={openAiModelDraft}
+                onChange={(e) => setOpenAiModelDraft(e.target.value)}
+                disabled={platformSaving || platformIntegration.openAiModelFromEnv}
+                style={{ width: '100%', marginTop: 6 }}
+              />
+              {platformIntegration.openAiModelFromEnv ? (
+                <p style={{ fontSize: '0.75em', color: 'var(--t3)', marginTop: 4 }}>Modelo fixo por LLM_MODEL ou OPENAI_MODEL no servidor.</p>
+              ) : (
+                <p style={{ fontSize: '0.75em', color: 'var(--t3)', marginTop: 4 }}>
+                  Groq: ex. llama-3.1-8b-instant. OpenAI: ex. gpt-4o-mini.
+                </p>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button type="submit" className="admin-button" disabled={platformSaving}>
+                {platformSaving ? 'A guardar…' : 'Guardar chaves / modelo'}
+              </button>
+              {!platformIntegration.llmKeysFromEnv &&
+              (platformIntegration.llmKeyCountDb ?? 0) > 0 ? (
+                <button type="button" className="admin-button admin-button-ghost" disabled={platformSaving} onClick={handleClearOpenAiKey}>
+                  Remover chaves da base
+                </button>
+              ) : null}
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       <div className="admin-summary admin-summary-single">
         <div className="admin-summary-card admin-summary-highlight">

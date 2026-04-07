@@ -1,5 +1,5 @@
 const express = require('express')
-const { one, many, query, uid } = require('../lib/db')
+const { one, many, query, uid, transaction } = require('../lib/db')
 const { requireAuth } = require('../middleware/auth')
 
 const router = express.Router()
@@ -8,7 +8,7 @@ router.use(requireAuth)
 
 router.get('/', async (req, res) => {
   const sql = `
-    SELECT id, profile_key AS "profileKey", participant_keys_json AS "participantKeysJson", title, tag, time_type AS "timeType", time_value AS "timeValue", priority, reward, points, done, recurrence, created_at AS "createdAt"
+    SELECT id, profile_key AS "profileKey", participant_keys_json AS "participantKeysJson", title, tag, time_type AS "timeType", time_value AS "timeValue", priority, reward, points, done, recurrence, for_date AS "forDate", archived, created_at AS "createdAt"
     FROM tasks
     WHERE owner_user_id = $1
     ORDER BY created_at ASC
@@ -21,10 +21,11 @@ router.get('/', async (req, res) => {
 router.get('/history', async (req, res) => {
   const { from, to } = req.query
   let sql = `
-    SELECT h.id, h.task_id as "taskId", h.profile_key as "profileKey", h.completed_at as "completedAt",
-           t.title, t.reward, t.points
+    SELECT h.id, h.task_id AS "taskId", h.profile_key AS "profileKey", h.completed_at AS "completedAt",
+           COALESCE(h.status, 'completed') AS "status",
+           COALESCE(t.title, '(tarefa)') AS title, t.reward, t.points
     FROM task_history h
-    JOIN tasks t ON h.task_id = t.id
+    LEFT JOIN tasks t ON t.id = h.task_id
     WHERE h.owner_user_id = $1
   `
   const params = [req.user.id]
@@ -36,14 +37,106 @@ router.get('/history', async (req, res) => {
   res.json({ history })
 })
 
+router.post('/rollover', async (req, res) => {
+  const asOfDate = req.body.asOfDate
+  if (!asOfDate || !/^\d{4}-\d{2}-\d{2}$/.test(asOfDate)) {
+    return res.status(400).json({ error: 'Informe asOfDate (YYYY-MM-DD).' })
+  }
+
+  const appTz = process.env.APP_TZ || 'America/Sao_Paulo'
+
+  try {
+    await transaction(async (client) => {
+      const now = new Date().toISOString()
+
+      /** Tarefas antigas sem for_date: atribui o dia de criação no fuso da app para o rollover poder fechar o dia. */
+      await client.query(
+        `
+        UPDATE tasks
+        SET for_date = to_char((created_at AT TIME ZONE $1)::date, 'YYYY-MM-DD'), updated_at = $3
+        WHERE owner_user_id = $2
+          AND for_date IS NULL
+          AND COALESCE(archived, false) = false
+        `,
+        [appTz, req.user.id, now],
+      )
+
+      await client.query(
+        `
+        UPDATE tasks
+        SET archived = true, updated_at = $3
+        WHERE owner_user_id = $1
+          AND for_date IS NOT NULL
+          AND for_date < $2
+          AND done = true
+          AND COALESCE(archived, false) = false
+        `,
+        [req.user.id, asOfDate, now],
+      )
+
+      const { rows: oldRows } = await client.query(
+        `
+        SELECT *
+        FROM tasks
+        WHERE owner_user_id = $1
+          AND for_date IS NOT NULL
+          AND for_date < $2
+          AND done = false
+          AND COALESCE(archived, false) = false
+        `,
+        [req.user.id, asOfDate],
+      )
+
+      for (const row of oldRows) {
+        const keys = JSON.parse(row.participant_keys_json || '[]')
+        const profileKey = keys[0] || row.profile_key
+        const missedAt = `${row.for_date}T12:00:00.000Z`
+        await client.query(
+          `
+          INSERT INTO task_history (id, owner_user_id, task_id, profile_key, completed_at, created_at, status)
+          VALUES ($1, $2, $3, $4, $5, $6, 'missed')
+          `,
+          [uid('hist'), req.user.id, row.id, profileKey, missedAt, now],
+        )
+        await client.query(
+          `UPDATE tasks SET for_date = $2, done = false, updated_at = $3 WHERE id = $1`,
+          [row.id, asOfDate, now],
+        )
+      }
+    })
+    res.json({ ok: true })
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro ao atualizar tarefas do dia.' })
+  }
+})
+
 router.post('/', async (req, res) => {
-  const { title, tag, points = 0, done = false, recurrence = 'única', profileKey = '', participantKeys = [], timeType = 'none', timeValue = '', priority = 0, reward = '' } = req.body
+  const {
+    title,
+    tag,
+    points = 0,
+    done = false,
+    recurrence = 'única',
+    profileKey = '',
+    participantKeys = [],
+    timeType = 'none',
+    timeValue = '',
+    priority = 0,
+    reward = '',
+    forDate: forDateBody,
+  } = req.body
 
   if (!title) {
     return res.status(400).json({ error: 'Título é obrigatório.' })
   }
 
   const now = new Date().toISOString()
+  const forDate =
+    typeof forDateBody === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(forDateBody)
+      ? forDateBody
+      : new Date().toLocaleDateString('en-CA', { timeZone: process.env.APP_TZ || 'America/Sao_Paulo' })
+
   const task = {
     id: uid('task'),
     ownerUserId: req.user.id,
@@ -60,14 +153,32 @@ router.post('/', async (req, res) => {
     recurrence,
     createdAt: now,
     updatedAt: now,
+    forDate,
   }
 
   await query(
     `
-      INSERT INTO tasks (id, owner_user_id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      INSERT INTO tasks (id, owner_user_id, profile_key, participant_keys_json, title, tag, time_type, time_value, priority, reward, points, done, recurrence, created_at, updated_at, for_date, archived)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, false)
     `,
-    [task.id, task.ownerUserId, task.profileKey, task.participantKeysJson, task.title, task.tag, task.timeType, task.timeValue, task.priority, task.reward, task.points, task.done, task.recurrence, task.createdAt, task.updatedAt]
+    [
+      task.id,
+      task.ownerUserId,
+      task.profileKey,
+      task.participantKeysJson,
+      task.title,
+      task.tag,
+      task.timeType,
+      task.timeValue,
+      task.priority,
+      task.reward,
+      task.points,
+      task.done,
+      task.recurrence,
+      task.createdAt,
+      task.updatedAt,
+      task.forDate,
+    ],
   )
 
   res.status(201).json({ task })
@@ -111,8 +222,8 @@ router.patch('/:id', async (req, res) => {
     }
 
     await query(
-      `INSERT INTO task_history (id, owner_user_id, task_id, profile_key, completed_at, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
-      [uid('hist'), req.user.id, next.id, profileKeyCompleting, next.updated_at, next.updated_at]
+      `INSERT INTO task_history (id, owner_user_id, task_id, profile_key, completed_at, created_at, status) VALUES ($1, $2, $3, $4, $5, $6, 'completed')`,
+      [uid('hist'), req.user.id, next.id, profileKeyCompleting, next.updated_at, next.updated_at],
     )
   } else if (!next.done && existing.done) {
     await query(`DELETE FROM task_history WHERE task_id = $1 AND owner_user_id = $2`, [next.id, req.user.id])

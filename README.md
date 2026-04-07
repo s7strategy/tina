@@ -1,6 +1,6 @@
 # TINA SaaS
 
-Sistema de gestão familiar com dashboard multi-perfil, controle de tarefas, agenda, time tracking, recompensas e painel administrativo.
+Sistema de gestão familiar com dashboard multi-perfil, controle de tarefas, agenda, time tracking, recompensas, **módulo de refeições** (planner, receitas globais, lista de compras, PWA) e painel administrativo.
 
 ## Arquitetura
 
@@ -36,9 +36,16 @@ npm run dev            # http://localhost:4000
 
 # Frontend (outro terminal)
 cd frontend
+cp .env.example .env   # Ajuste VITE_API_URL (ex.: http://localhost:4000/api em dev)
 npm install
 npm run dev            # http://localhost:5173
 ```
+
+## Repositório no GitHub
+
+- **Nunca commite** `deploy.credentials.env`, `.env`, `backend/.env`, `frontend/.env`, bases SQLite locais nem `backend/uploads/` — já estão no `.gitignore`.
+- Para publicar alterações: `git add -A && git commit -m "…" && git push origin main` (ajuste o branch remoto se necessário).
+- Após clonar numa máquina nova: siga **Setup local** e, para deploy na VPS, crie de novo o `deploy.credentials.env` a partir do exemplo.
 
 ## Deploy (VPS)
 
