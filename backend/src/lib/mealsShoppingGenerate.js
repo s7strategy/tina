@@ -213,6 +213,15 @@ function formatMassFromTotalGrams(totalGrams) {
   return { quantityText: String(Math.round(totalGrams)), unit: 'g' }
 }
 
+/** Volume total em ml → texto (≥1 L mostra em litros, como uma unidade legível). */
+function formatLiquidMlTotal(totalMl) {
+  if (!Number.isFinite(totalMl) || totalMl <= 0) return { text: '', unitForUi: 'ml' }
+  if (totalMl >= 1000) {
+    return { text: `${formatQtyNumber(totalMl / 1000)} L`.trim(), unitForUi: 'L' }
+  }
+  return { text: `${formatQtyNumber(totalMl)} ml`.trim(), unitForUi: 'ml' }
+}
+
 /**
  * Agrega ingredientes de receitas nos slots do planejador.
  * - `horizonDays` (7|15|30): de hoje até hoje+N-1.
@@ -402,7 +411,7 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       if (qMass) qtyParts.push(`${qMass} ${uMass}`.trim())
     }
     if (entry.ml > 0) {
-      qtyParts.push(`${formatQtyNumber(entry.ml)} ml`.trim())
+      qtyParts.push(formatLiquidMlTotal(entry.ml).text)
     }
 
     const keys = [...entry.byUnit.keys()].sort((a, b) => {
@@ -436,7 +445,7 @@ async function generateShoppingItemsFromPlanner(ownerUserId, horizonDaysOrPeriod
       if (nGrams) {
         primaryUnit = formatMassFromTotalGrams(entry.grams).unit
       } else if (nMl) {
-        primaryUnit = 'ml'
+        primaryUnit = formatLiquidMlTotal(entry.ml).unitForUi
       } else if (entry.byUnit.size === 1 && keys.length === 1) {
         const only = keys[0]
         const v = entry.byUnit.get(only)

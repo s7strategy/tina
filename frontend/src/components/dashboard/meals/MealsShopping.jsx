@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { Check } from 'lucide-react'
 import { api } from '../../../lib/api.js'
 
@@ -119,6 +119,10 @@ export default function MealsShopping({ token, embedded = false }) {
   const [loading, setLoading] = useState(true)
   const [horizonDays, setHorizonDays] = useState(7)
   const [newItem, setNewItem] = useState({ name: '', quantityText: '', unit: 'un' })
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [suggestList, setSuggestList] = useState([])
+  const suggestDebounceRef = useRef(null)
+  const suggestBlurRef = useRef(null)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -153,6 +157,37 @@ export default function MealsShopping({ token, embedded = false }) {
     window.addEventListener('mealsShoppingReload', onShoppingReload)
     return () => window.removeEventListener('mealsShoppingReload', onShoppingReload)
   }, [load])
+
+  useEffect(() => {
+    const t = newItem.name.trim()
+    if (t.length < 2) {
+      setSuggestList([])
+      setSuggestOpen(false)
+      return
+    }
+    if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current)
+    suggestDebounceRef.current = setTimeout(async () => {
+      if (!token) return
+      try {
+        const r = await api.getShoppingIngredientSuggestions(token, t)
+        const list = Array.isArray(r.suggestions) ? r.suggestions : []
+        setSuggestList(list)
+        setSuggestOpen(list.length > 0)
+      } catch {
+        setSuggestList([])
+        setSuggestOpen(false)
+      }
+    }, 220)
+    return () => clearTimeout(suggestDebounceRef.current)
+  }, [newItem.name, token])
+
+  function pickIngredientSuggestion(name) {
+    const n = String(name || '').trim()
+    if (!n) return
+    setNewItem((c) => ({ ...c, name: n }))
+    setSuggestOpen(false)
+    setSuggestList([])
+  }
 
   async function addItem() {
     if (!detail?.id) return
@@ -274,15 +309,43 @@ export default function MealsShopping({ token, embedded = false }) {
           <button type="button" className="meals-shop-fab" aria-label="Adicionar item" onClick={addItem}>
             +
           </button>
-          <input
-            className="meals-field meals-shop-add-name"
-            placeholder="Novo item"
-            value={newItem.name}
-            onChange={(e) => setNewItem((c) => ({ ...c, name: e.target.value }))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') addItem()
-            }}
-          />
+          <div className="meals-shop-suggest-wrap">
+            <input
+              className="meals-field meals-shop-add-name"
+              placeholder="Novo item (sugestões das tuas receitas)"
+              autoComplete="off"
+              aria-autocomplete="list"
+              aria-expanded={suggestOpen}
+              value={newItem.name}
+              onChange={(e) => setNewItem((c) => ({ ...c, name: e.target.value }))}
+              onFocus={() => {
+                if (suggestList.length > 0) setSuggestOpen(true)
+              }}
+              onBlur={() => {
+                if (suggestBlurRef.current) clearTimeout(suggestBlurRef.current)
+                suggestBlurRef.current = setTimeout(() => setSuggestOpen(false), 160)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.isComposing) addItem()
+              }}
+            />
+            {suggestOpen && suggestList.length > 0 ? (
+              <ul className="meals-shop-suggest-list" role="listbox">
+                {suggestList.map((s) => (
+                  <li key={s} role="option">
+                    <button
+                      type="button"
+                      className="meals-shop-suggest-item"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => pickIngredientSuggestion(s)}
+                    >
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
           <input
             className="meals-field meals-shop-add-qty"
             placeholder="Qtd"

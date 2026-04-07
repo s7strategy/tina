@@ -80,6 +80,45 @@ router.post('/sync', async (req, res) => {
   res.json(payload)
 })
 
+/** Para autocomplete ao adicionar item: nomes já usados nas tuas receitas e listas. */
+const PT_ACCENT_FROM = 'áàâãäéèêëíìîïóòôõöúùûüçñÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑ'
+const PT_ACCENT_TO = 'aaaaaeeeeiiiiooooouuuucnAAAAAEEEEIIIIOOOOOUUUUCN'
+
+router.get('/ingredient-suggestions', async (req, res) => {
+  let q = String(req.query.q || '').trim().slice(0, 48)
+  q = q.replace(/%/g, '').replace(/_/g, '')
+  const limit = Math.min(30, Math.max(5, Number(req.query.limit) || 18))
+  if (q.length < 1) return res.json({ suggestions: [] })
+
+  const folded = q
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+
+  const rows = await many(
+    `
+    SELECT name FROM (
+      SELECT DISTINCT trim(ri.name) AS name
+      FROM recipe_ingredients ri
+      INNER JOIN recipes r ON r.id = ri.recipe_id AND r.owner_user_id = $1
+      WHERE length(trim(ri.name)) > 0
+        AND translate(lower(trim(ri.name)), $3, $4) LIKE $2 || '%'
+      UNION
+      SELECT DISTINCT trim(si.name) AS name
+      FROM shopping_items si
+      INNER JOIN shopping_lists sl ON sl.id = si.list_id AND sl.owner_user_id = $1
+      WHERE length(trim(si.name)) > 0
+        AND translate(lower(trim(si.name)), $3, $4) LIKE $2 || '%'
+    ) u
+    ORDER BY name ASC
+    LIMIT $5
+    `,
+    [req.user.id, folded, PT_ACCENT_FROM, PT_ACCENT_TO, limit],
+  )
+
+  res.json({ suggestions: rows.map((r) => r.name).filter(Boolean) })
+})
+
 router.get('/lists', async (req, res) => {
   const lists = await many(
     `

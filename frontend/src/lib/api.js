@@ -423,6 +423,12 @@ export const api = {
     const qs = q.toString()
     return request(`/meals/shopping${qs ? `?${qs}` : ''}`, { token })
   },
+  getShoppingIngredientSuggestions(token, q, { limit = 18 } = {}) {
+    const params = new URLSearchParams()
+    params.set('q', String(q || '').trim())
+    if (limit) params.set('limit', String(limit))
+    return request(`/meals/shopping/ingredient-suggestions?${params.toString()}`, { token })
+  },
   syncShoppingFromPlanner(token, payload) {
     const body =
       typeof payload === 'number'
